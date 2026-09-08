@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FPL Monte Carlo | Team Selection & Player Explorer</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-group">
+        <div class="logo-icon">PL</div>
+        <div class="logo-title">
+          <h1>FPL Monte Carlo Explorer</h1>
+          <p>Probabilistic Decision Engine & Squad Optimizer <span style="background:rgba(56, 189, 248, 0.15); color:var(--accent); border:1px solid rgba(56, 189, 248, 0.3); border-radius:12px; padding:2px 8px; font-size:0.7rem; font-weight:600; margin-left:6px;">10,000 Sims</span></p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnCompareOpen" class="btn btn-secondary" aria-label="Compare selected players">
+          <span>⚖️ Compare</span>
+          <span id="compareBadge" class="badge">0</span>
+        </button>
+        <button id="btnSquadOpen" class="btn btn-primary" aria-label="Open squad builder">
+          <span>📋 My Squad</span>
+          <span id="squadBadge" class="badge">0/15</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Live Top KPI Banner -->
+  <section class="kpi-banner" aria-label="Key Performance Indicators">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">Top Projected (xP)</span>
+        <span id="kpiTopPlayer" class="kpi-value">Loading...</span>
+        <span id="kpiTopPlayerSub" class="kpi-sub">-</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Best Value Gem (xP / £m)</span>
+        <span id="kpiTopValue" class="kpi-value">Loading...</span>
+        <span id="kpiTopValueSub" class="kpi-sub">-</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Highest Captaincy Ceiling</span>
+        <span id="kpiTopCeiling" class="kpi-value">Loading...</span>
+        <span id="kpiTopCeilingSub" class="kpi-sub">-</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">DefCon Leader (CBIT/R)</span>
+        <span id="kpiTopDefCon" class="kpi-value">Loading...</span>
+        <span id="kpiTopDefConSub" class="kpi-sub">-</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Top Differential (&lt;5% Own)</span>
+        <span id="kpiTopDiff" class="kpi-value">Loading...</span>
+        <span id="kpiTopDiffSub" class="kpi-sub">-</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Workspace -->
+  <main>
+    <!-- Controls Container -->
+    <div class="controls-container">
+      <div class="search-row">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search player name or club (e.g. Saka, Liverpool)..." autocomplete="off">
+        </div>
+
+        <!-- Position Pills -->
+        <div class="filter-group">
+          <span class="filter-label">Position:</span>
+          <div class="pill-group" id="posPills">
+            <button class="pill-btn active" data-pos="ALL">ALL</button>
+            <button class="pill-btn" data-pos="GKP">GKP</button>
+            <button class="pill-btn" data-pos="DEF">DEF</button>
+            <button class="pill-btn" data-pos="MID">MID</button>
+            <button class="pill-btn" data-pos="FWD">FWD</button>
+          </div>
+        </div>
+
+        <!-- Max Price Dropdown -->
+        <div class="filter-group">
+          <label for="priceSelect" class="filter-label">Max Price:</label>
+          <select id="priceSelect" class="select-dropdown">
+            <option value="20.0">Any Price</option>
+            <option value="12.5">≤ £12.5m</option>
+            <option value="10.0">≤ £10.0m</option>
+            <option value="8.0">≤ £8.0m</option>
+            <option value="6.5">≤ £6.5m (Mid-Price)</option>
+            <option value="5.0">≤ £5.0m (Budget)</option>
+            <option value="4.5">≤ £4.5m (Enablers)</option>
+          </select>
+        </div>
+
+        <!-- Ownership Filter Dropdown -->
+        <div class="filter-group">
+          <label for="ownershipSelect" class="filter-label">Ownership:</label>
+          <select id="ownershipSelect" class="select-dropdown">
+            <option value="all">All Ownership</option>
+            <option value="diff">🎯 Differentials (&lt; 5%)</option>
+            <option value="ultra_diff">⚡ Super Diff (&lt; 2%)</option>
+            <option value="template">🔥 High Ownership (≥ 10%)</option>
+          </select>
+        </div>
+
+        <!-- Horizon Selector -->
+        <div class="filter-group">
+          <label for="horizonSelect" class="filter-label">Horizon:</label>
+          <select id="horizonSelect" class="select-dropdown">
+            <option value="1">Next 1 Fixture (Upcoming)</option>
+            <option value="3">Next 3 Fixtures</option>
+            <option value="5">Next 5 Fixtures</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick Strategy Presets -->
+      <div class="presets-row">
+        <span class="filter-label">Strategy Presets:</span>
+        <button class="preset-chip active" data-preset="all">⚡ All Players</button>
+        <button class="preset-chip" data-preset="differential">🎯 Differentials (&lt;5% Own)</button>
+        <button class="preset-chip" data-preset="captain">👑 Top Captains (High Ceiling)</button>
+        <button class="preset-chip" data-preset="value">💎 Budget Gems (xP / £m)</button>
+        <button class="preset-chip" data-preset="defcon">🛡️ DefCon Monsters (High Actions)</button>
+        <button class="preset-chip" data-preset="cleansheet">🧱 Clean Sheet Wall</button>
+      </div>
+    </div>
+
+    <!-- Players Table Card -->
+    <div class="table-card">
+      <div class="table-responsive">
+        <table id="playersTable" role="table">
+          <thead>
+            <tr>
+              <th data-sort="name">Player</th>
+              <th data-sort="position">Pos</th>
+              <th data-sort="price">Price</th>
+              <th data-sort="selected_by_percent">Own %</th>
+              <th>Next Fixtures (FDR)</th>
+              <th data-sort="xp" class="sorted-desc">Expected Pts (xP)</th>
+              <th data-sort="ppm">Value (xP/£m)</th>
+              <th data-sort="floor">Floor (P10)</th>
+              <th data-sort="ceiling">Ceiling (P90)</th>
+              <th data-sort="haul_prob">Haul (≥10)</th>
+              <th data-sort="defcon_prob">DefCon (+2)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="playersTableBody">
+            <tr>
+              <td colspan="12" style="text-align:center; padding: 2rem;">Loading FPL players & running projections...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Player Detail Modal (Native Dialog) -->
+  <dialog id="playerModal" aria-labelledby="modalPlayerName">
+    <div class="modal-header">
+      <div>
+        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+          <span id="modalPosBadge" class="pos-badge">POS</span>
+          <h2 id="modalPlayerName" style="font-size: 1.4rem; font-weight:800;">Player Name</h2>
+          <span id="modalPlayerPrice" style="font-size:1.1rem; color:var(--fpl-green); font-weight:700;">£0.0m</span>
+          <span id="modalPlayerOwn" class="badge" style="background:rgba(4,245,255,0.12); color:var(--fpl-cyan); border:1px solid rgba(4,245,255,0.25); font-weight:700; font-size:0.8rem;">0.0% Own</span>
+        </div>
+        <p id="modalPlayerTeamFixture" style="color:var(--text-muted); font-size:0.85rem; margin-top:0.25rem;">Team vs Opponent</p>
+      </div>
+      <button class="modal-close" id="modalCloseBtn" aria-label="Close dialog">&times;</button>
+    </div>
+
+    <!-- Key Projections Grid -->
+    <div class="stat-cards-grid">
+      <div class="stat-card">
+        <div class="label">Expected Points</div>
+        <div id="modalStatXP" class="value" style="color:var(--fpl-green);">0.0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">P10 Floor (Safe)</div>
+        <div id="modalStatFloor" class="value">0.0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">P50 Median</div>
+        <div id="modalStatMedian" class="value">0.0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">P90 Ceiling</div>
+        <div id="modalStatCeiling" class="value" style="color:var(--fpl-yellow);">0.0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Haul Rate (≥10)</div>
+        <div id="modalStatHaul" class="value" style="color:var(--fpl-pink);">0.0%</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">DefCon Rate (+2)</div>
+        <div id="modalStatDefCon" class="value" style="color:var(--fpl-cyan);">0.0%</div>
+      </div>
+    </div>
+
+    <!-- Interactive Probability Chart -->
+    <div class="chart-container">
+      <div class="chart-title">
+        <span>Monte Carlo Point Distribution (10,000 Simulations)</span>
+        <span id="modalChartSub" style="color:var(--fpl-green); font-weight:600;"></span>
+      </div>
+      <div id="svgChartWrapper" style="width:100%; height:220px;"></div>
+    </div>
+
+    <!-- Fixture Breakdown -->
+    <div id="modalFixturesContainer" style="margin-bottom:1.5rem;">
+      <h3 style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.6rem;">Upcoming Fixture Schedule</h3>
+      <div id="modalFixturesList" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:0.6rem;"></div>
+    </div>
+
+    <!-- Modal Actions -->
+    <div style="display:flex; justify-content:flex-end; gap:0.75rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+      <button id="modalAddCompareBtn" class="btn btn-secondary">⚖️ Add to Compare</button>
+      <button id="modalAddSquadBtn" class="btn btn-primary">📋 Add to Squad</button>
+    </div>
+  </dialog>
+
+  <!-- Head-to-Head Compare Modal -->
+  <dialog id="compareModal" aria-labelledby="compareModalTitle" style="max-width:950px;">
+    <div class="modal-header">
+      <div>
+        <h2 id="compareModalTitle" style="font-size:1.3rem; font-weight:800;">⚖️ Player Head-to-Head Decider</h2>
+        <p style="color:var(--text-muted); font-size:0.85rem;">Comparative Monte Carlo simulation distributions and captaincy win probabilities</p>
+      </div>
+      <button class="modal-close" id="compareCloseBtn" aria-label="Close comparison">&times;</button>
+    </div>
+
+    <div id="compareBody">
+      <div id="compareCards" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:1rem; margin-bottom:1.5rem;"></div>
+      
+      <!-- Head to Head Matrix -->
+      <div style="background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1rem; margin-bottom:1.5rem;">
+        <h3 style="font-size:0.85rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.75rem;">Captaincy Win Probabilities (Simulated Head-to-Head)</h3>
+        <div id="h2hMatrix"></div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:1rem;">
+      <button id="clearCompareBtn" class="btn btn-secondary" style="color:#ff5c85;">Clear Comparison</button>
+      <button id="closeCompareFooterBtn" class="btn btn-primary">Done</button>
+    </div>
+  </dialog>
+
+  <!-- My Squad Builder Drawer -->
+  <aside id="squadDrawer" class="drawer" aria-label="FPL Squad Builder">
+    <div class="drawer-header">
+      <div>
+        <h2 style="font-size:1.15rem; font-weight:800;">📋 My 15-Man Squad</h2>
+        <p style="font-size:0.75rem; color:var(--text-muted);">FPL Budget & Optimal Starting XI Planner</p>
+      </div>
+      <button class="modal-close" id="squadDrawerClose" aria-label="Close squad drawer">&times;</button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Budget Tracker -->
+      <div class="squad-budget-bar">
+        <div>
+          <span style="color:var(--text-muted); font-size:0.75rem; display:block;">SPENT / BUDGET</span>
+          <span id="squadCostDisplay" style="font-weight:800; font-size:1rem;">£0.0m / £100.0m</span>
+        </div>
+        <div style="text-align:right;">
+          <span style="color:var(--text-muted); font-size:0.75rem; display:block;">IN BANK</span>
+          <span id="squadBankDisplay" style="font-weight:800; font-size:1rem; color:var(--fpl-green);">£100.0m</span>
+        </div>
+      </div>
+
+      <!-- Squad Total xP -->
+      <div style="background:rgba(0, 255, 135, 0.08); border:1px solid rgba(0, 255, 135, 0.2); border-radius:var(--radius-sm); padding:0.6rem 0.75rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Starting XI Projected</span>
+          <div id="squadFormationDisplay" style="font-size:0.75rem; color:var(--fpl-green); font-weight:700;">Formation: -</div>
+        </div>
+        <span id="squadTotalXpDisplay" style="font-size:1.3rem; font-weight:900; color:var(--fpl-green);">0.0 pts</span>
+      </div>
+
+      <!-- Positions Slots -->
+      <div class="squad-pos-section">
+        <div class="squad-pos-title">Goalkeepers (<span id="countGKP">0</span>/2)</div>
+        <div id="slotsGKP"></div>
+      </div>
+
+      <div class="squad-pos-section">
+        <div class="squad-pos-title">Defenders (<span id="countDEF">0</span>/5)</div>
+        <div id="slotsDEF"></div>
+      </div>
+
+      <div class="squad-pos-section">
+        <div class="squad-pos-title">Midfielders (<span id="countMID">0</span>/5)</div>
+        <div id="slotsMID"></div>
+      </div>
+
+      <div class="squad-pos-section">
+        <div class="squad-pos-title">Forwards (<span id="countFWD">0</span>/3)</div>
+        <div id="slotsFWD"></div>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <div style="display:flex; gap:0.5rem;">
+        <button id="btnAutoOptimize" class="btn btn-primary" style="flex:1;">🤖 Auto-Optimize 15</button>
+        <button id="btnClearSquad" class="btn btn-secondary" style="color:#ff5c85;">Clear</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <p id="loadingText" style="font-weight:700; font-size:1rem; color:var(--text-main);">Running Monte Carlo simulations...</p>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
