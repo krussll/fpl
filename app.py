@@ -236,6 +236,16 @@ def serve_index():
     return FileResponse("static/index.html")
 
 
+@app.get("/styles.css")
+def serve_styles():
+    return FileResponse("static/styles.css")
+
+
+@app.get("/app.js")
+def serve_js():
+    return FileResponse("static/app.js")
+
+
 @app.get("/api/players")
 def get_players(
     fixtures: int = Query(1, ge=1, le=5),
