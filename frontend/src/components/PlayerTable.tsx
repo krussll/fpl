@@ -61,6 +61,15 @@ function matchOwnership(
   return playerOwnPercent <= num;
 }
 
+function normalizeSearchText(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ø/g, "o")
+    .replace(/æ/g, "ae");
+}
+
 function getFdrClasses(fdr: number) {
   switch (fdr) {
     case 1:
@@ -111,6 +120,9 @@ export default function PlayerTable() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Filter 0: Free text input to filter by player name
+  const [nameSearch, setNameSearch] = useState("");
 
   // Filter 1: Multi-select positions (empty array means ALL)
   const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
@@ -383,6 +395,7 @@ export default function PlayerTable() {
   };
 
   const resetAllFilters = () => {
+    setNameSearch("");
     setSelectedPositions([]);
     setSelectedTeams([]);
     setMaxPrice(null);
@@ -401,9 +414,21 @@ export default function PlayerTable() {
     setCurrentPage(1);
   };
 
-  // Filter players by positions, teams, max price, and ownership
+  // Filter players by name, positions, teams, max price, and ownership
   const filteredPlayers = useMemo(() => {
+    const trimmed = nameSearch.trim();
+    const query = trimmed ? normalizeSearchText(trimmed) : "";
+
     return players.filter((p) => {
+      // Player name filter
+      if (query) {
+        const nameMatch = p.name && normalizeSearchText(p.name).includes(query);
+        const fullNameMatch =
+          p.full_name && normalizeSearchText(p.full_name).includes(query);
+        if (!nameMatch && !fullNameMatch) {
+          return false;
+        }
+      }
       // Position filter
       if (selectedPositions.length > 0 && !selectedPositions.includes(p.position)) {
         return false;
@@ -425,7 +450,7 @@ export default function PlayerTable() {
       }
       return true;
     });
-  }, [players, selectedPositions, selectedTeams, maxPrice, ownershipFilter]);
+  }, [players, nameSearch, selectedPositions, selectedTeams, maxPrice, ownershipFilter]);
 
   // Sort filtered players
   const sortedPlayers = useMemo(() => {
@@ -455,12 +480,14 @@ export default function PlayerTable() {
     return sortedPlayers.slice(start, start + pageSize);
   }, [sortedPlayers, currentPage, pageSize]);
 
+  const isNameFilterActive = nameSearch.trim().length > 0;
   const isAllPositionsActive = selectedPositions.length === 0;
   const isAllTeamsActive = selectedTeams.length === 0;
   const isPriceFilterActive = maxPrice !== null;
   const isGwFilterActive = gameweeks !== 1;
   const isOwnFilterActive = ownershipFilter !== null;
   const hasActiveFilters =
+    isNameFilterActive ||
     !isAllPositionsActive ||
     !isAllTeamsActive ||
     isPriceFilterActive ||
@@ -529,6 +556,53 @@ export default function PlayerTable() {
       <div className="space-y-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+            {/* Filter: Free text input by player name */}
+            <div className="relative flex items-center gap-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">
+                Player:
+              </span>
+              <div className="relative flex items-center">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={nameSearch}
+                  onChange={(e) => {
+                    setNameSearch(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  onFocus={() => {
+                    setPosDropdownOpen(false);
+                    setTeamDropdownOpen(false);
+                    setPriceDropdownOpen(false);
+                    setGwDropdownOpen(false);
+                    setOwnDropdownOpen(false);
+                  }}
+                  placeholder="Filter by name..."
+                  className={`w-36 sm:w-44 rounded-xl border py-1.5 pr-7 pl-8 text-xs transition-all placeholder:text-slate-400 focus:outline-none focus:ring-1 ${
+                    isNameFilterActive
+                      ? "border-emerald-300 bg-emerald-50/80 text-emerald-900 font-semibold ring-1 ring-emerald-600/20 focus:border-emerald-500 focus:ring-emerald-500"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 focus:border-emerald-500 focus:ring-emerald-500 focus:bg-white"
+                  }`}
+                />
+                {isNameFilterActive && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNameSearch("");
+                      setCurrentPage(1);
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-700 transition-colors"
+                    aria-label="Clear player name search"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Separator */}
+            <div className="hidden h-6 w-px bg-slate-200 sm:block" />
+
             {/* Filter 1: Position Multi-Select Dropdown */}
             <div className="relative flex items-center gap-1.5" ref={posDropdownRef}>
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">
@@ -1122,6 +1196,24 @@ export default function PlayerTable() {
             <span className="text-slate-400 text-[11px] font-medium mr-1">
               Active Filters:
             </span>
+
+            {/* Player Name Chip */}
+            {isNameFilterActive && (
+              <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800 ring-1 ring-inset ring-emerald-600/20">
+                <span>Player: &ldquo;{nameSearch.trim()}&rdquo;</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNameSearch("");
+                    setCurrentPage(1);
+                  }}
+                  className="rounded hover:bg-emerald-200/50 p-0.5 text-emerald-600 hover:text-emerald-900"
+                  aria-label="Remove player name filter"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
 
             {/* Position Chips */}
             {selectedPositions.map((posKey) => (
