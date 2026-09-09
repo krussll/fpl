@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Player, PlayerFixture, PlayerHistoryMatch } from "@/types/player";
-import { X, Clock, Target, Shield, ShieldCheck, Star } from "lucide-react";
+import { X, Clock, Target, Shield, ShieldCheck, Star, BarChart3, ChevronDown } from "lucide-react";
 
 interface PlayerModalProps {
   player: Player;
@@ -94,6 +94,9 @@ export default function PlayerModal({
       : fetchedHistory || [];
 
   const recentMatches = history.slice(-5);
+
+  // Distribution chart visibility toggle (hidden by default)
+  const [showDistribution, setShowDistribution] = useState<boolean>(false);
 
   // Close on Escape & lock body scrolling
   useEffect(() => {
@@ -291,161 +294,187 @@ export default function PlayerModal({
             </div>
           </div>
 
-          {/* Interactive Probability Distribution Chart */}
-          <div className="rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4 sm:p-5 shadow-xs">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-200/60">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Monte Carlo Point Distribution ({gwLabel} • 10,000 Simulations)
-              </span>
-              <span className="text-xs font-medium text-emerald-800">
-                {player.sigma !== undefined && (
-                  <span>Vol: ±{player.sigma.toFixed(2)} pts | </span>
-                )}
+          {/* Interactive Probability Distribution Chart Toggle & Container */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowDistribution((prev) => !prev)}
+              className="group flex w-full items-center justify-between rounded-xl border border-slate-200/90 bg-slate-50/70 px-4 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors shadow-xs cursor-pointer"
+              aria-expanded={showDistribution}
+            >
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-emerald-600 shrink-0" />
                 <span>
-                  Range: {minScore} - {maxScore} pts (10,000 simulations)
+                  {showDistribution ? "Hide" : "Show"} Monte Carlo Point Distribution ({gwLabel} • 10,000 Simulations)
                 </span>
-              </span>
-            </div>
-
-            {hasDistribution ? (
-              <div className="mt-3 w-full overflow-hidden">
-                <svg
-                  viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-                  className="w-full h-auto select-none"
-                  preserveAspectRatio="xMidYMid meet"
-                >
-                  {/* Baseline axis */}
-                  <line
-                    x1={padLeft}
-                    y1={padTop + plotHeight}
-                    x2={viewBoxWidth - padRight}
-                    y2={padTop + plotHeight}
-                    stroke="#cbd5e1"
-                    strokeWidth={1}
-                  />
-
-                  {/* Floor P10 vertical line */}
-                  <line
-                    x1={p10X}
-                    y1={padTop}
-                    x2={p10X}
-                    y2={padTop + plotHeight}
-                    stroke="#f43f5e"
-                    strokeDasharray="3 3"
-                    strokeWidth={1.5}
-                  />
-                  <text
-                    x={p10X}
-                    y={padTop - 8}
-                    textAnchor="middle"
-                    fill="#f43f5e"
-                    fontSize={10}
-                    fontWeight="bold"
-                  >
-                    Floor {floor.toFixed(1)}
-                  </text>
-
-                  {/* Median P50 vertical line */}
-                  <line
-                    x1={medX}
-                    y1={padTop}
-                    x2={medX}
-                    y2={padTop + plotHeight}
-                    stroke="#059669"
-                    strokeWidth={2}
-                  />
-                  <text
-                    x={medX}
-                    y={padTop - 8}
-                    textAnchor="middle"
-                    fill="#059669"
-                    fontSize={10}
-                    fontWeight="bold"
-                  >
-                    Median {median.toFixed(1)}
-                  </text>
-
-                  {/* Ceiling P90 vertical line */}
-                  <line
-                    x1={p90X}
-                    y1={padTop}
-                    x2={p90X}
-                    y2={padTop + plotHeight}
-                    stroke="#d97706"
-                    strokeDasharray="3 3"
-                    strokeWidth={1.5}
-                  />
-                  <text
-                    x={p90X}
-                    y={padTop - 8}
-                    textAnchor="middle"
-                    fill="#d97706"
-                    fontSize={10}
-                    fontWeight="bold"
-                  >
-                    Ceiling {ceiling.toFixed(1)}
-                  </text>
-
-                  {/* Frequency bars */}
-                  {scores.map((s) => {
-                    const prob = distMap[s] || 0;
-                    const x =
-                      padLeft +
-                      ((s - minScore) / (maxScore - minScore)) *
-                        (plotWidth - barWidth);
-                    const bHeight = Math.max(
-                      2,
-                      (prob / maxProb) * plotHeight
-                    );
-                    const y = padTop + plotHeight - bHeight;
-
-                    const isHaul = s >= 10;
-                    const isSolid = s >= 5;
-                    const fillColor = isHaul
-                      ? "#ec4899"
-                      : isSolid
-                      ? "#10b981"
-                      : "#94a3b8";
-
-                    const showLabel =
-                      numBins <= 25
-                        ? true
-                        : s % 2 === 0 || s === minScore || s === maxScore;
-
-                    return (
-                      <g key={s}>
-                        <rect
-                          x={x}
-                          y={y}
-                          width={barWidth}
-                          height={bHeight}
-                          rx={1.5}
-                          fill={fillColor}
-                          className="transition-opacity hover:opacity-80 cursor-pointer"
-                        >
-                          <title>
-                            Score: {s} pts | Prob: {(prob * 100).toFixed(1)}%
-                          </title>
-                        </rect>
-                        {showLabel && (
-                          <text
-                            x={x + barWidth / 2}
-                            y={viewBoxHeight - 10}
-                            textAnchor="middle"
-                            fill="#64748b"
-                            fontSize={9.5}
-                          >
-                            {s}
-                          </text>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
               </div>
-            ) : (
-              <div className="py-8 text-center text-xs text-slate-400">
-                Distribution data not available for this player.
+              <div className="flex items-center gap-1.5 text-[11px] font-normal text-slate-400 group-hover:text-slate-600 transition-colors">
+                <span>{showDistribution ? "Click to collapse" : "Click to view chart"}</span>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    showDistribution ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
+            </button>
+
+            {showDistribution && (
+              <div className="mt-2.5 rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4 sm:p-5 shadow-xs animate-in fade-in duration-150">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-200/60">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Monte Carlo Point Distribution ({gwLabel} • 10,000 Simulations)
+                  </span>
+                  <span className="text-xs font-medium text-emerald-800">
+                    {player.sigma !== undefined && (
+                      <span>Vol: ±{player.sigma.toFixed(2)} pts | </span>
+                    )}
+                    <span>
+                      Range: {minScore} - {maxScore} pts (10,000 simulations)
+                    </span>
+                  </span>
+                </div>
+
+                {hasDistribution ? (
+                  <div className="mt-3 w-full overflow-hidden">
+                    <svg
+                      viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+                      className="w-full h-auto select-none"
+                      preserveAspectRatio="xMidYMid meet"
+                    >
+                      {/* Baseline axis */}
+                      <line
+                        x1={padLeft}
+                        y1={padTop + plotHeight}
+                        x2={viewBoxWidth - padRight}
+                        y2={padTop + plotHeight}
+                        stroke="#cbd5e1"
+                        strokeWidth={1}
+                      />
+
+                      {/* Floor P10 vertical line */}
+                      <line
+                        x1={p10X}
+                        y1={padTop}
+                        x2={p10X}
+                        y2={padTop + plotHeight}
+                        stroke="#f43f5e"
+                        strokeDasharray="3 3"
+                        strokeWidth={1.5}
+                      />
+                      <text
+                        x={p10X}
+                        y={padTop - 8}
+                        textAnchor="middle"
+                        fill="#f43f5e"
+                        fontSize={10}
+                        fontWeight="bold"
+                      >
+                        Floor {floor.toFixed(1)}
+                      </text>
+
+                      {/* Median P50 vertical line */}
+                      <line
+                        x1={medX}
+                        y1={padTop}
+                        x2={medX}
+                        y2={padTop + plotHeight}
+                        stroke="#059669"
+                        strokeWidth={2}
+                      />
+                      <text
+                        x={medX}
+                        y={padTop - 8}
+                        textAnchor="middle"
+                        fill="#059669"
+                        fontSize={10}
+                        fontWeight="bold"
+                      >
+                        Median {median.toFixed(1)}
+                      </text>
+
+                      {/* Ceiling P90 vertical line */}
+                      <line
+                        x1={p90X}
+                        y1={padTop}
+                        x2={p90X}
+                        y2={padTop + plotHeight}
+                        stroke="#d97706"
+                        strokeDasharray="3 3"
+                        strokeWidth={1.5}
+                      />
+                      <text
+                        x={p90X}
+                        y={padTop - 8}
+                        textAnchor="middle"
+                        fill="#d97706"
+                        fontSize={10}
+                        fontWeight="bold"
+                      >
+                        Ceiling {ceiling.toFixed(1)}
+                      </text>
+
+                      {/* Frequency bars */}
+                      {scores.map((s) => {
+                        const prob = distMap[s] || 0;
+                        const x =
+                          padLeft +
+                          ((s - minScore) / (maxScore - minScore)) *
+                            (plotWidth - barWidth);
+                        const bHeight = Math.max(
+                          2,
+                          (prob / maxProb) * plotHeight
+                        );
+                        const y = padTop + plotHeight - bHeight;
+
+                        const isHaul = s >= 10;
+                        const isSolid = s >= 5;
+                        const fillColor = isHaul
+                          ? "#ec4899"
+                          : isSolid
+                          ? "#10b981"
+                          : "#94a3b8";
+
+                        const showLabel =
+                          numBins <= 25
+                            ? true
+                            : s % 2 === 0 || s === minScore || s === maxScore;
+
+                        return (
+                          <g key={s}>
+                            <rect
+                              x={x}
+                              y={y}
+                              width={barWidth}
+                              height={bHeight}
+                              rx={1.5}
+                              fill={fillColor}
+                              className="transition-opacity hover:opacity-80 cursor-pointer"
+                            >
+                              <title>
+                                Score: {s} pts | Prob: {(prob * 100).toFixed(1)}%
+                              </title>
+                            </rect>
+                            {showLabel && (
+                              <text
+                                x={x + barWidth / 2}
+                                y={viewBoxHeight - 10}
+                                textAnchor="middle"
+                                fill="#64748b"
+                                fontSize={9.5}
+                              >
+                                {s}
+                              </text>
+                            )}
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-xs text-slate-400">
+                    Distribution data not available for this player.
+                  </div>
+                )}
               </div>
             )}
           </div>
