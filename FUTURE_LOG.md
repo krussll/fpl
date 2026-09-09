@@ -139,3 +139,58 @@ Add a dedicated **"Tactical Alternatives (Same Price Bracket)"** section inside 
 - **Interactive UI Integration**:
   - Direct 1-click **"Compare"** button next to each suggested alternative to open the head-to-head probability graph.
   - Direct 1-click **"Replace in Squad"** button to immediately swap into the user's active 15-player team.
+
+---
+
+## 6. Expanded Bayesian Regression Sample Window (Early-Season Outlier Dampening)
+
+### Background & Motivation
+In early gameweeks (GW1–GW4), raw per-90 metrics can experience extreme small-sample noise. For instance, a player with an explosive 2–3 fixture run can accumulate an unsustainable per-90 rate (e.g., Thierno Barry logging 2.31 xG in 237 minutes = 0.88 raw xG/90).
+
+Currently, the model's Bayesian regression uses a 360-minute sample window (`att_sample_mins = 360.0`) in `fpl_api.py` to shrink players toward their positional baseline (0.35 xG/90 for forwards):
+$$\text{Weight} = \min\left(1.0, \frac{\text{Minutes}}{360}\right)$$
+
+At 237 minutes played (~2.6 matches), the model assigns ~65.8% weight to the player's small sample and only ~34.2% to the baseline, leaving a regressed expectation of ~0.70 xG/90. Coupled with favorable opponent matchups and penalty duties, this can elevate a £5.6m budget striker above established premium assets like Erling Haaland in projected xP.
+
+### Proposed Feature
+1. **Enlarge the Regression Horizon**:
+   - Increase `att_sample_mins` from 360 minutes (~4 matches) to **720 minutes** (~8 matches) or **900 minutes** (~10 matches) during early-season gameweeks.
+   - Alternatively, implement a non-linear sigmoid shrinkage function that dampens extreme per-90 rates more heavily below 500 minutes.
+2. **Price-Aware / Tier-Aware Bayesian Priors**:
+   - Rather than applying a single flat baseline for all forwards (0.35 xG/90), introduce tiered priors based on player market tier:
+     - Premium FWD ($\ge £9.0\text{m}$): 0.55–0.60 xG/90 baseline
+     - Mid-Price FWD (£6.5m–£8.5m): 0.38–0.42 xG/90 baseline
+     - Budget FWD ($< £6.5\text{m}$): 0.25–0.30 xG/90 baseline
+   - Budget assets must demonstrate sustained output over a significantly larger sample before their projected baseline approaches elite levels.
+
+### Implementation Considerations & Trade-Offs
+- **Pros**: Prevents flash-in-the-pan early-season heaters from distorting transfers and captaincy models; stabilizes projections during GW1–8.
+- **Cons / Nuances**: Slightly slower to reward genuine breakout players who have earned a regular starting berth in an improved offensive system.
+
+---
+
+## 7. Team-Relative Attacking Share Caps (Team-Level xG Constraints)
+
+### Background & Motivation
+Player projections currently evaluate an individual's attacking rate (`raw_xg90` adjusted for opponent defense) largely independent of their club's macro-level attacking output. 
+
+For example, Everton's team average is **1.21 xG per 90** (ranking 15th in the league). Modeling an individual forward with **0.88 npxG/90** plus penalty duties effectively assigns them $> 70\%\text{–}85\%$ of the team's entire offensive output in that match. In real-world football, even dominant focal points (e.g., Erling Haaland at Man City or Dominic Solanke at Bournemouth) typically account for 35% to 50% of their club's expected goals over a sustained campaign.
+
+### Proposed Feature
+Introduce a macro-to-micro constraint that couples individual attacking expectancy to their team's realistic attacking capacity:
+
+1. **Team Match Expected Goals Anchor**:
+   $$\text{Team\_Match\_xG} = \text{Team\_Base\_xG90} \times \text{Opponent\_Def\_Ratio} \times \text{Venue\_Mult}$$
+2. **Maximum Plausible Attacking Share ($\alpha_{\max}$)**:
+   - Cap the maximum share of open-play team xG that a single player can command:
+     - `FWD` (Primary striker): Maximum **48%** of team open-play xG.
+     - `MID` (Talisman / Winger): Maximum **40%** of team open-play xG.
+     - `DEF` (Set-piece threat): Maximum **18%** of team open-play xG.
+3. **Clamping Equation**:
+   $$\text{Player\_npxG90} \le \alpha_{\max} \times \text{Team\_Match\_xG}$$
+4. **Independent Penalty Handling**:
+   - Penalty expected goals are calculated separately on top of open-play share, ensuring penalty takers are credited without artificially inflating open-play shot volume.
+
+### Implementation Considerations & Trade-Offs
+- **Pros**: Grounds individual projections in team-level offensive reality; naturally discounts attackers playing for low-scoring sides while boosting assets in free-scoring attacks.
+- **Cons / Nuances**: Requires maintaining team-level attacking baselines and carefully separating open-play xG from set-piece/penalty opportunities.
