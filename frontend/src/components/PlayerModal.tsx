@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Player, PlayerFixture, PlayerHistoryMatch } from "@/types/player";
-import { X, Clock, Target, Shield, Star } from "lucide-react";
+import { X, Clock, Target, Shield, ShieldCheck, Star } from "lucide-react";
 
 interface PlayerModalProps {
   player: Player;
@@ -39,6 +39,17 @@ function getFdrClasses(fdr: number) {
     default:
       return "bg-slate-100 text-slate-700 border-slate-200";
   }
+}
+
+function getCleanSheetPoints(
+  position: string,
+  cleanSheets: number,
+  minutes: number
+): number {
+  if (cleanSheets <= 0 || minutes < 60) return 0;
+  if (position === "GKP" || position === "DEF") return 4;
+  if (position === "MID") return 1;
+  return 0; // FWDs receive 0 clean sheet points in FPL rules
 }
 
 export default function PlayerModal({
@@ -446,7 +457,7 @@ export default function PlayerModal({
                 Recent Gameweek History (Last 5 GWs)
               </h3>
               {/* Icon Legend / Key */}
-              <div className="flex flex-wrap items-center gap-2.5 rounded-lg border border-slate-200/70 bg-slate-50/80 px-2.5 py-1 text-[11px] text-slate-600">
+              <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200/70 bg-slate-50/80 px-2.5 py-1 text-[11px] text-slate-600">
                 <span className="font-bold uppercase tracking-wider text-slate-400">Key:</span>
                 <span className="inline-flex items-center gap-1 font-medium text-slate-700">
                   <Clock className="h-3 w-3 text-slate-400" /> Mins
@@ -454,6 +465,10 @@ export default function PlayerModal({
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1 font-medium text-slate-700">
                   <Target className="h-3 w-3 text-emerald-600" /> Goals
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <ShieldCheck className="h-3 w-3 text-indigo-600" /> CS Pts
                 </span>
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1 font-medium text-slate-700">
@@ -476,75 +491,99 @@ export default function PlayerModal({
                     : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
                 }`}
               >
-                {recentMatches.map((m: PlayerHistoryMatch, idx: number) => (
-                  <div
-                    key={idx}
-                    className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3 shadow-xs"
-                  >
-                    <div>
-                      {/* Card Header: GW + Opponent & Total Points */}
-                      <div className="flex items-center justify-between gap-1.5">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
-                            GW{m.round}
-                          </span>
+                {recentMatches.map((m: PlayerHistoryMatch, idx: number) => {
+                  const csPoints = getCleanSheetPoints(
+                    player.position,
+                    m.clean_sheets,
+                    m.minutes
+                  );
+
+                  return (
+                    <div
+                      key={idx}
+                      className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3 shadow-xs"
+                    >
+                      <div>
+                        {/* Card Header: GW + Opponent & Total Points */}
+                        <div className="flex items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                              GW{m.round}
+                            </span>
+                            <span
+                              title={`${m.opponent_name} (${m.was_home ? "Home" : "Away"})`}
+                              className="truncate rounded border border-slate-200/80 bg-slate-50 px-1.5 py-0.5 text-xs font-semibold text-slate-700"
+                            >
+                              {m.opponent_short} ({m.was_home ? "H" : "A"})
+                            </span>
+                          </div>
                           <span
-                            title={`${m.opponent_name} (${m.was_home ? "Home" : "Away"})`}
-                            className="truncate rounded border border-slate-200/80 bg-slate-50 px-1.5 py-0.5 text-xs font-semibold text-slate-700"
+                            className={`inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-xs font-extrabold ${
+                              m.total_points >= 8
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300/80"
+                                : m.total_points >= 4
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : m.total_points > 1
+                                ? "bg-slate-100 text-slate-700 border border-slate-200"
+                                : "bg-slate-50 text-slate-500 border border-slate-200"
+                            }`}
                           >
-                            {m.opponent_short} ({m.was_home ? "H" : "A"})
+                            {m.total_points} pts
                           </span>
                         </div>
-                        <span
-                          className={`inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-xs font-extrabold ${
-                            m.total_points >= 8
-                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300/80"
-                              : m.total_points >= 4
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : m.total_points > 1
-                              ? "bg-slate-100 text-slate-700 border border-slate-200"
-                              : "bg-slate-50 text-slate-500 border border-slate-200"
-                          }`}
-                        >
-                          {m.total_points} pts
-                        </span>
+
+                        {/* Match Score (if recorded) */}
+                        {m.team_h_score !== null && m.team_a_score !== null && (
+                          <div className="mt-1 text-[11px] text-slate-400">
+                            Match: {m.was_home ? `${m.team_h_score} - ${m.team_a_score}` : `${m.team_a_score} - ${m.team_h_score}`}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Match Score (if recorded) */}
-                      {m.team_h_score !== null && m.team_a_score !== null && (
-                        <div className="mt-1 text-[11px] text-slate-400">
-                          Match: {m.was_home ? `${m.team_h_score} - ${m.team_a_score}` : `${m.team_a_score} - ${m.team_h_score}`}
+                      {/* Stat Metrics Grid with Icons */}
+                      <div className="mt-2.5 grid grid-cols-2 gap-x-2 gap-y-1.5 rounded-lg border border-slate-100 bg-slate-50/70 p-2 text-xs">
+                        <div className="flex items-center gap-1.5" title="Minutes played">
+                          <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                          <span className="font-mono font-bold text-slate-700">{m.minutes}&apos;</span>
                         </div>
-                      )}
+                        <div className="flex items-center gap-1.5" title="Goals scored">
+                          <Target className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                          <span className={`font-mono font-bold ${m.goals_scored > 0 ? "text-emerald-700 font-extrabold" : "text-slate-600"}`}>
+                            {m.goals_scored}
+                          </span>
+                        </div>
+                        <div
+                          className="flex items-center gap-1.5"
+                          title={
+                            player.position === "FWD"
+                              ? "Clean sheets award 0 pts to forwards"
+                              : `Clean Sheet: +${csPoints} pts (${m.clean_sheets ? "clean sheet kept" : "no clean sheet"})`
+                          }
+                        >
+                          <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${csPoints > 0 ? "text-indigo-600" : "text-slate-300"}`} />
+                          <span className={`font-mono font-bold ${csPoints > 0 ? "text-indigo-700 font-extrabold" : "text-slate-400"}`}>
+                            {csPoints > 0 ? `+${csPoints} CS` : player.position === "FWD" ? "- CS" : "0 CS"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5" title="Defensive Contribution actions">
+                          <Shield className="h-3.5 w-3.5 shrink-0 text-sky-600" />
+                          <span className={`font-mono font-bold ${m.defensive_contribution >= 10 ? "text-sky-700 font-extrabold" : "text-slate-600"}`}>
+                            {m.defensive_contribution}
+                          </span>
+                        </div>
+                        <div className="col-span-2 flex items-center justify-between border-t border-slate-200/50 pt-1" title="Bonus points awarded">
+                          <span className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+                            <Star className={`h-3.5 w-3.5 shrink-0 ${m.bonus > 0 ? "text-amber-500 fill-amber-400" : "text-slate-300"}`} />
+                            Bonus:
+                          </span>
+                          <span className={`font-mono font-bold ${m.bonus > 0 ? "text-amber-600 font-extrabold" : "text-slate-400"}`}>
+                            {m.bonus > 0 ? `+${m.bonus} pts` : "0 pts"}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-
-                    {/* Stat Metrics Grid with Icons */}
-                    <div className="mt-2.5 grid grid-cols-2 gap-1.5 rounded-lg border border-slate-100 bg-slate-50/70 p-2 text-xs">
-                      <div className="flex items-center gap-1.5" title="Minutes played">
-                        <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                        <span className="font-mono font-bold text-slate-700">{m.minutes}&apos;</span>
-                      </div>
-                      <div className="flex items-center gap-1.5" title="Goals scored">
-                        <Target className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                        <span className={`font-mono font-bold ${m.goals_scored > 0 ? "text-emerald-700 font-extrabold" : "text-slate-600"}`}>
-                          {m.goals_scored}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5" title="Defensive Contribution actions">
-                        <Shield className="h-3.5 w-3.5 shrink-0 text-sky-600" />
-                        <span className={`font-mono font-bold ${m.defensive_contribution >= 10 ? "text-sky-700 font-extrabold" : "text-slate-600"}`}>
-                          {m.defensive_contribution}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5" title="Bonus points awarded">
-                        <Star className={`h-3.5 w-3.5 shrink-0 ${m.bonus > 0 ? "text-amber-500 fill-amber-400" : "text-slate-300"}`} />
-                        <span className={`font-mono font-bold ${m.bonus > 0 ? "text-amber-600 font-extrabold" : "text-slate-500"}`}>
-                          {m.bonus > 0 ? `+${m.bonus}` : "0"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">
