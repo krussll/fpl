@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Player, PlayerFixture, PlayerHistoryMatch } from "@/types/player";
-import { X } from "lucide-react";
+import { X, Clock, Target, Shield, Star } from "lucide-react";
 
 interface PlayerModalProps {
   player: Player;
@@ -441,29 +441,41 @@ export default function PlayerModal({
 
           {/* Recent Gameweek History (Last 5 GWs) */}
           <div>
-            <div className="mb-2.5 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-2.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Recent Gameweek History (Last 5 GWs)
               </h3>
-              <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
-                <span className="font-semibold text-slate-600">Key:</span>
-                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
-                  <strong>Mins:</strong>&nbsp;Minutes Played
+              {/* Icon Legend / Key */}
+              <div className="flex flex-wrap items-center gap-2.5 rounded-lg border border-slate-200/70 bg-slate-50/80 px-2.5 py-1 text-[11px] text-slate-600">
+                <span className="font-bold uppercase tracking-wider text-slate-400">Key:</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <Clock className="h-3 w-3 text-slate-400" /> Mins
                 </span>
-                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
-                  <strong>Goals:</strong>&nbsp;Goals Scored
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <Target className="h-3 w-3 text-emerald-600" /> Goals
                 </span>
-                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
-                  <strong>DefCon:</strong>&nbsp;Def Contribution
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <Shield className="h-3 w-3 text-sky-600" /> DefCon
                 </span>
-                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
-                  <strong>Bonus:</strong>&nbsp;Bonus Points
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <Star className="h-3 w-3 text-amber-500 fill-amber-400" /> Bonus
                 </span>
               </div>
             </div>
 
             {recentMatches && recentMatches.length > 0 ? (
-              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+              <div
+                className={`grid gap-2.5 ${
+                  recentMatches.length <= 3
+                    ? "grid-cols-1 sm:grid-cols-3"
+                    : recentMatches.length === 4
+                    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                    : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
+                }`}
+              >
                 {recentMatches.map((m: PlayerHistoryMatch, idx: number) => (
                   <div
                     key={idx}
@@ -472,7 +484,7 @@ export default function PlayerModal({
                     <div>
                       {/* Card Header: GW + Opponent & Total Points */}
                       <div className="flex items-center justify-between gap-1.5">
-                        <div className="flex items-center gap-1 min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
                           <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
                             GW{m.round}
                           </span>
@@ -500,35 +512,35 @@ export default function PlayerModal({
 
                       {/* Match Score (if recorded) */}
                       {m.team_h_score !== null && m.team_a_score !== null && (
-                        <div className="mt-1 text-[10px] text-slate-400">
+                        <div className="mt-1 text-[11px] text-slate-400">
                           Match: {m.was_home ? `${m.team_h_score} - ${m.team_a_score}` : `${m.team_a_score} - ${m.team_h_score}`}
                         </div>
                       )}
                     </div>
 
-                    {/* Stat Key Metrics Grid */}
-                    <div className="mt-2.5 grid grid-cols-4 gap-1 text-center rounded-lg border border-slate-100 bg-slate-50/70 p-1.5">
-                      <div>
-                        <div className="text-[9px] font-semibold uppercase text-slate-400">Mins</div>
-                        <div className="font-mono text-xs font-bold text-slate-700">{m.minutes}&apos;</div>
+                    {/* Stat Metrics Grid with Icons */}
+                    <div className="mt-2.5 grid grid-cols-2 gap-1.5 rounded-lg border border-slate-100 bg-slate-50/70 p-2 text-xs">
+                      <div className="flex items-center gap-1.5" title="Minutes played">
+                        <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                        <span className="font-mono font-bold text-slate-700">{m.minutes}&apos;</span>
                       </div>
-                      <div>
-                        <div className="text-[9px] font-semibold uppercase text-slate-400">Goals</div>
-                        <div className={`font-mono text-xs font-bold ${m.goals_scored > 0 ? "text-emerald-700 font-extrabold" : "text-slate-600"}`}>
+                      <div className="flex items-center gap-1.5" title="Goals scored">
+                        <Target className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                        <span className={`font-mono font-bold ${m.goals_scored > 0 ? "text-emerald-700 font-extrabold" : "text-slate-600"}`}>
                           {m.goals_scored}
-                        </div>
+                        </span>
                       </div>
-                      <div>
-                        <div className="text-[9px] font-semibold uppercase text-slate-400" title="Defensive Contribution actions">DefCon</div>
-                        <div className={`font-mono text-xs font-bold ${m.defensive_contribution >= 10 ? "text-sky-700 font-extrabold" : "text-slate-600"}`}>
+                      <div className="flex items-center gap-1.5" title="Defensive Contribution actions">
+                        <Shield className="h-3.5 w-3.5 shrink-0 text-sky-600" />
+                        <span className={`font-mono font-bold ${m.defensive_contribution >= 10 ? "text-sky-700 font-extrabold" : "text-slate-600"}`}>
                           {m.defensive_contribution}
-                        </div>
+                        </span>
                       </div>
-                      <div>
-                        <div className="text-[9px] font-semibold uppercase text-slate-400">Bonus</div>
-                        <div className={`font-mono text-xs font-bold ${m.bonus > 0 ? "text-amber-600 font-extrabold" : "text-slate-600"}`}>
+                      <div className="flex items-center gap-1.5" title="Bonus points awarded">
+                        <Star className={`h-3.5 w-3.5 shrink-0 ${m.bonus > 0 ? "text-amber-500 fill-amber-400" : "text-slate-300"}`} />
+                        <span className={`font-mono font-bold ${m.bonus > 0 ? "text-amber-600 font-extrabold" : "text-slate-500"}`}>
                           {m.bonus > 0 ? `+${m.bonus}` : "0"}
-                        </div>
+                        </span>
                       </div>
                     </div>
                   </div>
