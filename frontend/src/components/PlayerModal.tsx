@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Player, PlayerFixture } from "@/types/player";
+import { useEffect, useRef, useState } from "react";
+import { Player, PlayerFixture, PlayerHistoryMatch } from "@/types/player";
 import { X } from "lucide-react";
 
 interface PlayerModalProps {
@@ -57,6 +57,32 @@ export default function PlayerModal({
       : player.fixtures || [];
 
   const gwLabel = gameweeks === 1 ? "Current GW" : `Next ${gameweeks} GWs`;
+
+  // Player match history (last 5 gameweeks)
+  const [fetchedHistory, setFetchedHistory] = useState<PlayerHistoryMatch[] | null>(null);
+
+  useEffect(() => {
+    if (player.history && player.history.length > 0) return;
+    let active = true;
+    fetch(`/api/player-history?id=${player.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && Array.isArray(data.history)) {
+          setFetchedHistory(data.history);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [player.id, player.history]);
+
+  const history =
+    player.history && player.history.length > 0
+      ? player.history
+      : fetchedHistory || [];
+
+  const recentMatches = history.slice(-5);
 
   // Close on Escape & lock body scrolling
   useEffect(() => {
@@ -409,6 +435,108 @@ export default function PlayerModal({
             ) : (
               <div className="py-8 text-center text-xs text-slate-400">
                 Distribution data not available for this player.
+              </div>
+            )}
+          </div>
+
+          {/* Recent Gameweek History (Last 5 GWs) */}
+          <div>
+            <div className="mb-2.5 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Recent Gameweek History (Last 5 GWs)
+              </h3>
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
+                <span className="font-semibold text-slate-600">Key:</span>
+                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                  <strong>Mins:</strong>&nbsp;Minutes Played
+                </span>
+                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                  <strong>Goals:</strong>&nbsp;Goals Scored
+                </span>
+                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                  <strong>DefCon:</strong>&nbsp;Def Contribution
+                </span>
+                <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">
+                  <strong>Bonus:</strong>&nbsp;Bonus Points
+                </span>
+              </div>
+            </div>
+
+            {recentMatches && recentMatches.length > 0 ? (
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+                {recentMatches.map((m: PlayerHistoryMatch, idx: number) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3 shadow-xs"
+                  >
+                    <div>
+                      {/* Card Header: GW + Opponent & Total Points */}
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-1 min-w-0">
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                            GW{m.round}
+                          </span>
+                          <span
+                            title={`${m.opponent_name} (${m.was_home ? "Home" : "Away"})`}
+                            className="truncate rounded border border-slate-200/80 bg-slate-50 px-1.5 py-0.5 text-xs font-semibold text-slate-700"
+                          >
+                            {m.opponent_short} ({m.was_home ? "H" : "A"})
+                          </span>
+                        </div>
+                        <span
+                          className={`inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-xs font-extrabold ${
+                            m.total_points >= 8
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300/80"
+                              : m.total_points >= 4
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : m.total_points > 1
+                              ? "bg-slate-100 text-slate-700 border border-slate-200"
+                              : "bg-slate-50 text-slate-500 border border-slate-200"
+                          }`}
+                        >
+                          {m.total_points} pts
+                        </span>
+                      </div>
+
+                      {/* Match Score (if recorded) */}
+                      {m.team_h_score !== null && m.team_a_score !== null && (
+                        <div className="mt-1 text-[10px] text-slate-400">
+                          Match: {m.was_home ? `${m.team_h_score} - ${m.team_a_score}` : `${m.team_a_score} - ${m.team_h_score}`}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Stat Key Metrics Grid */}
+                    <div className="mt-2.5 grid grid-cols-4 gap-1 text-center rounded-lg border border-slate-100 bg-slate-50/70 p-1.5">
+                      <div>
+                        <div className="text-[9px] font-semibold uppercase text-slate-400">Mins</div>
+                        <div className="font-mono text-xs font-bold text-slate-700">{m.minutes}&apos;</div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] font-semibold uppercase text-slate-400">Goals</div>
+                        <div className={`font-mono text-xs font-bold ${m.goals_scored > 0 ? "text-emerald-700 font-extrabold" : "text-slate-600"}`}>
+                          {m.goals_scored}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] font-semibold uppercase text-slate-400" title="Defensive Contribution actions">DefCon</div>
+                        <div className={`font-mono text-xs font-bold ${m.defensive_contribution >= 10 ? "text-sky-700 font-extrabold" : "text-slate-600"}`}>
+                          {m.defensive_contribution}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] font-semibold uppercase text-slate-400">Bonus</div>
+                        <div className={`font-mono text-xs font-bold ${m.bonus > 0 ? "text-amber-600 font-extrabold" : "text-slate-600"}`}>
+                          {m.bonus > 0 ? `+${m.bonus}` : "0"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">
+                No match appearances recorded in the last 5 gameweeks.
               </div>
             )}
           </div>
