@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "prebuild": "node -e 'const fs=require(\"fs\");if(!fs.existsSync(\".fpl_cache\")&&fs.existsSync(\"../.fpl_cache\"))fs.cpSync(\"../.fpl_cache\",\".fpl_cache\",{recursive:true});'",
+    "build": "npm run prebuild && next build",
     "start": "next start",
     "lint": "eslint"
   },

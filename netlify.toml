@@ -1,7 +1,7 @@
 [build]
-  publish = "static"
-[[redirects]]
-  from = "/api/*"
-  to = "https://fpl-4fo2.onrender.com/api/:splat"
-  status = 200
-  force = true
+  base = "frontend"
+  publish = ".next"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "20"

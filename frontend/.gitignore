@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local simulation cache generated/copied during build
+/.fpl_cache/
+

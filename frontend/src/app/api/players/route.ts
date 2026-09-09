@@ -62,10 +62,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // If local cache wasn't found, try local FastAPI server or fallback
+    // If local cache wasn't found, try local FastAPI server or live Render backend fallback
     if (!playersData.length) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/players?fixtures=${fixtures}`, {
+        const backendUrl =
+          process.env.BACKEND_API_URL || "https://fpl-4fo2.onrender.com";
+        const res = await fetch(`${backendUrl}/api/players?fixtures=${fixtures}`, {
           next: { revalidate: 60 },
         });
         if (res.ok) {
@@ -75,7 +77,7 @@ export async function GET(request: NextRequest) {
           }
         }
       } catch {
-        // FastAPI server not running locally
+        // Backend not reachable
       }
     }
 
