@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Player, PlayerFixture } from "@/types/player";
-import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Player, PlayerFixture, PlayerHistoryMatch } from "@/types/player";
+import { X, Clock, Target, Shield, ShieldCheck, Star, BarChart3, ChevronDown } from "lucide-react";
 
 interface PlayerModalProps {
   player: Player;
@@ -41,6 +41,17 @@ function getFdrClasses(fdr: number) {
   }
 }
 
+function getCleanSheetPoints(
+  position: string,
+  cleanSheets: number,
+  minutes: number
+): number {
+  if (cleanSheets <= 0 || minutes < 60) return 0;
+  if (position === "GKP" || position === "DEF") return 4;
+  if (position === "MID") return 1;
+  return 0; // FWDs receive 0 clean sheet points in FPL rules
+}
+
 export default function PlayerModal({
   player,
   gameweeks = 1,
@@ -57,6 +68,35 @@ export default function PlayerModal({
       : player.fixtures || [];
 
   const gwLabel = gameweeks === 1 ? "Current GW" : `Next ${gameweeks} GWs`;
+
+  // Player match history (last 5 gameweeks)
+  const [fetchedHistory, setFetchedHistory] = useState<PlayerHistoryMatch[] | null>(null);
+
+  useEffect(() => {
+    if (player.history && player.history.length > 0) return;
+    let active = true;
+    fetch(`/api/player-history?id=${player.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && Array.isArray(data.history)) {
+          setFetchedHistory(data.history);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [player.id, player.history]);
+
+  const history =
+    player.history && player.history.length > 0
+      ? player.history
+      : fetchedHistory || [];
+
+  const recentMatches = history.slice(-5);
+
+  // Distribution chart visibility toggle (hidden by default)
+  const [showDistribution, setShowDistribution] = useState<boolean>(false);
 
   // Close on Escape & lock body scrolling
   useEffect(() => {
@@ -254,161 +294,329 @@ export default function PlayerModal({
             </div>
           </div>
 
-          {/* Interactive Probability Distribution Chart */}
-          <div className="rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4 sm:p-5 shadow-xs">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-200/60">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Monte Carlo Point Distribution ({gwLabel} • 10,000 Simulations)
-              </span>
-              <span className="text-xs font-medium text-emerald-800">
-                {player.sigma !== undefined && (
-                  <span>Vol: ±{player.sigma.toFixed(2)} pts | </span>
-                )}
+          {/* Interactive Probability Distribution Chart Toggle & Container */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowDistribution((prev) => !prev)}
+              className="group flex w-full items-center justify-between rounded-xl border border-slate-200/90 bg-slate-50/70 px-4 py-2.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors shadow-xs cursor-pointer"
+              aria-expanded={showDistribution}
+            >
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-emerald-600 shrink-0" />
                 <span>
-                  Range: {minScore} - {maxScore} pts (10,000 simulations)
+                  {showDistribution ? "Hide" : "Show"} Monte Carlo Point Distribution ({gwLabel} • 10,000 Simulations)
                 </span>
-              </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] font-normal text-slate-400 group-hover:text-slate-600 transition-colors">
+                <span>{showDistribution ? "Click to collapse" : "Click to view chart"}</span>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    showDistribution ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
+            </button>
+
+            {showDistribution && (
+              <div className="mt-2.5 rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4 sm:p-5 shadow-xs animate-in fade-in duration-150">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-200/60">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Monte Carlo Point Distribution ({gwLabel} • 10,000 Simulations)
+                  </span>
+                  <span className="text-xs font-medium text-emerald-800">
+                    {player.sigma !== undefined && (
+                      <span>Vol: ±{player.sigma.toFixed(2)} pts | </span>
+                    )}
+                    <span>
+                      Range: {minScore} - {maxScore} pts (10,000 simulations)
+                    </span>
+                  </span>
+                </div>
+
+                {hasDistribution ? (
+                  <div className="mt-3 w-full overflow-hidden">
+                    <svg
+                      viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+                      className="w-full h-auto select-none"
+                      preserveAspectRatio="xMidYMid meet"
+                    >
+                      {/* Baseline axis */}
+                      <line
+                        x1={padLeft}
+                        y1={padTop + plotHeight}
+                        x2={viewBoxWidth - padRight}
+                        y2={padTop + plotHeight}
+                        stroke="#cbd5e1"
+                        strokeWidth={1}
+                      />
+
+                      {/* Floor P10 vertical line */}
+                      <line
+                        x1={p10X}
+                        y1={padTop}
+                        x2={p10X}
+                        y2={padTop + plotHeight}
+                        stroke="#f43f5e"
+                        strokeDasharray="3 3"
+                        strokeWidth={1.5}
+                      />
+                      <text
+                        x={p10X}
+                        y={padTop - 8}
+                        textAnchor="middle"
+                        fill="#f43f5e"
+                        fontSize={10}
+                        fontWeight="bold"
+                      >
+                        Floor {floor.toFixed(1)}
+                      </text>
+
+                      {/* Median P50 vertical line */}
+                      <line
+                        x1={medX}
+                        y1={padTop}
+                        x2={medX}
+                        y2={padTop + plotHeight}
+                        stroke="#059669"
+                        strokeWidth={2}
+                      />
+                      <text
+                        x={medX}
+                        y={padTop - 8}
+                        textAnchor="middle"
+                        fill="#059669"
+                        fontSize={10}
+                        fontWeight="bold"
+                      >
+                        Median {median.toFixed(1)}
+                      </text>
+
+                      {/* Ceiling P90 vertical line */}
+                      <line
+                        x1={p90X}
+                        y1={padTop}
+                        x2={p90X}
+                        y2={padTop + plotHeight}
+                        stroke="#d97706"
+                        strokeDasharray="3 3"
+                        strokeWidth={1.5}
+                      />
+                      <text
+                        x={p90X}
+                        y={padTop - 8}
+                        textAnchor="middle"
+                        fill="#d97706"
+                        fontSize={10}
+                        fontWeight="bold"
+                      >
+                        Ceiling {ceiling.toFixed(1)}
+                      </text>
+
+                      {/* Frequency bars */}
+                      {scores.map((s) => {
+                        const prob = distMap[s] || 0;
+                        const x =
+                          padLeft +
+                          ((s - minScore) / (maxScore - minScore)) *
+                            (plotWidth - barWidth);
+                        const bHeight = Math.max(
+                          2,
+                          (prob / maxProb) * plotHeight
+                        );
+                        const y = padTop + plotHeight - bHeight;
+
+                        const isHaul = s >= 10;
+                        const isSolid = s >= 5;
+                        const fillColor = isHaul
+                          ? "#ec4899"
+                          : isSolid
+                          ? "#10b981"
+                          : "#94a3b8";
+
+                        const showLabel =
+                          numBins <= 25
+                            ? true
+                            : s % 2 === 0 || s === minScore || s === maxScore;
+
+                        return (
+                          <g key={s}>
+                            <rect
+                              x={x}
+                              y={y}
+                              width={barWidth}
+                              height={bHeight}
+                              rx={1.5}
+                              fill={fillColor}
+                              className="transition-opacity hover:opacity-80 cursor-pointer"
+                            >
+                              <title>
+                                Score: {s} pts | Prob: {(prob * 100).toFixed(1)}%
+                              </title>
+                            </rect>
+                            {showLabel && (
+                              <text
+                                x={x + barWidth / 2}
+                                y={viewBoxHeight - 10}
+                                textAnchor="middle"
+                                fill="#64748b"
+                                fontSize={9.5}
+                              >
+                                {s}
+                              </text>
+                            )}
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-xs text-slate-400">
+                    Distribution data not available for this player.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Gameweek History (Last 5 GWs) */}
+          <div>
+            <div className="mb-2.5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Recent Gameweek History (Last 5 GWs)
+              </h3>
+              {/* Icon Legend / Key */}
+              <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200/70 bg-slate-50/80 px-2.5 py-1 text-[11px] text-slate-600">
+                <span className="font-bold uppercase tracking-wider text-slate-400">Key:</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <Clock className="h-3 w-3 text-slate-400" /> Mins
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <Target className="h-3 w-3 text-emerald-600" /> Goals
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <ShieldCheck className="h-3 w-3 text-indigo-600" /> CS Pts
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <Shield className="h-3 w-3 text-sky-600" /> DefCon
+                </span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+                  <Star className="h-3 w-3 text-amber-500 fill-amber-400" /> Bonus
+                </span>
+              </div>
             </div>
 
-            {hasDistribution ? (
-              <div className="mt-3 w-full overflow-hidden">
-                <svg
-                  viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-                  className="w-full h-auto select-none"
-                  preserveAspectRatio="xMidYMid meet"
-                >
-                  {/* Baseline axis */}
-                  <line
-                    x1={padLeft}
-                    y1={padTop + plotHeight}
-                    x2={viewBoxWidth - padRight}
-                    y2={padTop + plotHeight}
-                    stroke="#cbd5e1"
-                    strokeWidth={1}
-                  />
+            {recentMatches && recentMatches.length > 0 ? (
+              <div
+                className={`grid gap-2.5 ${
+                  recentMatches.length <= 3
+                    ? "grid-cols-1 sm:grid-cols-3"
+                    : recentMatches.length === 4
+                    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                    : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
+                }`}
+              >
+                {recentMatches.map((m: PlayerHistoryMatch, idx: number) => {
+                  const csPoints = getCleanSheetPoints(
+                    player.position,
+                    m.clean_sheets,
+                    m.minutes
+                  );
 
-                  {/* Floor P10 vertical line */}
-                  <line
-                    x1={p10X}
-                    y1={padTop}
-                    x2={p10X}
-                    y2={padTop + plotHeight}
-                    stroke="#f43f5e"
-                    strokeDasharray="3 3"
-                    strokeWidth={1.5}
-                  />
-                  <text
-                    x={p10X}
-                    y={padTop - 8}
-                    textAnchor="middle"
-                    fill="#f43f5e"
-                    fontSize={10}
-                    fontWeight="bold"
-                  >
-                    Floor {floor.toFixed(1)}
-                  </text>
-
-                  {/* Median P50 vertical line */}
-                  <line
-                    x1={medX}
-                    y1={padTop}
-                    x2={medX}
-                    y2={padTop + plotHeight}
-                    stroke="#059669"
-                    strokeWidth={2}
-                  />
-                  <text
-                    x={medX}
-                    y={padTop - 8}
-                    textAnchor="middle"
-                    fill="#059669"
-                    fontSize={10}
-                    fontWeight="bold"
-                  >
-                    Median {median.toFixed(1)}
-                  </text>
-
-                  {/* Ceiling P90 vertical line */}
-                  <line
-                    x1={p90X}
-                    y1={padTop}
-                    x2={p90X}
-                    y2={padTop + plotHeight}
-                    stroke="#d97706"
-                    strokeDasharray="3 3"
-                    strokeWidth={1.5}
-                  />
-                  <text
-                    x={p90X}
-                    y={padTop - 8}
-                    textAnchor="middle"
-                    fill="#d97706"
-                    fontSize={10}
-                    fontWeight="bold"
-                  >
-                    Ceiling {ceiling.toFixed(1)}
-                  </text>
-
-                  {/* Frequency bars */}
-                  {scores.map((s) => {
-                    const prob = distMap[s] || 0;
-                    const x =
-                      padLeft +
-                      ((s - minScore) / (maxScore - minScore)) *
-                        (plotWidth - barWidth);
-                    const bHeight = Math.max(
-                      2,
-                      (prob / maxProb) * plotHeight
-                    );
-                    const y = padTop + plotHeight - bHeight;
-
-                    const isHaul = s >= 10;
-                    const isSolid = s >= 5;
-                    const fillColor = isHaul
-                      ? "#ec4899"
-                      : isSolid
-                      ? "#10b981"
-                      : "#94a3b8";
-
-                    const showLabel =
-                      numBins <= 25
-                        ? true
-                        : s % 2 === 0 || s === minScore || s === maxScore;
-
-                    return (
-                      <g key={s}>
-                        <rect
-                          x={x}
-                          y={y}
-                          width={barWidth}
-                          height={bHeight}
-                          rx={1.5}
-                          fill={fillColor}
-                          className="transition-opacity hover:opacity-80 cursor-pointer"
-                        >
-                          <title>
-                            Score: {s} pts | Prob: {(prob * 100).toFixed(1)}%
-                          </title>
-                        </rect>
-                        {showLabel && (
-                          <text
-                            x={x + barWidth / 2}
-                            y={viewBoxHeight - 10}
-                            textAnchor="middle"
-                            fill="#64748b"
-                            fontSize={9.5}
+                  return (
+                    <div
+                      key={idx}
+                      className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-3 shadow-xs"
+                    >
+                      <div>
+                        {/* Card Header: GW + Opponent & Total Points */}
+                        <div className="flex items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                              GW{m.round}
+                            </span>
+                            <span
+                              title={`${m.opponent_name} (${m.was_home ? "Home" : "Away"})`}
+                              className="truncate rounded border border-slate-200/80 bg-slate-50 px-1.5 py-0.5 text-xs font-semibold text-slate-700"
+                            >
+                              {m.opponent_short} ({m.was_home ? "H" : "A"})
+                            </span>
+                          </div>
+                          <span
+                            className={`inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-xs font-extrabold ${
+                              m.total_points >= 8
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300/80"
+                                : m.total_points >= 4
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : m.total_points > 1
+                                ? "bg-slate-100 text-slate-700 border border-slate-200"
+                                : "bg-slate-50 text-slate-500 border border-slate-200"
+                            }`}
                           >
-                            {s}
-                          </text>
+                            {m.total_points} pts
+                          </span>
+                        </div>
+
+                        {/* Match Score (if recorded) */}
+                        {m.team_h_score !== null && m.team_a_score !== null && (
+                          <div className="mt-1 text-[11px] text-slate-400">
+                            Match: {m.was_home ? `${m.team_h_score} - ${m.team_a_score}` : `${m.team_a_score} - ${m.team_h_score}`}
+                          </div>
                         )}
-                      </g>
-                    );
-                  })}
-                </svg>
+                      </div>
+
+                      {/* Stat Metrics Grid with Icons */}
+                      <div className="mt-2.5 grid grid-cols-2 gap-x-2 gap-y-1.5 rounded-lg border border-slate-100 bg-slate-50/70 p-2 text-xs">
+                        <div className="flex items-center gap-1.5" title="Minutes played">
+                          <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                          <span className="font-mono font-bold text-slate-700">{m.minutes}&apos;</span>
+                        </div>
+                        <div className="flex items-center gap-1.5" title="Goals scored">
+                          <Target className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                          <span className={`font-mono font-bold ${m.goals_scored > 0 ? "text-emerald-700 font-extrabold" : "text-slate-600"}`}>
+                            {m.goals_scored}
+                          </span>
+                        </div>
+                        <div
+                          className="flex items-center gap-1.5"
+                          title={
+                            player.position === "FWD"
+                              ? "Clean sheets award 0 pts to forwards"
+                              : `Clean Sheet: +${csPoints} pts (${m.clean_sheets ? "clean sheet kept" : "no clean sheet"})`
+                          }
+                        >
+                          <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${csPoints > 0 ? "text-indigo-600" : "text-slate-300"}`} />
+                          <span className={`font-mono font-bold ${csPoints > 0 ? "text-indigo-700 font-extrabold" : "text-slate-400"}`}>
+                            {csPoints > 0 ? `+${csPoints} CS` : player.position === "FWD" ? "- CS" : "0 CS"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5" title="Defensive Contribution actions">
+                          <Shield className="h-3.5 w-3.5 shrink-0 text-sky-600" />
+                          <span className={`font-mono font-bold ${m.defensive_contribution >= 10 ? "text-sky-700 font-extrabold" : "text-slate-600"}`}>
+                            {m.defensive_contribution}
+                          </span>
+                        </div>
+                        <div className="col-span-2 flex items-center justify-between border-t border-slate-200/50 pt-1" title="Bonus points awarded">
+                          <span className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+                            <Star className={`h-3.5 w-3.5 shrink-0 ${m.bonus > 0 ? "text-amber-500 fill-amber-400" : "text-slate-300"}`} />
+                            Bonus:
+                          </span>
+                          <span className={`font-mono font-bold ${m.bonus > 0 ? "text-amber-600 font-extrabold" : "text-slate-400"}`}>
+                            {m.bonus > 0 ? `+${m.bonus} pts` : "0 pts"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              <div className="py-8 text-center text-xs text-slate-400">
-                Distribution data not available for this player.
+              <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-400">
+                No match appearances recorded in the last 5 gameweeks.
               </div>
             )}
           </div>

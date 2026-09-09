@@ -9,6 +9,29 @@ export interface PlayerFixture {
   defcon_prob: number;
 }
 
+export interface PlayerHistoryMatch {
+  round: number;
+  fixture_id?: number;
+  opponent_id: number;
+  opponent_name: string;
+  opponent_short: string;
+  was_home: boolean;
+  team_h_score?: number | null;
+  team_a_score?: number | null;
+  total_points: number;
+  minutes: number;
+  goals_scored: number;
+  assists: number;
+  clean_sheets: number;
+  goals_conceded: number;
+  bonus: number;
+  bps: number;
+  defensive_contribution: number;
+  starts: number;
+  expected_goals?: string;
+  expected_assists?: string;
+}
+
 export interface Player {
   id: number;
   name: string;
@@ -39,4 +62,5 @@ export interface Player {
   distribution?: Record<string, number>;
   fixtures_5?: PlayerFixture[];
   five_gw?: Player;
+  history?: PlayerHistoryMatch[];
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { Player } from "@/types/player";
+import { Player, PlayerHistoryMatch } from "@/types/player";
 
 let cached5Map: Map<number, Player> | null = null;
 
@@ -32,6 +32,35 @@ function get5FixturePlayersMap(): Map<number, Player> {
     }
   }
   return new Map<number, Player>();
+}
+
+let cachedHistoriesMap: Map<number, PlayerHistoryMatch[]> | null = null;
+
+function getPlayerHistoriesMap(): Map<number, PlayerHistoryMatch[]> {
+  if (cachedHistoriesMap) return cachedHistoriesMap;
+
+  const candidateHistPaths = [
+    path.resolve(process.cwd(), ".fpl_cache", "player_histories.json"),
+    path.resolve(process.cwd(), "..", ".fpl_cache", "player_histories.json"),
+  ];
+
+  for (const p of candidateHistPaths) {
+    if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
+      try {
+        const raw = fs.readFileSync(/*turbopackIgnore: true*/ p, "utf-8");
+        const parsed = JSON.parse(raw);
+        const map = new Map<number, PlayerHistoryMatch[]>();
+        for (const [idStr, list] of Object.entries(parsed)) {
+          map.set(Number(idStr), list as PlayerHistoryMatch[]);
+        }
+        cachedHistoriesMap = map;
+        return map;
+      } catch (err) {
+        console.error("Failed to load player histories cache:", err);
+      }
+    }
+  }
+  return new Map<number, PlayerHistoryMatch[]>();
 }
 
 export async function GET(request: NextRequest) {
@@ -81,13 +110,18 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Always attach 5-GW fixtures & 5-GW forecast so player modal shows next 5 GWs
+    // Always attach 5-GW fixtures, 5-GW forecast & match history
     const map5 = get5FixturePlayersMap();
+    const historiesMap = getPlayerHistoriesMap();
     for (const player of playersData) {
       const p5 = map5.get(player.id);
       if (p5) {
         player.fixtures_5 = p5.fixtures;
         player.five_gw = p5;
+      }
+      const hist = historiesMap.get(player.id);
+      if (hist) {
+        player.history = hist;
       }
     }
 
