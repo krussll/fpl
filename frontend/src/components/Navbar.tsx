@@ -10,7 +10,6 @@ import {
   ChevronDown,
   Menu,
   X,
-  Sparkles,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -57,7 +56,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link
           href="/"
@@ -82,8 +81,11 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Main Navigation">
+        {/* Desktop Navigation (Centered) */}
+        <nav
+          className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1"
+          aria-label="Main Navigation"
+        >
           <Link
             href="/"
             onClick={closeMenus}
@@ -185,18 +187,6 @@ export default function Navbar() {
           </Link>
         </nav>
 
-        {/* Right Action / CTA */}
-        <div className="hidden items-center gap-3 sm:flex">
-          <Link
-            href="/player-search"
-            onClick={closeMenus}
-            className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-slate-800 hover:shadow"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
-            <span>Run Simulation</span>
-          </Link>
-        </div>
-
         {/* Mobile Menu Button */}
         <div className="flex md:hidden">
           <button
@@ -274,17 +264,6 @@ export default function Navbar() {
               }`}
             >
               About
-            </Link>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-slate-200/70">
-            <Link
-              href="/player-search"
-              onClick={closeMenus}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
-            >
-              <Sparkles className="h-4 w-4 text-emerald-400" />
-              <span>Run Simulation</span>
             </Link>
           </div>
         </div>
