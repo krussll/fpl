@@ -9,7 +9,12 @@ export async function GET(request: NextRequest) {
     const horizonParam = searchParams.get("horizon");
     const horizon = horizonParam ? parseInt(horizonParam, 10) : 1;
 
-    const cacheFileName = horizon === 3 ? "optimal_squad_gw_3.json" : "optimal_squad_gw_1.json";
+    const cacheFileName =
+      horizon === 5
+        ? "optimal_squad_gw_5.json"
+        : horizon === 3
+        ? "optimal_squad_gw_3.json"
+        : "optimal_squad_gw_1.json";
 
     const candidatePaths = [
       path.resolve(process.cwd(), ".fpl_cache", cacheFileName),

@@ -195,9 +195,9 @@ function PitchPlayerCard({
         </span>
 
         {/* Fixture pill(s) */}
-        {horizon === 3 && player.fixtures && player.fixtures.length >= 3 ? (
-          <div className="flex w-full items-center justify-between border-t border-white/10 text-[8px] sm:text-[9px] font-bold">
-            {player.fixtures.slice(0, 3).map((f, i) => {
+        {horizon > 1 && player.fixtures && player.fixtures.length >= horizon ? (
+          <div className="flex w-full items-center justify-between border-t border-white/10 text-[7px] sm:text-[8px] font-bold">
+            {player.fixtures.slice(0, horizon).map((f, i) => {
               const c = getFdrColor(f.fdr);
               const shortOpp = f.opponent
                 ? f.opponent.split(" ")[0].slice(0, 3).toUpperCase()
@@ -228,7 +228,7 @@ function PitchPlayerCard({
           <span className="text-emerald-700">
             {displayXp.toFixed(1)}{" "}
             <span className="text-[8.5px] font-normal text-slate-500">
-              {horizon === 3 ? "tot" : "xP"}
+              {horizon > 1 ? "tot" : "xP"}
             </span>
           </span>
           <span className="text-slate-500 text-[9.5px]">£{player.price.toFixed(1)}m</span>
@@ -283,9 +283,9 @@ function BenchPlayerCard({
 
       {/* Opponent & xP */}
       <div className="flex flex-col items-end gap-1 text-right">
-        {horizon === 3 && player.fixtures && player.fixtures.length >= 3 ? (
+        {horizon > 1 && player.fixtures && player.fixtures.length >= horizon ? (
           <div className="flex items-center gap-0.5">
-            {player.fixtures.slice(0, 3).map((f, i) => {
+            {player.fixtures.slice(0, horizon).map((f, i) => {
               const c = getFdrColor(f.fdr);
               const shortOpp = f.opponent
                 ? f.opponent.split(" ")[0].slice(0, 3).toUpperCase()
@@ -294,7 +294,7 @@ function BenchPlayerCard({
                 <span
                   key={i}
                   title={`${f.opponent} (FDR ${f.fdr}) • GW${f.event}`}
-                  className={`rounded px-1 py-0.5 text-[8.5px] font-bold ${c.bg} text-white shadow-2xs`}
+                  className={`rounded px-1 py-0.5 text-[8px] font-bold ${c.bg} text-white shadow-2xs`}
                 >
                   {shortOpp}
                 </span>
@@ -318,7 +318,7 @@ function BenchPlayerCard({
 }
 
 export default function OptimalSquadView() {
-  const [activeHorizon, setActiveHorizon] = useState<1 | 3>(1);
+  const [activeHorizon, setActiveHorizon] = useState<1 | 3 | 5>(1);
   const [squadsCache, setSquadsCache] = useState<Record<number, OptimalSquad>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -401,9 +401,9 @@ export default function OptimalSquadView() {
   return (
     <div className="space-y-6">
       {/* 1. Horizon Selection Tabs & View Switcher Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white p-2.5 shadow-xs">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white p-2.5 shadow-xs">
         {/* Horizon Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-xl">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100/90 rounded-xl">
           <button
             type="button"
             onClick={() => setActiveHorizon(1)}
@@ -414,7 +414,7 @@ export default function OptimalSquadView() {
             }`}
           >
             <Sparkles className={`h-3.5 w-3.5 ${activeHorizon === 1 ? "text-emerald-600" : "text-slate-400"}`} />
-            <span>Current Gameweek (GW 4)</span>
+            <span>Current Gameweek</span>
             <span
               className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${
                 activeHorizon === 1
@@ -422,7 +422,7 @@ export default function OptimalSquadView() {
                   : "bg-slate-200 text-slate-600"
               }`}
             >
-              1-GW Focus
+              GW 4
             </span>
           </button>
 
@@ -447,10 +447,32 @@ export default function OptimalSquadView() {
               GW 4–6
             </span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveHorizon(5)}
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
+              activeHorizon === 5
+                ? "bg-white text-emerald-950 shadow-xs ring-1 ring-slate-200/80"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+            }`}
+          >
+            <Calendar className={`h-3.5 w-3.5 ${activeHorizon === 5 ? "text-emerald-600" : "text-slate-400"}`} />
+            <span>Next 5 Gameweeks</span>
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${
+                activeHorizon === 5
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-slate-200 text-slate-600"
+              }`}
+            >
+              GW 4–8
+            </span>
+          </button>
         </div>
 
         {/* View Switcher: Pitch View vs Table View */}
-        <div className="flex items-center gap-1 self-end sm:self-center">
+        <div className="flex items-center gap-1 self-end lg:self-center">
           <button
             type="button"
             onClick={() => setViewMode("pitch")}
@@ -482,16 +504,26 @@ export default function OptimalSquadView() {
       <div className="flex items-center justify-between rounded-xl bg-emerald-50/70 border border-emerald-200/70 px-4 py-2 text-xs text-emerald-900">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center rounded-full bg-emerald-700 px-2.5 py-0.5 text-[10.5px] font-extrabold text-white">
-            {activeHorizon === 3 ? "Next 3 Gameweeks" : "Gameweek 4 Focus"}
+            {activeHorizon === 5
+              ? "Next 5 Gameweeks"
+              : activeHorizon === 3
+              ? "Next 3 Gameweeks"
+              : "Gameweek 4 Focus"}
           </span>
           <span className="font-semibold text-emerald-950">
-            {activeHorizon === 3
-              ? "Medium-term squad horizon based on 10,000 Monte Carlo runs per fixture (GW4–6)"
+            {activeHorizon === 5
+              ? "Long-term transfer horizon based on 10,000 Monte Carlo simulation runs per fixture (GW 4–8)"
+              : activeHorizon === 3
+              ? "Medium-term squad horizon based on 10,000 Monte Carlo simulation runs per fixture (GW 4–6)"
               : "Single gameweek optimization maximizing immediate points under official £100m cap"}
           </span>
         </div>
         <span className="hidden sm:inline text-[11px] font-medium text-emerald-800">
-          {activeHorizon === 3 ? "Horizon: 3 Fixtures" : "Horizon: 1 Fixture"}
+          {activeHorizon === 5
+            ? "Horizon: 5 Fixtures"
+            : activeHorizon === 3
+            ? "Horizon: 3 Fixtures"
+            : "Horizon: 1 Fixture"}
         </span>
       </div>
 
@@ -501,7 +533,7 @@ export default function OptimalSquadView() {
         <div className="col-span-2 sm:col-span-2 lg:col-span-1 rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white p-4 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-              {activeHorizon === 3 ? "3-GW Match xP" : "Projected Match xP"}
+              {activeHorizon > 1 ? `${activeHorizon}-GW Match xP` : "Projected Match xP"}
             </span>
             <Trophy className="h-4 w-4 text-emerald-600" />
           </div>
@@ -512,8 +544,10 @@ export default function OptimalSquadView() {
             <span className="text-xs font-semibold text-emerald-700">pts</span>
           </div>
           <p className="mt-1 text-[11px] text-emerald-800/80">
-            {activeHorizon === 3 ? (
-              <>Avg <strong>{(total_match_xp / 3).toFixed(1)} pts/GW</strong> • XI ({starting_xi_xp.toFixed(1)}) + C 2x (+{captain?.xp.toFixed(1)})</>
+            {activeHorizon > 1 ? (
+              <>
+                Avg <strong>{(total_match_xp / activeHorizon).toFixed(1)} pts/GW</strong> • XI ({starting_xi_xp.toFixed(1)}) + C 2x (+{captain?.xp.toFixed(1)})
+              </>
             ) : (
               <>Starting XI ({starting_xi_xp.toFixed(1)}) + Captain 2x (+{captain?.xp.toFixed(1)})</>
             )}
@@ -576,9 +610,9 @@ export default function OptimalSquadView() {
               <p className="text-[11px] text-slate-500">
                 <span className="font-semibold text-emerald-700">
                   {(captain.doubled_xp || captain.xp * 2).toFixed(1)} pts
-                  {activeHorizon === 3 && (
+                  {activeHorizon > 1 && (
                     <span className="text-[9.5px] font-normal text-slate-400 ml-1">
-                      ({((captain.doubled_xp || captain.xp * 2) / 3).toFixed(1)}/GW)
+                      ({((captain.doubled_xp || captain.xp * 2) / activeHorizon).toFixed(1)}/GW)
                     </span>
                   )}
                 </span>{" "}
@@ -609,9 +643,9 @@ export default function OptimalSquadView() {
               <p className="text-[11px] text-slate-500">
                 <span className="font-semibold text-emerald-700">
                   {vice_captain?.xp.toFixed(1)} pts
-                  {activeHorizon === 3 && (
+                  {activeHorizon > 1 && (
                     <span className="text-[9.5px] font-normal text-slate-400 ml-1">
-                      ({(vice_captain.xp / 3).toFixed(1)}/GW)
+                      ({(vice_captain.xp / activeHorizon).toFixed(1)}/GW)
                     </span>
                   )}
                 </span>{" "}
@@ -753,7 +787,12 @@ export default function OptimalSquadView() {
             <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-teal-200/80 bg-teal-50/60 p-3.5 text-xs text-teal-950">
               <Info className="h-4 w-4 shrink-0 text-teal-600 mt-0.5" />
               <div className="leading-relaxed">
-                {activeHorizon === 3 ? (
+                {activeHorizon === 5 ? (
+                  <>
+                    <span className="font-bold text-teal-900">Next 5 Gameweeks Goalkeeper & Bench Tactic: </span>
+                    Over an extended 5-gameweek horizon (GW4–8), set-and-forget premium starter David Raya (£6.0m) paired with a non-playing £4.0m keeper (Alex Cairns) maximizes available capital directly on the pitch. Outfield bench assets (John Egan £4.1m, Aurèle Amenda £4.0m, and Regan Slater £4.5m) offer dependable emergency cover while funneling £83.2m into a high-scoring starting XI featuring Erling Haaland (£15.5m), Bruno Fernandes (£12.0m), and Bryan Mbeumo (£7.9m).
+                  </>
+                ) : activeHorizon === 3 ? (
                   <>
                     <span className="font-bold text-teal-900">Next 3 Gameweeks Goalkeeper & Bench Tactic: </span>
                     Over a 3-gameweek horizon (GW4–6), set-and-forget premium starter David Raya (£6.0m) paired with non-playing £4.0m keeper Alex Cairns enables deploying £15.5m Erling Haaland alongside £12.0m Bruno Fernandes. Budget £4.0m–£4.5m outfield substitutes (Bobby Thomas, Leif Davis, Regan Slater) free up £99.8m of total budget directly on the pitch for high-upside starters.
@@ -783,9 +822,13 @@ export default function OptimalSquadView() {
                   <th className="px-3 py-3.5">Club</th>
                   <th className="px-3 py-3.5">Pos</th>
                   <th className="px-3 py-3.5">Price</th>
-                  <th className="px-3 py-3.5">{activeHorizon === 3 ? "Fixtures (GW 4–6)" : "Fixture"}</th>
-                  <th className="px-3 py-3.5 text-right">{activeHorizon === 3 ? "3-GW xP" : "Expected Pts (xP)"}</th>
-                  {activeHorizon === 3 && <th className="px-3 py-3.5 text-right">Avg / GW</th>}
+                  <th className="px-3 py-3.5">
+                    {activeHorizon > 1 ? `Fixtures (GW 4–${activeHorizon === 5 ? 8 : 6})` : "Fixture"}
+                  </th>
+                  <th className="px-3 py-3.5 text-right">
+                    {activeHorizon > 1 ? `${activeHorizon}-GW xP` : "Expected Pts (xP)"}
+                  </th>
+                  {activeHorizon > 1 && <th className="px-3 py-3.5 text-right">Avg / GW</th>}
                   <th className="px-3 py-3.5 text-right">Floor (P10)</th>
                   <th className="px-3 py-3.5 text-right">Ceiling (P90)</th>
                   <th className="py-3.5 pl-3 pr-4 text-right">Haul %</th>
@@ -794,7 +837,7 @@ export default function OptimalSquadView() {
               <tbody className="divide-y divide-slate-100">
                 {/* Starters Section Header */}
                 <tr className="bg-emerald-50/40 text-xs font-bold text-emerald-950">
-                  <td colSpan={activeHorizon === 3 ? 11 : 10} className="py-2 pl-4">
+                  <td colSpan={activeHorizon > 1 ? 11 : 10} className="py-2 pl-4">
                     Starting XI ({formation} Formation • {starting_xi_xp.toFixed(2)} Base xP)
                   </td>
                 </tr>
@@ -838,9 +881,9 @@ export default function OptimalSquadView() {
                         £{p.price.toFixed(1)}m
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap">
-                        {activeHorizon === 3 && p.fixtures && p.fixtures.length >= 3 ? (
+                        {activeHorizon > 1 && p.fixtures && p.fixtures.length >= activeHorizon ? (
                           <div className="flex items-center gap-1">
-                            {p.fixtures.slice(0, 3).map((f, i) => {
+                            {p.fixtures.slice(0, activeHorizon).map((f, i) => {
                               const c = getFdrColor(f.fdr);
                               const shortOpp = f.opponent
                                 ? f.opponent.split(" ")[0].slice(0, 3).toUpperCase()
@@ -849,7 +892,7 @@ export default function OptimalSquadView() {
                                 <span
                                   key={i}
                                   title={`${f.opponent} (FDR ${f.fdr}) • GW${f.event}`}
-                                  className={`rounded px-1.5 py-0.5 text-[9.5px] font-bold ${c.bg} text-white`}
+                                  className={`rounded px-1.5 py-0.5 text-[8.5px] font-bold ${c.bg} text-white`}
                                 >
                                   {shortOpp}
                                 </span>
@@ -872,9 +915,9 @@ export default function OptimalSquadView() {
                           p.xp.toFixed(2)
                         )}
                       </td>
-                      {activeHorizon === 3 && (
+                      {activeHorizon > 1 && (
                         <td className="px-3 py-3 whitespace-nowrap text-right text-xs font-semibold text-slate-700">
-                          {((isCap ? p.xp * 2 : p.xp) / 3).toFixed(1)}
+                          {((isCap ? p.xp * 2 : p.xp) / activeHorizon).toFixed(1)}
                         </td>
                       )}
                       <td className="px-3 py-3 whitespace-nowrap text-right text-xs text-slate-500">
@@ -892,7 +935,7 @@ export default function OptimalSquadView() {
 
                 {/* Bench Section Header */}
                 <tr className="bg-slate-100 text-xs font-bold text-slate-700">
-                  <td colSpan={activeHorizon === 3 ? 11 : 10} className="py-2 pl-4">
+                  <td colSpan={activeHorizon > 1 ? 11 : 10} className="py-2 pl-4">
                     Substitutes (Bench • Ordered by Autosub Priority)
                   </td>
                 </tr>
@@ -927,9 +970,9 @@ export default function OptimalSquadView() {
                         £{p.price.toFixed(1)}m
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-xs text-slate-600">
-                        {activeHorizon === 3 && p.fixtures && p.fixtures.length >= 3 ? (
+                        {activeHorizon > 1 && p.fixtures && p.fixtures.length >= activeHorizon ? (
                           <div className="flex items-center gap-1">
-                            {p.fixtures.slice(0, 3).map((f, i) => {
+                            {p.fixtures.slice(0, activeHorizon).map((f, i) => {
                               const c = getFdrColor(f.fdr);
                               const shortOpp = f.opponent
                                 ? f.opponent.split(" ")[0].slice(0, 3).toUpperCase()
@@ -938,7 +981,7 @@ export default function OptimalSquadView() {
                                 <span
                                   key={i}
                                   title={`${f.opponent} (FDR ${f.fdr}) • GW${f.event}`}
-                                  className={`rounded px-1.5 py-0.5 text-[9.5px] font-bold ${c.bg} text-white`}
+                                  className={`rounded px-1.5 py-0.5 text-[8.5px] font-bold ${c.bg} text-white`}
                                 >
                                   {shortOpp}
                                 </span>
@@ -954,9 +997,9 @@ export default function OptimalSquadView() {
                       <td className="px-3 py-3 whitespace-nowrap text-right font-bold text-slate-700">
                         {p.xp.toFixed(2)}
                       </td>
-                      {activeHorizon === 3 && (
+                      {activeHorizon > 1 && (
                         <td className="px-3 py-3 whitespace-nowrap text-right text-xs text-slate-500">
-                          {(p.xp / 3).toFixed(1)}
+                          {(p.xp / activeHorizon).toFixed(1)}
                         </td>
                       )}
                       <td className="px-3 py-3 whitespace-nowrap text-right text-xs text-slate-400">
@@ -979,7 +1022,57 @@ export default function OptimalSquadView() {
 
       {/* Tactical Strategy & Optimization Notes */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {activeHorizon === 3 ? (
+        {activeHorizon === 5 ? (
+          <>
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <Crown className="h-4 w-4 text-amber-500 shrink-0" />
+                <span>5-GW Captaincy Anchor: Bruno Fernandes (31.54 xP)</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Across Gameweeks 4–8, Bruno Fernandes commands the #1 highest simulated expected return with 31.54 points (6.31 pts/GW).
+                Doubling his score yields 63.08 points. Partnered with Bryan Mbeumo (30.56 xP, VC), the duo provides a prolific attacking core
+                spanning a sustained multi-week run against Manchester City, Fulham, Tottenham, Leeds, and Bournemouth.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <TrendingUp className="h-4 w-4 text-teal-600 shrink-0" />
+                <span>Premium Forward Focal Point: Erling Haaland (£15.5m)</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Erling Haaland anchors the 3-4-3 attack, delivering 26.28 expected points across the 5 fixtures with an unmatched 39.0-point
+                P90 ceiling. Alongside value talisman João Pedro (24.16 xP) and Everton focal point Thierno Barry (24.35 xP), the 3-forward
+                line captures the highest goal involvement share in the league.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <Sparkles className="h-4 w-4 text-teal-600 shrink-0" />
+                <span>Man City Midfield Inclusion: Phil Foden (£7.0m, 24.54 xP)</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Over a 5-match window, Phil Foden projects at 4.91 pts/GW (24.54 xP total). His combination of creative threat and open-play
+                goal conversion makes him a premier mid-priced asset alongside Ipswich talisman Julio Enciso (£5.5m, 20.76 xP), providing
+                tremendous attacking depth behind the frontline.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <Coins className="h-4 w-4 text-amber-500 shrink-0" />
+                <span>5-Gameweek Budget Efficiency (£99.8m Invested, £0.2m ITB)</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                David Raya (£6.0m) and Gabriel (£8.0m) anchor the defence with Arsenal&apos;s elite clean sheet probabilities, while budget
+                enablers Nobel Mendy (£4.0m) and Bobby Thomas (£4.0m) allow deploying £83.2m directly in the Starting XI. The Starting XI delivers
+                276.90 base xP (308.44 with captaincy), averaging 61.69 projected match points per gameweek.
+              </p>
+            </div>
+          </>
+        ) : activeHorizon === 3 ? (
           <>
             <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
               <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
