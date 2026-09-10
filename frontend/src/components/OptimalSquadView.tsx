@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { OptimalSquad, SquadPlayer, Player } from "@/types/player";
 import PlayerModal from "./PlayerModal";
+import { getTeamKit } from "@/utils/teamColors";
 import {
   Trophy,
   Crown,
@@ -34,65 +35,102 @@ function getFdrColor(fdr: number = 3): { bg: string; text: string; border: strin
   }
 }
 
-function getPositionColor(pos: string): string {
-  switch (pos) {
-    case "GKP":
-      return "#f59e0b"; // amber
-    case "DEF":
-      return "#0284c7"; // sky
-    case "MID":
-      return "#10b981"; // emerald
-    case "FWD":
-      return "#f43f5e"; // rose
-    default:
-      return "#64748b";
-  }
-}
-
-// Custom Soccer Jersey / Kit SVG
+// Custom Soccer Jersey / Kit SVG matching club's authentic outfield or goalkeeper kit
 function JerseyIcon({
+  team,
   position,
   isCaptain,
   isViceCaptain,
+  size = "md",
 }: {
+  team?: string | number;
   position: string;
   isCaptain?: boolean;
   isViceCaptain?: boolean;
+  size?: "sm" | "md" | "lg";
 }) {
-  const primaryColor = getPositionColor(position);
+  const isGoalkeeper = position === "GKP";
+  const kit = getTeamKit(team, isGoalkeeper);
+
+  const sizeClasses =
+    size === "sm"
+      ? "h-6 w-6"
+      : size === "lg"
+      ? "h-12 w-12 sm:h-14 sm:w-14"
+      : "h-10 w-10 sm:h-12 sm:w-12";
 
   return (
     <div className="relative inline-flex items-center justify-center">
       <svg
         viewBox="0 0 48 48"
-        className="h-10 w-10 sm:h-12 sm:w-12 drop-shadow-md transition-transform duration-200 group-hover:scale-110"
+        className={`${sizeClasses} drop-shadow-md transition-transform duration-200 group-hover:scale-110`}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Shirt body */}
+        {/* Base Shirt Body */}
         <path
           d="M15 10L10 17L15 22L17 17V38H31V17L33 22L38 17L33 10L28 13C26 14 22 14 20 13L15 10Z"
-          fill={primaryColor}
-          stroke="#ffffff"
-          strokeWidth="1.5"
-          strokeLinejoin="round"
+          fill={kit.primary}
         />
+
+        {/* Sleeves (if contrasting secondary color) */}
+        {kit.secondary !== kit.primary && (
+          <>
+            {/* Left sleeve */}
+            <path
+              d="M15 10L10 17L15 22L17 17L17.2 11.2Z"
+              fill={kit.secondary}
+            />
+            {/* Right sleeve */}
+            <path
+              d="M33 10L38 17L33 22L31 17L30.8 11.2Z"
+              fill={kit.secondary}
+            />
+          </>
+        )}
+
+        {/* Vertical stripes for striped clubs */}
+        {kit.pattern === "striped" && (
+          <g stroke={kit.patternColor || kit.secondary} strokeWidth="2.4" strokeLinecap="butt">
+            <line x1="21.5" y1="14" x2="21.5" y2="38" />
+            <line x1="26.5" y1="14" x2="26.5" y2="38" />
+          </g>
+        )}
+
         {/* Collar contour */}
         <path
           d="M20 13C22 15 26 15 28 13"
-          stroke="#ffffff"
-          strokeWidth="1.5"
+          stroke={kit.collar || "#ffffff"}
+          strokeWidth="1.6"
           strokeLinecap="round"
         />
-        {/* Center stripe */}
+
+        {/* Outer border / seam stroke */}
+        <path
+          d="M15 10L10 17L15 22L17 17V38H31V17L33 22L38 17L33 10L28 13C26 14 22 14 20 13L15 10Z"
+          stroke={kit.stroke || "#ffffff"}
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+
+        {/* Sleeve cuff accents */}
         <line
-          x1="24"
-          y1="15"
-          x2="24"
-          y2="38"
-          stroke="#ffffff"
+          x1="10.8"
+          y1="17.8"
+          x2="14.2"
+          y2="21.2"
+          stroke={kit.collar || kit.stroke || "#ffffff"}
           strokeWidth="1"
-          strokeOpacity="0.4"
+          strokeOpacity="0.8"
+        />
+        <line
+          x1="37.2"
+          y1="17.8"
+          x2="33.8"
+          y2="21.2"
+          stroke={kit.collar || kit.stroke || "#ffffff"}
+          strokeWidth="1"
+          strokeOpacity="0.8"
         />
       </svg>
 
@@ -141,6 +179,7 @@ function PitchPlayerCard({
     >
       {/* Kit */}
       <JerseyIcon
+        team={player.team}
         position={player.position}
         isCaptain={isCaptain}
         isViceCaptain={isViceCaptain}
@@ -200,7 +239,7 @@ function BenchPlayerCard({
 
         {/* Jersey icon */}
         <div className="shrink-0">
-          <JerseyIcon position={player.position} />
+          <JerseyIcon team={player.team} position={player.position} />
         </div>
 
         {/* Name & Club */}
@@ -372,15 +411,24 @@ export default function OptimalSquadView() {
             </span>
             <Crown className="h-4 w-4 text-amber-500" />
           </div>
-          <div className="mt-2 truncate text-base font-bold text-slate-900">
-            {captain?.name}
+          <div className="mt-2 flex items-center gap-2.5">
+            <JerseyIcon
+              team={captain?.team}
+              position={captain?.position || "FWD"}
+              size="sm"
+            />
+            <div className="min-w-0">
+              <div className="truncate text-base font-bold text-slate-900">
+                {captain?.name}
+              </div>
+              <p className="text-[11px] text-slate-500">
+                <span className="font-semibold text-emerald-700">
+                  {(captain.doubled_xp || captain.xp * 2).toFixed(1)} pts
+                </span>{" "}
+                • {captain.opponent}
+              </p>
+            </div>
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">
-            <span className="font-semibold text-emerald-700">
-              {(captain.doubled_xp || captain.xp * 2).toFixed(1)} pts
-            </span>{" "}
-            • {captain.opponent}
-          </p>
         </div>
 
         {/* 5. Vice-Captain Highlight */}
@@ -391,13 +439,22 @@ export default function OptimalSquadView() {
             </span>
             <Sparkles className="h-4 w-4 text-teal-600" />
           </div>
-          <div className="mt-2 truncate text-base font-bold text-slate-900">
-            {vice_captain?.name}
+          <div className="mt-2 flex items-center gap-2.5">
+            <JerseyIcon
+              team={vice_captain?.team}
+              position={vice_captain?.position || "MID"}
+              size="sm"
+            />
+            <div className="min-w-0">
+              <div className="truncate text-base font-bold text-slate-900">
+                {vice_captain?.name}
+              </div>
+              <p className="text-[11px] text-slate-500">
+                <span className="font-semibold text-emerald-700">{vice_captain?.xp.toFixed(1)} pts</span> •{" "}
+                {vice_captain?.opponent}
+              </p>
+            </div>
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">
-            <span className="font-semibold text-emerald-700">{vice_captain?.xp.toFixed(1)} pts</span> •{" "}
-            {vice_captain?.opponent}
-          </p>
         </div>
       </div>
 
@@ -626,7 +683,10 @@ export default function OptimalSquadView() {
                         )}
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap font-bold text-slate-900 group-hover:text-emerald-700">
-                        {p.full_name || p.name}
+                        <div className="flex items-center gap-2">
+                          <JerseyIcon team={p.team} position={p.position} size="sm" />
+                          <span>{p.full_name || p.name}</span>
+                        </div>
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-xs text-slate-500">{p.team}</td>
                       <td className="px-3 py-3 whitespace-nowrap">
@@ -689,7 +749,10 @@ export default function OptimalSquadView() {
                         </span>
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap font-semibold text-slate-700 group-hover:text-emerald-700">
-                        {p.full_name || p.name}
+                        <div className="flex items-center gap-2">
+                          <JerseyIcon team={p.team} position={p.position} size="sm" />
+                          <span>{p.full_name || p.name}</span>
+                        </div>
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-xs text-slate-500">{p.team}</td>
                       <td className="px-3 py-3 whitespace-nowrap">
