@@ -15,6 +15,7 @@ import {
   AlertCircle,
   TrendingUp,
   CheckCircle2,
+  Info,
 } from "lucide-react";
 
 function getFdrColor(fdr: number = 3): { bg: string; text: string; border: string } {
@@ -560,6 +561,18 @@ export default function OptimalSquadView() {
                 );
               })}
             </div>
+
+            {/* Single Gameweek Bench & Goalkeeper Optimization Note */}
+            <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-teal-200/80 bg-teal-50/60 p-3.5 text-xs text-teal-950">
+              <Info className="h-4 w-4 shrink-0 text-teal-600 mt-0.5" />
+              <div className="leading-relaxed">
+                <span className="font-bold text-teal-900">Single Gameweek Goalkeeper & Bench Tactic: </span>
+                In a single gameweek squad, you do not need a second playing goalkeeper.
+                You can bump the backup keeper down to any playing £4.5m asset or choose a non-starting £4.0m deadspot (Alex Cairns £4.0m)
+                to free up maximum funds (£7.4m in the bank) and concentrate budget directly into starting XI points.
+                Similarly, budget outfield substitutes (£4.0m–£4.5m) ensure expensive assets (such as Cole Palmer £9.6m) are deployed in the starting XI rather than sitting idle on the bench.
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -711,7 +724,7 @@ export default function OptimalSquadView() {
         </div>
       )}
 
-      {/* Tactical Strategy & Goalkeeper Pairing Notes */}
+      {/* Tactical Strategy & Optimization Notes */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
           <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
@@ -734,6 +747,30 @@ export default function OptimalSquadView() {
             Alexander Isak commands the #1 highest expected points and double-digit haul probability (18.4%) across all
             simulated assets for Gameweek 4 against Fulham at Anfield. Doubling his score yields 11.82 projected points,
             with Dominik Szoboszlai (5.78 xP) securing the vice-captain armband.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+          <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+            <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span>Starting Midfield Rule & Cole Palmer Integration</span>
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-slate-600">
+            Official FPL rules require a minimum of 3 starting midfielders. The 4-3-3 setup starts Cole Palmer (£9.6m, 4.79 xP)
+            alongside Dominik Szoboszlai (£7.0m) and Morgan Rogers (£7.6m). Rather than sitting idle on the bench, Palmer is
+            deployed directly on the pitch where his returns count toward your gameweek score.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+          <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+            <Coins className="h-4 w-4 text-amber-500 shrink-0" />
+            <span>Single Gameweek Goalkeeper & Budget Bench Tactic</span>
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-slate-600">
+            In a single gameweek selection, you do not need an expensive second playing goalkeeper.
+            The backup keeper can be bumped down to any playing £4.5m asset, or for maximum money in the bank (£7.4m ITB),
+            a non-starting £4.0m deadspot (Alex Cairns £4.0m) can be used to funnel every pound into the starting XI.
           </p>
         </div>
       </div>
