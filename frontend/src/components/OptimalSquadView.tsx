@@ -17,6 +17,7 @@ import {
   TrendingUp,
   CheckCircle2,
   Info,
+  Calendar,
 } from "lucide-react";
 
 function getFdrColor(fdr: number = 3): { bg: string; text: string; border: string } {
@@ -161,11 +162,13 @@ function PitchPlayerCard({
   isCaptain,
   isViceCaptain,
   onClick,
+  horizon = 1,
 }: {
   player: SquadPlayer;
   isCaptain?: boolean;
   isViceCaptain?: boolean;
   onClick: () => void;
+  horizon?: number;
 }) {
   const fix = player.fixtures && player.fixtures.length > 0 ? player.fixtures[0] : null;
   const fdrColors = getFdrColor(fix?.fdr);
@@ -191,19 +194,42 @@ function PitchPlayerCard({
           {player.name}
         </span>
 
-        {/* Fixture pill */}
-        {fix && (
+        {/* Fixture pill(s) */}
+        {horizon === 3 && player.fixtures && player.fixtures.length >= 3 ? (
+          <div className="flex w-full items-center justify-between border-t border-white/10 text-[8px] sm:text-[9px] font-bold">
+            {player.fixtures.slice(0, 3).map((f, i) => {
+              const c = getFdrColor(f.fdr);
+              const shortOpp = f.opponent
+                ? f.opponent.split(" ")[0].slice(0, 3).toUpperCase()
+                : `GW${f.event}`;
+              return (
+                <span
+                  key={i}
+                  title={`${f.opponent} (FDR ${f.fdr}) • GW${f.event}`}
+                  className={`flex-1 py-0.5 text-center ${c.bg} text-white ${
+                    i > 0 ? "border-l border-white/20" : ""
+                  }`}
+                >
+                  {shortOpp}
+                </span>
+              );
+            })}
+          </div>
+        ) : fix ? (
           <div
             className={`flex w-full items-center justify-center gap-1 border-t border-white/10 ${fdrColors.bg} px-1 py-0.5 text-[9px] sm:text-[10px] font-semibold tracking-wider`}
           >
             <span>{fix.opponent}</span>
           </div>
-        )}
+        ) : null}
 
         {/* Points & Price pill */}
         <div className="flex w-full items-center justify-between bg-white px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold text-slate-900">
           <span className="text-emerald-700">
-            {displayXp.toFixed(1)} <span className="text-[8.5px] font-normal text-slate-500">xP</span>
+            {displayXp.toFixed(1)}{" "}
+            <span className="text-[8.5px] font-normal text-slate-500">
+              {horizon === 3 ? "tot" : "xP"}
+            </span>
           </span>
           <span className="text-slate-500 text-[9.5px]">£{player.price.toFixed(1)}m</span>
         </div>
@@ -217,10 +243,12 @@ function BenchPlayerCard({
   player,
   slotLabel,
   onClick,
+  horizon = 1,
 }: {
   player: SquadPlayer;
   slotLabel: string;
   onClick: () => void;
+  horizon?: number;
 }) {
   const fix = player.fixtures && player.fixtures.length > 0 ? player.fixtures[0] : null;
   const fdrColors = getFdrColor(fix?.fdr);
@@ -255,13 +283,31 @@ function BenchPlayerCard({
 
       {/* Opponent & xP */}
       <div className="flex flex-col items-end gap-1 text-right">
-        {fix && (
+        {horizon === 3 && player.fixtures && player.fixtures.length >= 3 ? (
+          <div className="flex items-center gap-0.5">
+            {player.fixtures.slice(0, 3).map((f, i) => {
+              const c = getFdrColor(f.fdr);
+              const shortOpp = f.opponent
+                ? f.opponent.split(" ")[0].slice(0, 3).toUpperCase()
+                : `GW${f.event}`;
+              return (
+                <span
+                  key={i}
+                  title={`${f.opponent} (FDR ${f.fdr}) • GW${f.event}`}
+                  className={`rounded px-1 py-0.5 text-[8.5px] font-bold ${c.bg} text-white shadow-2xs`}
+                >
+                  {shortOpp}
+                </span>
+              );
+            })}
+          </div>
+        ) : fix ? (
           <span
             className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold ${fdrColors.bg} text-white shadow-2xs`}
           >
             {fix.opponent}
           </span>
-        )}
+        ) : null}
         <div className="text-xs font-bold text-emerald-800">
           {player.xp.toFixed(2)} <span className="text-[10px] font-normal text-slate-400">xP</span>
           <span className="ml-1.5 text-[11px] font-medium text-slate-500">£{player.price.toFixed(1)}m</span>
@@ -272,23 +318,27 @@ function BenchPlayerCard({
 }
 
 export default function OptimalSquadView() {
-  const [squad, setSquad] = useState<OptimalSquad | null>(null);
+  const [activeHorizon, setActiveHorizon] = useState<1 | 3>(1);
+  const [squadsCache, setSquadsCache] = useState<Record<number, OptimalSquad>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"pitch" | "table">("pitch");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
-    async function loadOptimalSquad() {
+    async function loadOptimalSquad(h: number) {
+      if (squadsCache[h]) {
+        return;
+      }
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch("/api/optimal-squad");
+        const res = await fetch(`/api/optimal-squad?horizon=${h}`);
         if (!res.ok) {
-          throw new Error(`Failed to load squad (status ${res.status})`);
+          throw new Error(`Failed to load squad for horizon ${h} (status ${res.status})`);
         }
-        const data = await res.json();
-        setSquad(data);
+        const data = (await res.json()) as OptimalSquad;
+        setSquadsCache((prev) => ({ ...prev, [h]: data }));
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         setError(msg || "Failed to load optimal squad.");
@@ -297,10 +347,13 @@ export default function OptimalSquadView() {
       }
     }
 
-    loadOptimalSquad();
-  }, []);
+    loadOptimalSquad(activeHorizon);
+  }, [activeHorizon, squadsCache]);
 
-  if (loading) {
+  const squad = squadsCache[activeHorizon];
+  const isCurrentlyLoading = loading && !squad;
+
+  if (isCurrentlyLoading) {
     return (
       <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-20 text-center shadow-xs">
         <Loader2 className="h-9 w-9 animate-spin text-emerald-600" />
@@ -347,13 +400,108 @@ export default function OptimalSquadView() {
 
   return (
     <div className="space-y-6">
+      {/* 1. Horizon Selection Tabs & View Switcher Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white p-2.5 shadow-xs">
+        {/* Horizon Tabs */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setActiveHorizon(1)}
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
+              activeHorizon === 1
+                ? "bg-white text-emerald-950 shadow-xs ring-1 ring-slate-200/80"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+            }`}
+          >
+            <Sparkles className={`h-3.5 w-3.5 ${activeHorizon === 1 ? "text-emerald-600" : "text-slate-400"}`} />
+            <span>Current Gameweek (GW 4)</span>
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${
+                activeHorizon === 1
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-slate-200 text-slate-600"
+              }`}
+            >
+              1-GW Focus
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveHorizon(3)}
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
+              activeHorizon === 3
+                ? "bg-white text-emerald-950 shadow-xs ring-1 ring-slate-200/80"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+            }`}
+          >
+            <Calendar className={`h-3.5 w-3.5 ${activeHorizon === 3 ? "text-emerald-600" : "text-slate-400"}`} />
+            <span>Next 3 Gameweeks</span>
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${
+                activeHorizon === 3
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-slate-200 text-slate-600"
+              }`}
+            >
+              GW 4–6
+            </span>
+          </button>
+        </div>
+
+        {/* View Switcher: Pitch View vs Table View */}
+        <div className="flex items-center gap-1 self-end sm:self-center">
+          <button
+            type="button"
+            onClick={() => setViewMode("pitch")}
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === "pitch"
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+            }`}
+          >
+            <LayoutGrid className="h-3.5 w-3.5" />
+            <span>Pitch View</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("table")}
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === "table"
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+            }`}
+          >
+            <TableIcon className="h-3.5 w-3.5" />
+            <span>List / Table</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Horizon Subtitle Callout */}
+      <div className="flex items-center justify-between rounded-xl bg-emerald-50/70 border border-emerald-200/70 px-4 py-2 text-xs text-emerald-900">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center rounded-full bg-emerald-700 px-2.5 py-0.5 text-[10.5px] font-extrabold text-white">
+            {activeHorizon === 3 ? "Next 3 Gameweeks" : "Gameweek 4 Focus"}
+          </span>
+          <span className="font-semibold text-emerald-950">
+            {activeHorizon === 3
+              ? "Medium-term squad horizon based on 10,000 Monte Carlo runs per fixture (GW4–6)"
+              : "Single gameweek optimization maximizing immediate points under official £100m cap"}
+          </span>
+        </div>
+        <span className="hidden sm:inline text-[11px] font-medium text-emerald-800">
+          {activeHorizon === 3 ? "Horizon: 3 Fixtures" : "Horizon: 1 Fixture"}
+        </span>
+      </div>
+
       {/* Top Banner & Quick Metrics */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
         {/* 1. Match xP (Main KPI) */}
         <div className="col-span-2 sm:col-span-2 lg:col-span-1 rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white p-4 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-              Projected Match xP
+              {activeHorizon === 3 ? "3-GW Match xP" : "Projected Match xP"}
             </span>
             <Trophy className="h-4 w-4 text-emerald-600" />
           </div>
@@ -364,7 +512,11 @@ export default function OptimalSquadView() {
             <span className="text-xs font-semibold text-emerald-700">pts</span>
           </div>
           <p className="mt-1 text-[11px] text-emerald-800/80">
-            Starting XI ({starting_xi_xp.toFixed(1)}) + Captain 2x (+{captain?.xp.toFixed(1)})
+            {activeHorizon === 3 ? (
+              <>Avg <strong>{(total_match_xp / 3).toFixed(1)} pts/GW</strong> • XI ({starting_xi_xp.toFixed(1)}) + C 2x (+{captain?.xp.toFixed(1)})</>
+            ) : (
+              <>Starting XI ({starting_xi_xp.toFixed(1)}) + Captain 2x (+{captain?.xp.toFixed(1)})</>
+            )}
           </p>
         </div>
 
@@ -424,6 +576,11 @@ export default function OptimalSquadView() {
               <p className="text-[11px] text-slate-500">
                 <span className="font-semibold text-emerald-700">
                   {(captain.doubled_xp || captain.xp * 2).toFixed(1)} pts
+                  {activeHorizon === 3 && (
+                    <span className="text-[9.5px] font-normal text-slate-400 ml-1">
+                      ({((captain.doubled_xp || captain.xp * 2) / 3).toFixed(1)}/GW)
+                    </span>
+                  )}
                 </span>{" "}
                 • {captain.opponent}
               </p>
@@ -450,50 +607,18 @@ export default function OptimalSquadView() {
                 {vice_captain?.name}
               </div>
               <p className="text-[11px] text-slate-500">
-                <span className="font-semibold text-emerald-700">{vice_captain?.xp.toFixed(1)} pts</span> •{" "}
-                {vice_captain?.opponent}
+                <span className="font-semibold text-emerald-700">
+                  {vice_captain?.xp.toFixed(1)} pts
+                  {activeHorizon === 3 && (
+                    <span className="text-[9.5px] font-normal text-slate-400 ml-1">
+                      ({(vice_captain.xp / 3).toFixed(1)}/GW)
+                    </span>
+                  )}
+                </span>{" "}
+                • {vice_captain?.opponent}
               </p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* View Switcher & Gameweek Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs">
-        <div className="flex items-center gap-2 pl-2">
-          <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
-            Gameweek {squad.gameweek}
-          </span>
-          <span className="text-xs font-semibold text-slate-700">
-            Optimal Starting Lineup (Single Gameweek Focus)
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1 self-end sm:self-center">
-          <button
-            type="button"
-            onClick={() => setViewMode("pitch")}
-            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
-              viewMode === "pitch"
-                ? "bg-emerald-600 text-white shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
-            }`}
-          >
-            <LayoutGrid className="h-3.5 w-3.5" />
-            <span>Pitch View</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("table")}
-            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
-              viewMode === "table"
-                ? "bg-emerald-600 text-white shadow-xs"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
-            }`}
-          >
-            <TableIcon className="h-3.5 w-3.5" />
-            <span>List / Table</span>
-          </button>
         </div>
       </div>
 
@@ -543,6 +668,7 @@ export default function OptimalSquadView() {
                     isCaptain={p.id === captain?.id}
                     isViceCaptain={p.id === vice_captain?.id}
                     onClick={() => setSelectedPlayer(p)}
+                    horizon={activeHorizon}
                   />
                 ))}
               </div>
@@ -556,6 +682,7 @@ export default function OptimalSquadView() {
                     isCaptain={p.id === captain?.id}
                     isViceCaptain={p.id === vice_captain?.id}
                     onClick={() => setSelectedPlayer(p)}
+                    horizon={activeHorizon}
                   />
                 ))}
               </div>
@@ -569,6 +696,7 @@ export default function OptimalSquadView() {
                     isCaptain={p.id === captain?.id}
                     isViceCaptain={p.id === vice_captain?.id}
                     onClick={() => setSelectedPlayer(p)}
+                    horizon={activeHorizon}
                   />
                 ))}
               </div>
@@ -582,6 +710,7 @@ export default function OptimalSquadView() {
                     isCaptain={p.id === captain?.id}
                     isViceCaptain={p.id === vice_captain?.id}
                     onClick={() => setSelectedPlayer(p)}
+                    horizon={activeHorizon}
                   />
                 ))}
               </div>
@@ -614,20 +743,30 @@ export default function OptimalSquadView() {
                     player={p}
                     slotLabel={label}
                     onClick={() => setSelectedPlayer(p)}
+                    horizon={activeHorizon}
                   />
                 );
               })}
             </div>
 
-            {/* Single Gameweek Bench & Goalkeeper Optimization Note */}
+            {/* Bench & Goalkeeper Optimization Note */}
             <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-teal-200/80 bg-teal-50/60 p-3.5 text-xs text-teal-950">
               <Info className="h-4 w-4 shrink-0 text-teal-600 mt-0.5" />
               <div className="leading-relaxed">
-                <span className="font-bold text-teal-900">Single Gameweek Goalkeeper & Bench Tactic: </span>
-                In a single gameweek squad, you do not need a second playing goalkeeper.
-                You can bump the backup keeper down to any playing £4.5m asset or choose a non-starting £4.0m deadspot (Alex Cairns £4.0m)
-                to free up maximum funds (£7.4m in the bank) and concentrate budget directly into starting XI points.
-                Similarly, budget outfield substitutes (£4.0m–£4.5m) ensure expensive assets (such as Cole Palmer £9.6m) are deployed in the starting XI rather than sitting idle on the bench.
+                {activeHorizon === 3 ? (
+                  <>
+                    <span className="font-bold text-teal-900">Next 3 Gameweeks Goalkeeper & Bench Tactic: </span>
+                    Over a 3-gameweek horizon (GW4–6), set-and-forget premium starter David Raya (£6.0m) paired with non-playing £4.0m keeper Alex Cairns enables deploying £15.5m Erling Haaland alongside £12.0m Bruno Fernandes. Budget £4.0m–£4.5m outfield substitutes (Bobby Thomas, Leif Davis, Regan Slater) free up £99.8m of total budget directly on the pitch for high-upside starters.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-bold text-teal-900">Single Gameweek Goalkeeper & Bench Tactic: </span>
+                    In a single gameweek squad, you do not need a second playing goalkeeper.
+                    You can bump the backup keeper down to any playing £4.5m asset or choose a non-starting £4.0m deadspot (Alex Cairns £4.0m)
+                    to free up maximum funds (£7.4m in the bank) and concentrate budget directly into starting XI points.
+                    Similarly, budget outfield substitutes (£4.0m–£4.5m) ensure expensive assets (such as Cole Palmer £9.6m) are deployed in the starting XI rather than sitting idle on the bench.
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -644,8 +783,9 @@ export default function OptimalSquadView() {
                   <th className="px-3 py-3.5">Club</th>
                   <th className="px-3 py-3.5">Pos</th>
                   <th className="px-3 py-3.5">Price</th>
-                  <th className="px-3 py-3.5">Fixture</th>
-                  <th className="px-3 py-3.5 text-right">Expected Pts (xP)</th>
+                  <th className="px-3 py-3.5">{activeHorizon === 3 ? "Fixtures (GW 4–6)" : "Fixture"}</th>
+                  <th className="px-3 py-3.5 text-right">{activeHorizon === 3 ? "3-GW xP" : "Expected Pts (xP)"}</th>
+                  {activeHorizon === 3 && <th className="px-3 py-3.5 text-right">Avg / GW</th>}
                   <th className="px-3 py-3.5 text-right">Floor (P10)</th>
                   <th className="px-3 py-3.5 text-right">Ceiling (P90)</th>
                   <th className="py-3.5 pl-3 pr-4 text-right">Haul %</th>
@@ -654,7 +794,7 @@ export default function OptimalSquadView() {
               <tbody className="divide-y divide-slate-100">
                 {/* Starters Section Header */}
                 <tr className="bg-emerald-50/40 text-xs font-bold text-emerald-950">
-                  <td colSpan={10} className="py-2 pl-4">
+                  <td colSpan={activeHorizon === 3 ? 11 : 10} className="py-2 pl-4">
                     Starting XI ({formation} Formation • {starting_xi_xp.toFixed(2)} Base xP)
                   </td>
                 </tr>
@@ -698,7 +838,25 @@ export default function OptimalSquadView() {
                         £{p.price.toFixed(1)}m
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap">
-                        {fix ? (
+                        {activeHorizon === 3 && p.fixtures && p.fixtures.length >= 3 ? (
+                          <div className="flex items-center gap-1">
+                            {p.fixtures.slice(0, 3).map((f, i) => {
+                              const c = getFdrColor(f.fdr);
+                              const shortOpp = f.opponent
+                                ? f.opponent.split(" ")[0].slice(0, 3).toUpperCase()
+                                : `GW${f.event}`;
+                              return (
+                                <span
+                                  key={i}
+                                  title={`${f.opponent} (FDR ${f.fdr}) • GW${f.event}`}
+                                  className={`rounded px-1.5 py-0.5 text-[9.5px] font-bold ${c.bg} text-white`}
+                                >
+                                  {shortOpp}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : fix ? (
                           <span className="text-xs font-semibold text-slate-700">{fix.opponent}</span>
                         ) : (
                           "-"
@@ -714,6 +872,11 @@ export default function OptimalSquadView() {
                           p.xp.toFixed(2)
                         )}
                       </td>
+                      {activeHorizon === 3 && (
+                        <td className="px-3 py-3 whitespace-nowrap text-right text-xs font-semibold text-slate-700">
+                          {((isCap ? p.xp * 2 : p.xp) / 3).toFixed(1)}
+                        </td>
+                      )}
                       <td className="px-3 py-3 whitespace-nowrap text-right text-xs text-slate-500">
                         {p.floor?.toFixed(1) || "-"}
                       </td>
@@ -729,7 +892,7 @@ export default function OptimalSquadView() {
 
                 {/* Bench Section Header */}
                 <tr className="bg-slate-100 text-xs font-bold text-slate-700">
-                  <td colSpan={10} className="py-2 pl-4">
+                  <td colSpan={activeHorizon === 3 ? 11 : 10} className="py-2 pl-4">
                     Substitutes (Bench • Ordered by Autosub Priority)
                   </td>
                 </tr>
@@ -764,11 +927,38 @@ export default function OptimalSquadView() {
                         £{p.price.toFixed(1)}m
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-xs text-slate-600">
-                        {fix ? fix.opponent : "-"}
+                        {activeHorizon === 3 && p.fixtures && p.fixtures.length >= 3 ? (
+                          <div className="flex items-center gap-1">
+                            {p.fixtures.slice(0, 3).map((f, i) => {
+                              const c = getFdrColor(f.fdr);
+                              const shortOpp = f.opponent
+                                ? f.opponent.split(" ")[0].slice(0, 3).toUpperCase()
+                                : `GW${f.event}`;
+                              return (
+                                <span
+                                  key={i}
+                                  title={`${f.opponent} (FDR ${f.fdr}) • GW${f.event}`}
+                                  className={`rounded px-1.5 py-0.5 text-[9.5px] font-bold ${c.bg} text-white`}
+                                >
+                                  {shortOpp}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : fix ? (
+                          fix.opponent
+                        ) : (
+                          "-"
+                        )}
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-right font-bold text-slate-700">
                         {p.xp.toFixed(2)}
                       </td>
+                      {activeHorizon === 3 && (
+                        <td className="px-3 py-3 whitespace-nowrap text-right text-xs text-slate-500">
+                          {(p.xp / 3).toFixed(1)}
+                        </td>
+                      )}
                       <td className="px-3 py-3 whitespace-nowrap text-right text-xs text-slate-400">
                         {p.floor?.toFixed(1) || "-"}
                       </td>
@@ -789,59 +979,114 @@ export default function OptimalSquadView() {
 
       {/* Tactical Strategy & Optimization Notes */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
-          <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-            <span>Tactical Defensive Stack: Arsenal Clean Sheet Play</span>
-          </div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-600">
-            The optimization engine locked an Arsenal defensive trio (Raya £6.0m, Gabriel £8.0m, and White £5.5m)
-            against Sunderland away. Sunderland presents an FDR rating of 3 with an estimated 73% clean sheet probability,
-            producing the highest expected floor of any defensive setup.
-          </p>
-        </div>
+        {activeHorizon === 3 ? (
+          <>
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <Crown className="h-4 w-4 text-amber-500 shrink-0" />
+                <span>Captaincy & Talisman Duo: Bruno Fernandes & Bryan Mbeumo</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Bruno Fernandes commands the #1 highest simulated expected return over Gameweeks 4–6 with 19.43 projected points (6.48 pts/GW).
+                Doubling his output yields 38.86 points. Partnered with Bryan Mbeumo (18.64 xP, VC), the duo provides a prolific attacking core
+                across an enticing 3-match run.
+              </p>
+            </div>
 
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
-          <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
-            <TrendingUp className="h-4 w-4 text-teal-600 shrink-0" />
-            <span>Captaincy & Attack: Alexander Isak (5.91 xP)</span>
-          </div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-600">
-            Alexander Isak commands the #1 highest expected points and double-digit haul probability (18.4%) across all
-            simulated assets for Gameweek 4 against Fulham at Anfield. Doubling his score yields 11.82 projected points,
-            with Dominik Szoboszlai (5.78 xP) securing the vice-captain armband.
-          </p>
-        </div>
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <TrendingUp className="h-4 w-4 text-teal-600 shrink-0" />
+                <span>Premium Forward Focal Point: Erling Haaland (£15.5m)</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Erling Haaland anchors a potent 3-4-3 attack, delivering 17.65 expected points across the 3 fixtures. Alongside
+                value talisman João Pedro (12.29 xP) and Everton focal point Thierno Barry (12.44 xP), the 3-forward line maximizes high-probability
+                goal involvements and explosive haul variance.
+              </p>
+            </div>
 
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
-          <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
-            <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
-            <span>Starting Midfield Rule & Cole Palmer Integration</span>
-          </div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-600">
-            Official FPL rules require a minimum of 3 starting midfielders. The 4-3-3 setup starts Cole Palmer (£9.6m, 4.79 xP)
-            alongside Dominik Szoboszlai (£7.0m) and Morgan Rogers (£7.6m). Rather than sitting idle on the bench, Palmer is
-            deployed directly on the pitch where his returns count toward your gameweek score.
-          </p>
-        </div>
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>Defensive Value Engine: Arsenal + Hull City Enablers</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                David Raya (£6.0m) and Gabriel (£8.0m) lock down the defensive foundation with Arsenal&apos;s elite clean sheet probability.
+                Starting alongside them are Hull City defenders Mendy (£4.0m) and Egan (£4.0m), whose budget pricing unlocks the funds needed
+                to fit both Haaland and Fernandes under the £100m ceiling.
+              </p>
+            </div>
 
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
-          <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
-            <Coins className="h-4 w-4 text-amber-500 shrink-0" />
-            <span>Single Gameweek Goalkeeper & Budget Bench Tactic</span>
-          </div>
-          <p className="mt-2 text-xs leading-relaxed text-slate-600">
-            In a single gameweek selection, you do not need an expensive second playing goalkeeper.
-            The backup keeper can be bumped down to any playing £4.5m asset, or for maximum money in the bank (£7.4m ITB),
-            a non-starting £4.0m deadspot (Alex Cairns £4.0m) can be used to funnel every pound into the starting XI.
-          </p>
-        </div>
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <Coins className="h-4 w-4 text-amber-500 shrink-0" />
+                <span>Multi-GW Budget Efficiency (£99.8m Invested, £0.2m ITB)</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                By pairing set-and-forget Raya with a non-playing £4.0m backup keeper (Alex Cairns) and budget bench outlets (Thomas £4.0m,
+                Davis £4.0m, Slater £4.5m), £99.8m is deployed directly on the pitch. The Starting XI delivers 169.56 base xP (188.99 with captaincy),
+                averaging 63.00 projected match points per gameweek.
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>Tactical Defensive Stack: Arsenal Clean Sheet Play</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                The optimization engine locked an Arsenal defensive trio (Raya £6.0m, Gabriel £8.0m, and White £5.5m)
+                against Sunderland away. Sunderland presents an FDR rating of 3 with an estimated 73% clean sheet probability,
+                producing the highest expected floor of any defensive setup.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <TrendingUp className="h-4 w-4 text-teal-600 shrink-0" />
+                <span>Captaincy & Attack: Alexander Isak (5.91 xP)</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Alexander Isak commands the #1 highest expected points and double-digit haul probability (18.4%) across all
+                simulated assets for Gameweek 4 against Fulham at Anfield. Doubling his score yields 11.82 projected points,
+                with Dominik Szoboszlai (5.78 xP) securing the vice-captain armband.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>Starting Midfield Rule & Cole Palmer Integration</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                Official FPL rules require a minimum of 3 starting midfielders. The 4-3-3 setup starts Cole Palmer (£9.6m, 4.79 xP)
+                alongside Dominik Szoboszlai (£7.0m) and Morgan Rogers (£7.6m). Rather than sitting idle on the bench, Palmer is
+                deployed directly on the pitch where his returns count toward your gameweek score.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                <Coins className="h-4 w-4 text-amber-500 shrink-0" />
+                <span>Single Gameweek Goalkeeper & Budget Bench Tactic</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                In a single gameweek selection, you do not need an expensive second playing goalkeeper.
+                The backup keeper can be bumped down to any playing £4.5m asset, or for maximum money in the bank (£7.4m ITB),
+                a non-starting £4.0m deadspot (Alex Cairns £4.0m) can be used to funnel every pound into the starting XI.
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Modal Popup on Player Click */}
       {selectedPlayer && (
         <PlayerModal
           player={selectedPlayer}
+          gameweeks={activeHorizon}
           onClose={() => setSelectedPlayer(null)}
         />
       )}

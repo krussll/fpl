@@ -1,13 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import fs from "fs";
 import path from "path";
 import { OptimalSquad } from "@/types/player";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const horizonParam = searchParams.get("horizon");
+    const horizon = horizonParam ? parseInt(horizonParam, 10) : 1;
+
+    const cacheFileName = horizon === 3 ? "optimal_squad_gw_3.json" : "optimal_squad_gw_1.json";
+
     const candidatePaths = [
-      path.resolve(process.cwd(), ".fpl_cache", "optimal_squad_gw_1.json"),
-      path.resolve(process.cwd(), "..", ".fpl_cache", "optimal_squad_gw_1.json"),
+      path.resolve(process.cwd(), ".fpl_cache", cacheFileName),
+      path.resolve(process.cwd(), "..", ".fpl_cache", cacheFileName),
     ];
 
     for (const p of candidatePaths) {
@@ -19,7 +25,7 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { error: "Optimal squad cache not found" },
+      { error: `Optimal squad cache not found for horizon ${horizon}` },
       { status: 404 }
     );
   } catch (error: unknown) {
