@@ -37,12 +37,12 @@ export const PREMIER_LEAGUE_CLUBS: Record<string, ClubKits> = {
       textColor: "#FFFFFF",
     },
     goalkeeper: {
-      primary: "#A3E635", // Vibrant fluo lime / yellow
-      secondary: "#18181B", // Dark sleeves / cuffs
-      collar: "#18181B",
-      stroke: "#18181B",
+      primary: "#D1D5DB", // Solid light grey body
+      secondary: "#D1D5DB", // Solid light grey sleeves
+      collar: "#374151", // Charcoal collar
+      stroke: "#374151", // Charcoal border stroke
       pattern: "solid",
-      textColor: "#000000",
+      textColor: "#111827",
     },
   },
 
