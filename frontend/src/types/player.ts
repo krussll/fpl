@@ -64,3 +64,48 @@ export interface Player {
   five_gw?: Player;
   history?: PlayerHistoryMatch[];
 }
+
+export interface SquadCaptainInfo {
+  id: number;
+  name: string;
+  full_name: string;
+  team: string;
+  position: string;
+  price: number;
+  xp: number;
+  doubled_xp?: number;
+  opponent?: string;
+  fdr?: number;
+}
+
+export interface SquadPlayer extends Player {
+  is_starter?: boolean;
+  bench_order?: number;
+  is_captain?: boolean;
+  is_vice_captain?: boolean;
+}
+
+export interface OptimalSquad {
+  id: string;
+  gameweek: number;
+  horizon: number;
+  title: string;
+  formation: string;
+  budget: number;
+  total_cost: number;
+  bank_remaining: number;
+  starting_xi_xp: number;
+  total_match_xp: number;
+  full_squad_xp: number;
+  captain: SquadCaptainInfo;
+  vice_captain: SquadCaptainInfo;
+  formation_lines: {
+    gkp: SquadPlayer[];
+    def: SquadPlayer[];
+    mid: SquadPlayer[];
+    fwd: SquadPlayer[];
+  };
+  starters: SquadPlayer[];
+  bench: SquadPlayer[];
+}
+
