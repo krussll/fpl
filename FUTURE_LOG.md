@@ -290,3 +290,38 @@ Furthermore, line 375 multiplies this rate by `(0.85 + 0.15 * opp_att_ratio)`. W
 - **Pros**: Normalizes defender projections across different tactical setups; prevents promoted budget defenders from artificially outprojecting premium defenders like Gabriel, Saliba, or Van Dijk.
 - **Cons / Nuances**: Requires testing across the full 600+ player element dataset to ensure mid-table defensive regulars who legitimately excel at clearances and blocks retain appropriate value.
 
+---
+
+## 11. Goalkeeper Modeling Improvements: Save Shrinkage, Tier Defense Blending & Empirical CS Adjustments [COMPLETED]
+
+### Background & Motivation
+In early gameweeks, Kjell Scherpen (Ipswich Town; 0 clean sheets, 10 goals conceded in 4 matches) was projected at **16.01 expected points** across 5 gameweeks, ranking above Antonín Kinský (Spurs; 2 clean sheets, 5 goals conceded in 4 matches, 14.80 xP).
+
+Root-cause analysis pinpointed four compounding mathematical drivers:
+1. **Unregressed Raw Save Volume**: Scherpen recorded 15 saves in 360 minutes (3.75 saves/90), while Kinsky recorded 9 saves (2.25 saves/90).
+2. **Lack of Defensive Caliber Priors**: Spurs (1.66 raw xGC/90) and Ipswich (1.68 raw xGC/90) were treated as defensively equivalent in early fixtures.
+3. **Save Inflation Against Elite Attacks**: Keepers playing against top attacks were scaled by full opponent attacking strength (e.g. Scherpen vs Man City at 4.76 saves/90), earning bonus save points despite conceding high volume.
+4. **Ignoring Empirical Conversion & Clean Sheet Records**: Clean sheet probabilities relied solely on raw single-match Poisson xGC without accounting for actual historical conversion or clean sheets kept.
+
+### Implemented Solutions (fpl_api.py & app.py)
+1. **Bayesian Shrinkage on Goalkeeper Saves (`saves_per_90`)**:
+   - Shrinks raw early-season saves/90 towards a 2.85 league baseline (and past multi-season records where $\ge 450$ minutes exist) over a 1,080-minute window (12 matches):
+   $$\text{Regressed\_Saves} = w_{\text{mins}} \cdot \text{Raw\_Saves} + (1 - w_{\text{mins}}) \cdot \text{Prior\_Saves}$$
+2. **Club-Tier Defensive Baseline Priors in `get_team_ratings()`**:
+   - Categorized all Premier League clubs into defensive tiers (Arsenal 1.05, Man City 1.10, Liverpool 1.15, Spurs/Chelsea/Newcastle 1.30, Mid-table 1.40–1.45, Promoted/Struggling 1.70–1.75).
+   - Regresses team defensive rating over 1,080 minutes, bringing Spurs to 1.42 xGC/90 and Ipswich to 1.73 xGC/90.
+3. **Dampened Save Scaling & Plausibility Clamping**:
+   - Dampened attack scaling on saves (`1.0 + 0.30 * (opp_att_ratio - 1.0)`) recognizing elite attacks produce goals rather than routine saves.
+   - Clamped maximum save rate to $\le 3.50$ saves/90.
+4. **Empirical Clean Sheet & Goals Conceded Ratios**:
+   - Multiplies match xGC by an empirical conversion factor bounded between $[0.75, 1.35]$ based on actual goals conceded vs expected:
+   $$\text{gc\_factor} = \text{clamp}(0.75, 1.35, w_{\text{mins}} \cdot \frac{\text{Actual\_GC}}{\text{Exp\_GC}} + (1 - w_{\text{mins}}))$$
+   - Blends Poisson clean sheet probability with empirical clean sheet percentage.
+
+### Verified Outcomes (10,000 Monte Carlo Iterations)
+- **Kinsky (Spurs)**: 5-GW projection increased from 14.80 to **18.50 xP** (1-GW xP: **4.56 pts**, CS%: **51.0%** vs Aston Villa).
+- **Scherpen (Ipswich Town)**: 5-GW projection normalized from 16.01 to **12.88 xP** (1-GW xP: **2.58 pts**, CS%: **14.0%** vs Everton).
+- **Goalkeeper Rankings Restored**: Donnarumma (£5.5m, 21.26 xP), Raya (£6.0m, 21.23 xP), Kelleher (£5.0m, 20.33 xP), Pickford (£5.5m, 20.21 xP), and Kinsky (£4.5m, 18.50 xP) correctly occupy top tier; Scherpen ranks 20th among starters (12.88 xP).
+- **Optimal Squad Selections**: Goalkeeper slots now feature reliable starting goalkeepers (Kinsky / Raya) paired with valid budget backups across all horizons (1-GW, 3-GW, 5-GW, and Template).
+
+

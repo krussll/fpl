@@ -74,6 +74,7 @@ export interface SquadCaptainInfo {
   price: number;
   xp: number;
   doubled_xp?: number;
+  selected_by_percent?: number;
   opponent?: string;
   fdr?: number;
 }
@@ -88,7 +89,8 @@ export interface SquadPlayer extends Player {
 export interface OptimalSquad {
   id: string;
   gameweek: number;
-  horizon: number;
+  horizon: number | string;
+  mode?: string;
   title: string;
   formation: string;
   budget: number;
@@ -97,6 +99,9 @@ export interface OptimalSquad {
   starting_xi_xp: number;
   total_match_xp: number;
   full_squad_xp: number;
+  starting_xi_ownership?: number;
+  total_squad_ownership?: number;
+  total_ownership?: number;
   captain: SquadCaptainInfo;
   vice_captain: SquadCaptainInfo;
   formation_lines: {

@@ -137,15 +137,87 @@ class FPLApiClient:
         """
         Calculate relative attacking and defensive ratings for all 20 Premier League teams.
         Returns team stats, defense ratios vs league average, and attack ratios vs league average.
+        Incorporates club-tier defensive baseline priors to regularize early-season volatility.
         """
         data = self.get_bootstrap()
         teams = self.get_teams_map()
+
+        # Historical / Club Tier defensive baseline priors (xGC/90) based on long-term squad caliber
+        defensive_priors = {
+            # Elite Defense (~1.05 - 1.15)
+            "Arsenal": 1.05,
+            "Man City": 1.10,
+            "Liverpool": 1.15,
+            # Upper Tier Defense (~1.25 - 1.35)
+            "Spurs": 1.30,
+            "Chelsea": 1.30,
+            "Newcastle": 1.30,
+            "Aston Villa": 1.35,
+            "Man Utd": 1.35,
+            # Mid Tier Defense (~1.40 - 1.50)
+            "Brighton": 1.45,
+            "Brentford": 1.45,
+            "Bournemouth": 1.45,
+            "Fulham": 1.45,
+            "Crystal Palace": 1.45,
+            "Nott'm Forest": 1.40,
+            "West Ham": 1.45,
+            "Everton": 1.45,
+            "Leeds": 1.50,
+            # Promoted / Lower Tier Defense (~1.65 - 1.80)
+            "Ipswich Town": 1.75,
+            "Ipswich": 1.75,
+            "Coventry City": 1.75,
+            "Coventry": 1.75,
+            "Hull City": 1.75,
+            "Hull": 1.75,
+            "Sunderland": 1.75,
+            "Leicester": 1.70,
+            "Southampton": 1.75,
+        }
         
         team_ratings = {}
         for t_id, t_name in teams.items():
             # Defense: xGC per 90 from starting goalkeepers/defenders
             gkps = [p for p in data["elements"] if p["team"] == t_id and p["element_type"] == 1 and p["minutes"] > 0]
-            xgc90 = float(max(gkps, key=lambda x: x["minutes"])["expected_goals_conceded_per_90"]) if gkps else 1.45
+            if gkps:
+                main_gk = max(gkps, key=lambda x: x["minutes"])
+                raw_xgc90 = float(main_gk["expected_goals_conceded_per_90"])
+                gk_mins = main_gk["minutes"]
+                actual_gc = int(main_gk.get("goals_conceded") or 0)
+                actual_cs = int(main_gk.get("clean_sheets") or 0)
+                expected_gc = float(main_gk.get("expected_goals_conceded") or 0.0)
+            else:
+                raw_xgc90 = 1.45
+                gk_mins = 0
+                actual_gc = 0
+                actual_cs = 0
+                expected_gc = 0.0
+
+            # 2. Blend Team Defense Rating with Long-Term / Historical Baselines (1,080 mins window)
+            def_sample_mins = 1080.0
+            def_weight = min(1.0, max(0.0, gk_mins / def_sample_mins))
+            
+            prior_xgc = defensive_priors.get(t_name, 1.45)
+            if t_name not in defensive_priors:
+                for k, v in defensive_priors.items():
+                    if k.lower() in t_name.lower():
+                        prior_xgc = v
+                        break
+            blended_xgc90 = (raw_xgc90 * def_weight) + (prior_xgc * (1.0 - def_weight))
+
+            # 4. Empirical Goals Conceded conversion ratio vs expected
+            if expected_gc > 0.5:
+                raw_gc_ratio = actual_gc / expected_gc
+            else:
+                raw_gc_ratio = 1.0
+            
+            gc_weight = min(1.0, max(0.0, gk_mins / 1080.0))
+            regressed_gc_factor = (raw_gc_ratio * gc_weight) + (1.0 * (1.0 - gc_weight))
+            regressed_gc_factor = max(0.75, min(1.35, regressed_gc_factor))
+
+            matches_played = max(1.0, gk_mins / 90.0)
+            empirical_cs_rate = actual_cs / matches_played
 
             # Attack: team xG per 90
             team_elements = [p for p in data["elements"] if p["team"] == t_id]
@@ -155,8 +227,12 @@ class FPLApiClient:
 
             team_ratings[t_id] = {
                 "name": t_name,
-                "xGC90": round(xgc90, 2),
-                "xG90": round(xg90, 2)
+                "xGC90": round(blended_xgc90, 2),
+                "raw_xGC90": round(raw_xgc90, 2),
+                "xG90": round(xg90, 2),
+                "gc_factor": round(regressed_gc_factor, 2),
+                "empirical_cs_rate": round(empirical_cs_rate, 2),
+                "gk_mins": gk_mins
             }
 
         avg_xgc = sum(r["xGC90"] for r in team_ratings.values()) / max(1, len(team_ratings))
@@ -410,17 +486,43 @@ class FPLApiClient:
 
         # 5. Defensive Clean Sheet & Goals Conceded (Scaled by Opponent Attack)
         base_team_xgc = my_team_rating.get("xGC90", 1.20)
-        match_team_xgc = round(max(0.3, base_team_xgc * opp_att_ratio * venue_def_mult), 2)
+        gc_factor = my_team_rating.get("gc_factor", 1.0)
+        match_team_xgc = round(max(0.3, base_team_xgc * gc_factor * opp_att_ratio * venue_def_mult), 2)
         
-        # Poisson probability of 0 conceded = exp(-match_team_xgc)
-        clean_sheet_prob = round(float(2.71828 ** (-match_team_xgc)), 2)
+        # Poisson probability of 0 conceded = exp(-match_team_xgc) blended with empirical clean sheet rate
+        poisson_cs = float(2.71828 ** (-match_team_xgc))
+        emp_cs_rate = my_team_rating.get("empirical_cs_rate", 0.28)
+        gk_mins = my_team_rating.get("gk_mins", 0)
+        cs_blend_weight = 0.20 * min(1.0, gk_mins / 720.0)
+        clean_sheet_prob = round((1.0 - cs_blend_weight) * poisson_cs + cs_blend_weight * min(0.60, emp_cs_rate), 2)
+        clean_sheet_prob = max(0.05, min(0.65, clean_sheet_prob))
 
         # 6. Current FPL Price (£m)
         price_m = round(float(raw.get("now_cost") or 0) / 10.0, 1)
 
-        # 7. Goalkeeper Saves per 90 (scaled by opponent attacking strength)
-        raw_saves = float(raw.get("saves_per_90") or 3.0)
-        saves_p90 = round(raw_saves * opp_att_ratio, 2) if position == "GKP" else 0.0
+        # 7. Goalkeeper Saves per 90 (Bayesian shrinkage + dampened scaling vs elite attacks + ceiling clamp)
+        if position == "GKP":
+            raw_saves = float(raw.get("saves_per_90") or 2.85)
+            gkp_baseline_saves = 2.85
+            save_sample_mins = 1080.0
+            save_weight = min(1.0, max(0.0, total_minutes / save_sample_mins))
+            
+            # Blend multi-season history if available
+            if past_mins >= 450:
+                past_saves = sum(s.get("saves", 0) for s in recent_seasons)
+                hist_saves90 = past_saves / (past_mins / 90.0)
+                hist_save_weight = min(1.0, max(0.0, past_mins / 1800.0))
+                prior_saves = (hist_saves90 * hist_save_weight) + (gkp_baseline_saves * (1.0 - hist_save_weight))
+            else:
+                prior_saves = gkp_baseline_saves
+                
+            regressed_saves = (raw_saves * save_weight) + (prior_saves * (1.0 - save_weight))
+            # Moderate scaling against elite attacks (conversion into goals rather than pure save inflation)
+            effective_save_mult = 1.0 + 0.30 * (opp_att_ratio - 1.0)
+            # Clamp save rate to realistic outer bound (<= 3.50 saves/90)
+            saves_p90 = round(min(3.50, max(1.0, regressed_saves * effective_save_mult)), 2)
+        else:
+            saves_p90 = 0.0
 
         # 8. Defensive Contribution actions per 90 (CBIT / CBIRT)
         # Regress low-minute samples (< 450 mins) towards position baseline to avoid small-sample distortion

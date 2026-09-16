@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   Info,
   Calendar,
+  Users,
 } from "lucide-react";
 
 function getFdrColor(fdr: number = 3): { bg: string; text: string; border: string } {
@@ -168,11 +169,13 @@ function PitchPlayerCard({
   isCaptain?: boolean;
   isViceCaptain?: boolean;
   onClick: () => void;
-  horizon?: number;
+  horizon?: number | string;
 }) {
   const fix = player.fixtures && player.fixtures.length > 0 ? player.fixtures[0] : null;
   const fdrColors = getFdrColor(fix?.fdr);
   const displayXp = isCaptain ? player.xp * 2 : player.xp;
+  const isMultiHorizon = typeof horizon === "number" && horizon > 1;
+  const isTemplate = horizon === "template";
 
   return (
     <button
@@ -195,7 +198,7 @@ function PitchPlayerCard({
         </span>
 
         {/* Fixture pill(s) */}
-        {horizon > 1 && player.fixtures && player.fixtures.length >= horizon ? (
+        {isMultiHorizon && player.fixtures && player.fixtures.length >= horizon ? (
           <div className="flex w-full items-center justify-between border-t border-white/10 text-[7px] sm:text-[8px] font-bold">
             {player.fixtures.slice(0, horizon).map((f, i) => {
               const c = getFdrColor(f.fdr);
@@ -225,12 +228,19 @@ function PitchPlayerCard({
 
         {/* Points & Price pill */}
         <div className="flex w-full items-center justify-between bg-white px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold text-slate-900">
-          <span className="text-emerald-700">
-            {displayXp.toFixed(1)}{" "}
-            <span className="text-[8.5px] font-normal text-slate-500">
-              {horizon > 1 ? "tot" : "xP"}
+          {isTemplate ? (
+            <span className="text-emerald-700" title={`FPL Ownership: ${player.selected_by_percent}%`}>
+              {player.selected_by_percent !== undefined ? `${player.selected_by_percent.toFixed(1)}%` : displayXp.toFixed(1)}
+              <span className="text-[8.5px] font-normal text-slate-500 ml-0.5">own</span>
             </span>
-          </span>
+          ) : (
+            <span className="text-emerald-700">
+              {displayXp.toFixed(1)}{" "}
+              <span className="text-[8.5px] font-normal text-slate-500">
+                {isMultiHorizon ? "tot" : "xP"}
+              </span>
+            </span>
+          )}
           <span className="text-slate-500 text-[9.5px]">£{player.price.toFixed(1)}m</span>
         </div>
       </div>
@@ -248,10 +258,12 @@ function BenchPlayerCard({
   player: SquadPlayer;
   slotLabel: string;
   onClick: () => void;
-  horizon?: number;
+  horizon?: number | string;
 }) {
   const fix = player.fixtures && player.fixtures.length > 0 ? player.fixtures[0] : null;
   const fdrColors = getFdrColor(fix?.fdr);
+  const isMultiHorizon = typeof horizon === "number" && horizon > 1;
+  const isTemplate = horizon === "template";
 
   return (
     <button
@@ -281,9 +293,9 @@ function BenchPlayerCard({
         </div>
       </div>
 
-      {/* Opponent & xP */}
+      {/* Opponent & xP / Ownership */}
       <div className="flex flex-col items-end gap-1 text-right">
-        {horizon > 1 && player.fixtures && player.fixtures.length >= horizon ? (
+        {isMultiHorizon && player.fixtures && player.fixtures.length >= horizon ? (
           <div className="flex items-center gap-0.5">
             {player.fixtures.slice(0, horizon).map((f, i) => {
               const c = getFdrColor(f.fdr);
@@ -308,25 +320,34 @@ function BenchPlayerCard({
             {fix.opponent}
           </span>
         ) : null}
-        <div className="text-xs font-bold text-emerald-800">
-          {player.xp.toFixed(2)} <span className="text-[10px] font-normal text-slate-400">xP</span>
-          <span className="ml-1.5 text-[11px] font-medium text-slate-500">£{player.price.toFixed(1)}m</span>
-        </div>
+        {isTemplate ? (
+          <div className="text-xs font-bold text-emerald-800">
+            {player.selected_by_percent !== undefined ? `${player.selected_by_percent.toFixed(1)}%` : `${player.xp.toFixed(1)}`} <span className="text-[10px] font-normal text-slate-400">own</span>
+            <span className="ml-1.5 text-[11px] font-medium text-slate-500">£{player.price.toFixed(1)}m</span>
+          </div>
+        ) : (
+          <div className="text-xs font-bold text-emerald-800">
+            {player.xp.toFixed(2)} <span className="text-[10px] font-normal text-slate-400">xP</span>
+            <span className="ml-1.5 text-[11px] font-medium text-slate-500">£{player.price.toFixed(1)}m</span>
+          </div>
+        )}
       </div>
     </button>
   );
 }
 
+type SquadHorizon = 1 | 3 | 5 | "template";
+
 export default function OptimalSquadView() {
-  const [activeHorizon, setActiveHorizon] = useState<1 | 3 | 5>(1);
-  const [squadsCache, setSquadsCache] = useState<Record<number, OptimalSquad>>({});
+  const [activeHorizon, setActiveHorizon] = useState<SquadHorizon>(1);
+  const [squadsCache, setSquadsCache] = useState<Record<string | number, OptimalSquad>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"pitch" | "table">("pitch");
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
-    async function loadOptimalSquad(h: number) {
+    async function loadOptimalSquad(h: SquadHorizon) {
       if (squadsCache[h]) {
         return;
       }
@@ -352,6 +373,8 @@ export default function OptimalSquadView() {
 
   const squad = squadsCache[activeHorizon];
   const isCurrentlyLoading = loading && !squad;
+  const isMultiHorizon = typeof activeHorizon === "number" && activeHorizon > 1;
+  const isTemplate = activeHorizon === "template";
 
   if (isCurrentlyLoading) {
     return (
@@ -471,6 +494,28 @@ export default function OptimalSquadView() {
               GW {squadsCache[5]?.gameweek || currentGw}–{(squadsCache[5]?.gameweek || currentGw) + 4}
             </span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveHorizon("template")}
+            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
+              activeHorizon === "template"
+                ? "bg-white text-emerald-950 shadow-xs ring-1 ring-slate-200/80"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+            }`}
+          >
+            <Users className={`h-3.5 w-3.5 ${activeHorizon === "template" ? "text-emerald-600" : "text-slate-400"}`} />
+            <span>Template Team</span>
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-[10px] font-extrabold ${
+                activeHorizon === "template"
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-slate-200 text-slate-600"
+              }`}
+            >
+              Most Owned
+            </span>
+          </button>
         </div>
 
         {/* View Switcher: Pitch View vs Table View */}
@@ -506,14 +551,18 @@ export default function OptimalSquadView() {
       <div className="flex items-center justify-between rounded-xl bg-emerald-50/70 border border-emerald-200/70 px-4 py-2 text-xs text-emerald-900">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center rounded-full bg-emerald-700 px-2.5 py-0.5 text-[10.5px] font-extrabold text-white">
-            {activeHorizon === 5
+            {isTemplate
+              ? "Consensus Template"
+              : activeHorizon === 5
               ? "Next 5 Gameweeks"
               : activeHorizon === 3
               ? "Next 3 Gameweeks"
               : `Gameweek ${currentGw} Focus`}
           </span>
           <span className="font-semibold text-emerald-950">
-            {activeHorizon === 5
+            {isTemplate
+              ? "The 15 most commonly owned FPL assets within the official £100.0m budget cap and 3-per-club limit"
+              : activeHorizon === 5
               ? `Long-term transfer horizon based on 10,000 Monte Carlo simulation runs per fixture (GW ${currentGw}–${currentGw + 4})`
               : activeHorizon === 3
               ? `Medium-term squad horizon based on 10,000 Monte Carlo simulation runs per fixture (GW ${currentGw}–${currentGw + 2})`
@@ -521,7 +570,9 @@ export default function OptimalSquadView() {
           </span>
         </div>
         <span className="hidden sm:inline text-[11px] font-medium text-emerald-800">
-          {activeHorizon === 5
+          {isTemplate
+            ? `Squad Ownership: ${(squad.total_ownership || squad.total_squad_ownership || 0).toFixed(1)}%`
+            : activeHorizon === 5
             ? "Horizon: 5 Fixtures"
             : activeHorizon === 3
             ? "Horizon: 3 Fixtures"
@@ -531,22 +582,34 @@ export default function OptimalSquadView() {
 
       {/* Top Banner & Quick Metrics */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
-        {/* 1. Match xP (Main KPI) */}
+        {/* 1. Match xP / Ownership (Main KPI) */}
         <div className="col-span-2 sm:col-span-2 lg:col-span-1 rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white p-4 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-              {activeHorizon > 1 ? `${activeHorizon}-GW Match xP` : "Projected Match xP"}
+              {isTemplate
+                ? "Consensus Ownership"
+                : isMultiHorizon
+                ? `${activeHorizon}-GW Match xP`
+                : "Projected Match xP"}
             </span>
             <Trophy className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-3xl font-extrabold tracking-tight text-emerald-950">
-              {total_match_xp.toFixed(2)}
+              {isTemplate
+                ? `${(squad.starting_xi_ownership || 0).toFixed(1)}%`
+                : total_match_xp.toFixed(2)}
             </span>
-            <span className="text-xs font-semibold text-emerald-700">pts</span>
+            <span className="text-xs font-semibold text-emerald-700">
+              {isTemplate ? "XI" : "pts"}
+            </span>
           </div>
           <p className="mt-1 text-[11px] text-emerald-800/80">
-            {activeHorizon > 1 ? (
+            {isTemplate ? (
+              <>
+                Full Squad: <strong>{(squad.total_ownership || squad.total_squad_ownership || 0).toFixed(1)}%</strong> • Proj Match xP: {total_match_xp.toFixed(1)} pts
+              </>
+            ) : isMultiHorizon ? (
               <>
                 Avg <strong>{(total_match_xp / activeHorizon).toFixed(1)} pts/GW</strong> • XI ({starting_xi_xp.toFixed(1)}) + C 2x (+{captain?.xp.toFixed(1)})
               </>
@@ -568,7 +631,9 @@ export default function OptimalSquadView() {
             {formation}
           </div>
           <p className="mt-1 text-[11px] text-slate-500">
-            11 Starters • 4 Subs ({full_squad_xp.toFixed(1)} total xP)
+            {isTemplate
+              ? `11 Starters • 4 Subs (${(squad.total_ownership || squad.total_squad_ownership || 0).toFixed(1)}% ownership)`
+              : `11 Starters • 4 Subs (${full_squad_xp.toFixed(1)} total xP)`}
           </p>
         </div>
 
@@ -611,8 +676,11 @@ export default function OptimalSquadView() {
               </div>
               <p className="text-[11px] text-slate-500">
                 <span className="font-semibold text-emerald-700">
+                  {isTemplate && captain.selected_by_percent
+                    ? `${captain.selected_by_percent.toFixed(1)}% • `
+                    : ""}
                   {(captain.doubled_xp || captain.xp * 2).toFixed(1)} pts
-                  {activeHorizon > 1 && (
+                  {isMultiHorizon && (
                     <span className="text-[9.5px] font-normal text-slate-400 ml-1">
                       ({((captain.doubled_xp || captain.xp * 2) / activeHorizon).toFixed(1)}/GW)
                     </span>
@@ -644,8 +712,11 @@ export default function OptimalSquadView() {
               </div>
               <p className="text-[11px] text-slate-500">
                 <span className="font-semibold text-emerald-700">
+                  {isTemplate && vice_captain.selected_by_percent
+                    ? `${vice_captain.selected_by_percent.toFixed(1)}% • `
+                    : ""}
                   {vice_captain?.xp.toFixed(1)} pts
-                  {activeHorizon > 1 && (
+                  {isMultiHorizon && (
                     <span className="text-[9.5px] font-normal text-slate-400 ml-1">
                       ({(vice_captain.xp / activeHorizon).toFixed(1)}/GW)
                     </span>
@@ -789,7 +860,14 @@ export default function OptimalSquadView() {
             <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-teal-200/80 bg-teal-50/60 p-3.5 text-xs text-teal-950">
               <Info className="h-4 w-4 shrink-0 text-teal-600 mt-0.5" />
               <div className="leading-relaxed">
-                {activeHorizon === 5 ? (
+                {isTemplate ? (
+                  <>
+                    <span className="font-bold text-teal-900">Consensus Template Squad Strategy: </span>
+                    This squad aggregates the highest-owned players across the entire FPL player base within the £100.0m budget cap and 3-per-club constraint.
+                    Starting XI commands <strong>{(squad.starting_xi_ownership || 0).toFixed(1)}%</strong> cumulative ownership with captain {captain?.name} ({captain?.selected_by_percent?.toFixed(1) || "70+"}%) and vice-captain {vice_captain?.name} ({vice_captain?.selected_by_percent?.toFixed(1) || "70+"}%).
+                    Bench enablers like £4.0m backup keeper {bench.find(p => p.position === 'GKP')?.name || 'backup'} free up budget to pack the pitch with template talismans.
+                  </>
+                ) : activeHorizon === 5 ? (
                   <>
                     <span className="font-bold text-teal-900">Next 5 Gameweeks Goalkeeper & Bench Tactic: </span>
                     Over an extended 5-gameweek horizon (GW {currentGw}–{currentGw + 4}), set-and-forget starter {starters.find(p => p.position === 'GKP')?.name || 'primary goalkeeper'} (£{starters.find(p => p.position === 'GKP')?.price?.toFixed(1) || '5.0'}m) paired with budget £4.0m backup keeper {bench.find(p => p.position === 'GKP')?.name || 'backup'} maximizes available capital directly on the pitch. Outfield bench assets offer dependable emergency cover while funneling £{(starters.reduce((acc, p) => acc + p.price, 0)).toFixed(1)}m into a high-scoring starting XI.
@@ -823,13 +901,14 @@ export default function OptimalSquadView() {
                   <th className="px-3 py-3.5">Club</th>
                   <th className="px-3 py-3.5">Pos</th>
                   <th className="px-3 py-3.5">Price</th>
+                  {isTemplate && <th className="px-3 py-3.5 text-right text-emerald-800">Ownership</th>}
                   <th className="px-3 py-3.5">
-                    {activeHorizon > 1 ? `Fixtures (GW ${currentGw}–${currentGw + activeHorizon - 1})` : "Fixture"}
+                    {isMultiHorizon ? `Fixtures (GW ${currentGw}–${currentGw + activeHorizon - 1})` : "Fixture"}
                   </th>
                   <th className="px-3 py-3.5 text-right">
-                    {activeHorizon > 1 ? `${activeHorizon}-GW xP` : "Expected Pts (xP)"}
+                    {isMultiHorizon ? `${activeHorizon}-GW xP` : "Expected Pts (xP)"}
                   </th>
-                  {activeHorizon > 1 && <th className="px-3 py-3.5 text-right">Avg / GW</th>}
+                  {isMultiHorizon && <th className="px-3 py-3.5 text-right">Avg / GW</th>}
                   <th className="px-3 py-3.5 text-right">Floor (P10)</th>
                   <th className="px-3 py-3.5 text-right">Ceiling (P90)</th>
                   <th className="py-3.5 pl-3 pr-4 text-right">Haul %</th>
@@ -838,8 +917,8 @@ export default function OptimalSquadView() {
               <tbody className="divide-y divide-slate-100">
                 {/* Starters Section Header */}
                 <tr className="bg-emerald-50/40 text-xs font-bold text-emerald-950">
-                  <td colSpan={activeHorizon > 1 ? 11 : 10} className="py-2 pl-4">
-                    Starting XI ({formation} Formation • {starting_xi_xp.toFixed(2)} Base xP)
+                  <td colSpan={isMultiHorizon || isTemplate ? 11 : 10} className="py-2 pl-4">
+                    Starting XI ({formation} Formation • {isTemplate ? `${(squad.starting_xi_ownership || 0).toFixed(1)}% Starting Ownership • ` : ""}{starting_xi_xp.toFixed(2)} Base xP)
                   </td>
                 </tr>
                 {starters.map((p) => {
@@ -881,8 +960,13 @@ export default function OptimalSquadView() {
                       <td className="px-3 py-3 whitespace-nowrap text-xs font-medium text-slate-900">
                         £{p.price.toFixed(1)}m
                       </td>
+                      {isTemplate && (
+                        <td className="px-3 py-3 whitespace-nowrap text-right text-xs font-bold text-emerald-700">
+                          {p.selected_by_percent !== undefined ? `${p.selected_by_percent.toFixed(1)}%` : "-"}
+                        </td>
+                      )}
                       <td className="px-3 py-3 whitespace-nowrap">
-                        {activeHorizon > 1 && p.fixtures && p.fixtures.length >= activeHorizon ? (
+                        {isMultiHorizon && p.fixtures && p.fixtures.length >= activeHorizon ? (
                           <div className="flex items-center gap-1">
                             {p.fixtures.slice(0, activeHorizon).map((f, i) => {
                               const c = getFdrColor(f.fdr);
@@ -891,7 +975,7 @@ export default function OptimalSquadView() {
                                 : `GW${f.event}`;
                               return (
                                 <span
-                                  key={i}
+                                   key={i}
                                   title={`${f.opponent} (FDR ${f.fdr}) • GW${f.event}`}
                                   className={`rounded px-1.5 py-0.5 text-[8.5px] font-bold ${c.bg} text-white`}
                                 >
@@ -916,7 +1000,7 @@ export default function OptimalSquadView() {
                           p.xp.toFixed(2)
                         )}
                       </td>
-                      {activeHorizon > 1 && (
+                      {isMultiHorizon && (
                         <td className="px-3 py-3 whitespace-nowrap text-right text-xs font-semibold text-slate-700">
                           {((isCap ? p.xp * 2 : p.xp) / activeHorizon).toFixed(1)}
                         </td>
@@ -936,7 +1020,7 @@ export default function OptimalSquadView() {
 
                 {/* Bench Section Header */}
                 <tr className="bg-slate-100 text-xs font-bold text-slate-700">
-                  <td colSpan={activeHorizon > 1 ? 11 : 10} className="py-2 pl-4">
+                  <td colSpan={isMultiHorizon || isTemplate ? 11 : 10} className="py-2 pl-4">
                     Substitutes (Bench • Ordered by Autosub Priority)
                   </td>
                 </tr>
@@ -970,8 +1054,13 @@ export default function OptimalSquadView() {
                       <td className="px-3 py-3 whitespace-nowrap text-xs font-medium text-slate-700">
                         £{p.price.toFixed(1)}m
                       </td>
+                      {isTemplate && (
+                        <td className="px-3 py-3 whitespace-nowrap text-right text-xs font-bold text-emerald-700">
+                          {p.selected_by_percent !== undefined ? `${p.selected_by_percent.toFixed(1)}%` : "-"}
+                        </td>
+                      )}
                       <td className="px-3 py-3 whitespace-nowrap text-xs text-slate-600">
-                        {activeHorizon > 1 && p.fixtures && p.fixtures.length >= activeHorizon ? (
+                        {isMultiHorizon && p.fixtures && p.fixtures.length >= activeHorizon ? (
                           <div className="flex items-center gap-1">
                             {p.fixtures.slice(0, activeHorizon).map((f, i) => {
                               const c = getFdrColor(f.fdr);
@@ -998,7 +1087,7 @@ export default function OptimalSquadView() {
                       <td className="px-3 py-3 whitespace-nowrap text-right font-bold text-slate-700">
                         {p.xp.toFixed(2)}
                       </td>
-                      {activeHorizon > 1 && (
+                      {isMultiHorizon && (
                         <td className="px-3 py-3 whitespace-nowrap text-right text-xs text-slate-500">
                           {(p.xp / activeHorizon).toFixed(1)}
                         </td>
@@ -1063,7 +1152,7 @@ export default function OptimalSquadView() {
       {selectedPlayer && (
         <PlayerModal
           player={selectedPlayer}
-          gameweeks={activeHorizon}
+          gameweeks={typeof activeHorizon === "number" ? activeHorizon : 1}
           onClose={() => setSelectedPlayer(null)}
         />
       )}
