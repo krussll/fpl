@@ -7,14 +7,16 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const horizonParam = searchParams.get("horizon");
-    const horizon = horizonParam ? parseInt(horizonParam, 10) : 1;
+    const isTemplate = horizonParam === "template" || searchParams.get("mode") === "template";
+    const horizon = isTemplate ? 1 : horizonParam ? parseInt(horizonParam, 10) : 1;
 
-    const cacheFileName =
-      horizon === 5
-        ? "optimal_squad_gw_5.json"
-        : horizon === 3
-        ? "optimal_squad_gw_3.json"
-        : "optimal_squad_gw_1.json";
+    const cacheFileName = isTemplate
+      ? "optimal_squad_template.json"
+      : horizon === 5
+      ? "optimal_squad_gw_5.json"
+      : horizon === 3
+      ? "optimal_squad_gw_3.json"
+      : "optimal_squad_gw_1.json";
 
     const candidatePaths = [
       path.resolve(process.cwd(), ".fpl_cache", cacheFileName),
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: `Optimal squad cache not found for horizon ${horizon}` },
+      { error: `Optimal squad cache not found for ${isTemplate ? "template" : `horizon ${horizon}`}` },
       { status: 404 }
     );
   } catch (error: unknown) {
