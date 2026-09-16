@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Search,
   Users,
+  ArrowRightLeft,
   ChevronDown,
   Menu,
   X,
@@ -52,7 +53,8 @@ export default function Navbar() {
 
   const isToolsActive =
     pathname.startsWith("/player-search") ||
-    pathname.startsWith("/team-selections");
+    pathname.startsWith("/team-selections") ||
+    pathname.startsWith("/transfer-recommendations");
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
@@ -169,6 +171,28 @@ export default function Navbar() {
                       </div>
                     </div>
                   </Link>
+
+                  <Link
+                    href="/transfer-recommendations"
+                    onClick={closeMenus}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
+                      pathname === "/transfer-recommendations"
+                        ? "bg-amber-50/80 text-amber-950"
+                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                    }`}
+                  >
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100/70 text-amber-700 group-hover:bg-amber-100">
+                      <ArrowRightLeft className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-slate-900">
+                        Transfer recommendations
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Points, template protection & haul potential
+                      </div>
+                    </div>
+                  </Link>
                 </div>
               </div>
             )}
@@ -250,6 +274,19 @@ export default function Navbar() {
                 >
                   <Users className="h-4 w-4 text-teal-600" />
                   <span>Team selections</span>
+                </Link>
+
+                <Link
+                  href="/transfer-recommendations"
+                  onClick={closeMenus}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
+                    pathname === "/transfer-recommendations"
+                      ? "bg-amber-50 text-amber-900"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <ArrowRightLeft className="h-4 w-4 text-amber-600" />
+                  <span>Transfer recommendations</span>
                 </Link>
               </div>
             </div>
