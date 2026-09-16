@@ -523,7 +523,7 @@ export async function GET(req: NextRequest) {
       haul_prob_gain: bestHaul.haul_prob_gain,
       cost_diff: bestHaul.cost_diff,
       new_bank: bestHaul.new_bank,
-      key_stat: `P90: ${bestHaul.player_in.ceiling.toFixed(0)} pts (+${bestHaul.ceiling_gain >= 0 ? "+" : ""}${bestHaul.ceiling_gain.toFixed(0)})`,
+      key_stat: `P90: ${bestHaul.player_in.ceiling.toFixed(0)} pts (${bestHaul.ceiling_gain >= 0 ? "+" : ""}${bestHaul.ceiling_gain.toFixed(0)})`,
       rationale: `Maximizes upside and haul probability for mini-league gains. ${bestHaul.player_in.name} possesses a high 90th-percentile ceiling of ${bestHaul.player_in.ceiling.toFixed(0)} points and a ${bestHaul.player_in.haul_prob.toFixed(1)}% chance of scoring 10+ points.`,
       alternatives: haulAlts,
     };
