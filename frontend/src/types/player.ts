@@ -115,3 +115,73 @@ export interface OptimalSquad {
   notes?: string[];
 }
 
+export interface TransferAlternative {
+  player_out: SquadPlayer;
+  player_in: Player;
+  xp_gain: number;
+  ownership_gain: number;
+  ceiling_gain: number;
+  haul_prob_gain: number;
+  cost_diff: number;
+  new_bank: number;
+}
+
+export interface TransferRecommendation {
+  type: "points_optimized" | "template_protection" | "haul_potential";
+  title: string;
+  badge: string;
+  description: string;
+  player_out: SquadPlayer;
+  player_in: Player;
+  xp_gain: number;
+  ownership_gain: number;
+  ceiling_gain: number;
+  haul_prob_gain: number;
+  cost_diff: number;
+  new_bank: number;
+  rationale: string;
+  key_stat: string;
+  alternatives: TransferAlternative[];
+}
+
+export interface UserTeamManager {
+  id: number;
+  name: string;
+  team_name: string;
+  overall_points: number;
+  overall_rank: number | null;
+  current_event: number;
+  total_transfers?: number;
+}
+
+export interface UserTeamSquad {
+  starters: SquadPlayer[];
+  bench: SquadPlayer[];
+  formation: string;
+  formation_lines: {
+    gkp: SquadPlayer[];
+    def: SquadPlayer[];
+    mid: SquadPlayer[];
+    fwd: SquadPlayer[];
+  };
+  captain: SquadCaptainInfo;
+  vice_captain: SquadCaptainInfo;
+  starting_xi_xp: number;
+  starting_xi_ownership: number;
+  total_cost: number;
+  bank: number;
+}
+
+export interface UserTeamTransferResponse {
+  manager: UserTeamManager;
+  squad: UserTeamSquad;
+  recommendations: {
+    points_optimized: TransferRecommendation;
+    template_protection: TransferRecommendation;
+    haul_potential: TransferRecommendation;
+  };
+  player_replacements: Record<number, TransferAlternative[]>;
+  horizon: number;
+}
+
+
