@@ -15,6 +15,7 @@ import numpy as np
 from fpl_api import FPLApiClient
 from simulator import FPLMonteCarloSimulator, SimulationSummary, MultiFixtureSummary
 from player import PlayerProfile
+from optimizer import regenerate_all_optimal_squads
 
 
 def simulate_player_single_fixture(args: Tuple[Dict[str, Any], int]) -> Dict[str, Any]:
@@ -200,6 +201,11 @@ def run_all_player_simulations(fixtures_list: List[int] = [1, 3], n_sims: int = 
                 "players": results
             }, f)
         print(f"[✔] Saved precomputed simulations to {cache_file} ({os.path.getsize(cache_file) / 1024 / 1024:.2f} MB).")
+        frontend_cache = f"frontend/.fpl_cache/simulations_10k_fixtures_{fix_count}.json"
+        if os.path.exists("frontend/.fpl_cache"):
+            import shutil
+            shutil.copy2(cache_file, frontend_cache)
+            print(f"[✔] Synced to {frontend_cache}.")
 
 
 def regenerate_saved_charts(n_sims: int = 10000) -> None:
@@ -256,3 +262,4 @@ def regenerate_saved_charts(n_sims: int = 10000) -> None:
 if __name__ == "__main__":
     run_all_player_simulations(fixtures_list=[1, 2, 3, 4, 5], n_sims=10000)
     regenerate_saved_charts(n_sims=10000)
+    regenerate_all_optimal_squads(horizons=[1, 3, 5])

@@ -136,11 +136,21 @@ def calculate_player_projections(raw_player: Dict[str, Any], fixtures_count: int
 
         # Clean sheet prob
         base_xgc = my_team_rating.get("xGC90", 1.25)
-        match_xgc = max(0.3, base_xgc * match_def_scale)
-        cs_prob = math.exp(-match_xgc)
+        gc_factor = my_team_rating.get("gc_factor", 1.0)
+        match_xgc = max(0.3, base_xgc * gc_factor * match_def_scale)
+        poisson_cs = math.exp(-match_xgc)
+        emp_cs = my_team_rating.get("empirical_cs_rate", 0.28)
+        gk_mins = my_team_rating.get("gk_mins", 0)
+        cs_weight = 0.20 * min(1.0, gk_mins / 720.0)
+        cs_prob = max(0.05, min(0.65, (1.0 - cs_weight) * poisson_cs + cs_weight * min(0.60, emp_cs)))
 
         # Saves prob
-        saves_rate = (raw_saves if mins >= 180 else 3.2) * opp_att_ratio if pos == "GKP" else 0.0
+        if pos == "GKP":
+            reg_saves = (raw_saves * 0.333 + 2.85 * 0.667) if mins < 1080 else raw_saves
+            eff_save_mult = 1.0 + 0.30 * (opp_att_ratio - 1.0)
+            saves_rate = min(3.50, max(1.0, reg_saves * eff_save_mult))
+        else:
+            saves_rate = 0.0
 
         # DefCon prob: Poisson >= threshold
         thresh = 10 if pos == "DEF" else 12

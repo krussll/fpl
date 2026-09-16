@@ -7,6 +7,9 @@ import {
   TrendingUp,
   Search,
   Users,
+  ArrowRightLeft,
+  Percent,
+  Calendar,
   ChevronDown,
   Menu,
   X,
@@ -52,7 +55,10 @@ export default function Navbar() {
 
   const isToolsActive =
     pathname.startsWith("/player-search") ||
-    pathname.startsWith("/team-selections");
+    pathname.startsWith("/team-selections") ||
+    pathname.startsWith("/transfer-recommendations") ||
+    pathname.startsWith("/match-odds") ||
+    pathname.startsWith("/fixture-ticker");
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
@@ -121,7 +127,7 @@ export default function Navbar() {
 
             {/* Dropdown Panel */}
             {toolsOpen && (
-              <div className="absolute left-0 mt-2 w-72 origin-top-left rounded-2xl border border-slate-200/90 bg-white/95 p-2 shadow-xl shadow-slate-900/5 backdrop-blur-xl ring-1 ring-slate-900/5 focus:outline-none">
+              <div className="absolute left-0 mt-2 w-80 origin-top-left rounded-2xl border border-slate-200/90 bg-white/95 p-2 shadow-xl shadow-slate-900/5 backdrop-blur-xl ring-1 ring-slate-900/5 focus:outline-none">
                 <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Simulation & Analysis
                 </div>
@@ -166,6 +172,72 @@ export default function Navbar() {
                       </div>
                       <div className="text-xs text-slate-500">
                         Optimize starting squad, bench order & budget
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/transfer-recommendations"
+                    onClick={closeMenus}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
+                      pathname === "/transfer-recommendations"
+                        ? "bg-amber-50/80 text-amber-950"
+                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                    }`}
+                  >
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100/70 text-amber-700 group-hover:bg-amber-100">
+                      <ArrowRightLeft className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-slate-900">
+                        Transfer recommendations
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Points, template protection & haul potential
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/match-odds"
+                    onClick={closeMenus}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
+                      pathname === "/match-odds"
+                        ? "bg-blue-50/80 text-blue-950"
+                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                    }`}
+                  >
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100/70 text-blue-700 group-hover:bg-blue-100">
+                      <Percent className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-slate-900">
+                        Match projections
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Win probabilities, projected xG & top scorelines
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/fixture-ticker"
+                    onClick={closeMenus}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
+                      pathname === "/fixture-ticker"
+                        ? "bg-purple-50/80 text-purple-950"
+                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                    }`}
+                  >
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100/70 text-purple-700 group-hover:bg-purple-100">
+                      <Calendar className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-slate-900">
+                        Fixture xG ticker
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Target attack runs & gameweek expected goals
                       </div>
                     </div>
                   </Link>
@@ -250,6 +322,45 @@ export default function Navbar() {
                 >
                   <Users className="h-4 w-4 text-teal-600" />
                   <span>Team selections</span>
+                </Link>
+
+                <Link
+                  href="/transfer-recommendations"
+                  onClick={closeMenus}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
+                    pathname === "/transfer-recommendations"
+                      ? "bg-amber-50 text-amber-900"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <ArrowRightLeft className="h-4 w-4 text-amber-600" />
+                  <span>Transfer recommendations</span>
+                </Link>
+
+                <Link
+                  href="/match-odds"
+                  onClick={closeMenus}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
+                    pathname === "/match-odds"
+                      ? "bg-blue-50 text-blue-900"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <Percent className="h-4 w-4 text-blue-600" />
+                  <span>Match projections</span>
+                </Link>
+
+                <Link
+                  href="/fixture-ticker"
+                  onClick={closeMenus}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
+                    pathname === "/fixture-ticker"
+                      ? "bg-purple-50 text-purple-900"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <Calendar className="h-4 w-4 text-purple-600" />
+                  <span>Fixture xG ticker</span>
                 </Link>
               </div>
             </div>
