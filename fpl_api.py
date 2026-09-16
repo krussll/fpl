@@ -24,12 +24,13 @@ class FPLApiClient:
         os.makedirs(self.cache_dir, exist_ok=True)
         self._bootstrap_data: Optional[Dict[str, Any]] = None
         self._fixtures_data: Optional[List[Dict[str, Any]]] = None
+        self._past_histories_data: Optional[Dict[str, Any]] = None
 
-    def _fetch_with_cache(self, url: str, cache_filename: str) -> Any:
+    def _fetch_with_cache(self, url: str, cache_filename: str, force_refresh: bool = False) -> Any:
         cache_path = os.path.join(self.cache_dir, cache_filename)
         
         # Check cache validity
-        if os.path.exists(cache_path):
+        if not force_refresh and os.path.exists(cache_path):
             file_age = time.time() - os.path.getmtime(cache_path)
             if file_age < self.cache_ttl:
                 try:
@@ -55,13 +56,13 @@ class FPLApiClient:
     def get_bootstrap(self, force_refresh: bool = False) -> Dict[str, Any]:
         """Fetch bootstrap-static containing players, teams, and gameweeks."""
         if self._bootstrap_data is None or force_refresh:
-            self._bootstrap_data = self._fetch_with_cache(self.BOOTSTRAP_URL, "bootstrap_static.json")
+            self._bootstrap_data = self._fetch_with_cache(self.BOOTSTRAP_URL, "bootstrap_static.json", force_refresh=force_refresh)
         return self._bootstrap_data
 
     def get_fixtures(self, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """Fetch upcoming fixture schedule."""
         if self._fixtures_data is None or force_refresh:
-            self._fixtures_data = self._fetch_with_cache(self.FIXTURES_URL, "future_fixtures.json")
+            self._fixtures_data = self._fetch_with_cache(self.FIXTURES_URL, "future_fixtures.json", force_refresh=force_refresh)
         return self._fixtures_data
 
     def get_teams_map(self) -> Dict[int, str]:
@@ -72,6 +73,20 @@ class FPLApiClient:
     def get_positions_map(self) -> Dict[int, Position]:
         """Returns mapping from element_type ID to FPL Position string."""
         return {1: "GKP", 2: "DEF", 3: "MID", 4: "FWD"}
+
+    def get_past_histories(self) -> Dict[str, Any]:
+        """Loads cached multi-season player histories for Bayesian prior blending."""
+        if self._past_histories_data is None:
+            cache_path = os.path.join(self.cache_dir, "player_past_histories.json")
+            if os.path.exists(cache_path):
+                try:
+                    with open(cache_path, "r", encoding="utf-8") as f:
+                        self._past_histories_data = json.load(f)
+                except Exception:
+                    self._past_histories_data = {}
+            else:
+                self._past_histories_data = {}
+        return self._past_histories_data
 
     def search_players(self, query: str, limit: int = 8) -> List[Dict[str, Any]]:
         """Search players by query across web_name, first_name, and second_name."""
@@ -324,18 +339,49 @@ class FPLApiClient:
                 sub_on_prob = 0.10
                 sub_mins_avg = 10.0
 
-        # 4. Attacking Rates (Bayesian regression for low sample sizes + Opponent Defense & Venue scaling)
+        # 4. Attacking Rates (Bayesian regression for low sample sizes + Prior blending + Opponent Defense & Venue scaling)
         raw_xg90 = float(raw.get("expected_goals_per_90") or 0.0)
         raw_xa90 = float(raw.get("expected_assists_per_90") or 0.0)
 
-        # Regress low-minute samples (< 360 mins) towards position baseline priors
-        pos_baseline_xg = {"FWD": 0.35, "MID": 0.15, "DEF": 0.05, "GKP": 0.00}.get(position, 0.15)
-        pos_baseline_xa = {"FWD": 0.15, "MID": 0.15, "DEF": 0.08, "GKP": 0.00}.get(position, 0.12)
-        att_sample_mins = 360.0
+        # Baseline positional priors
+        pos_default_xg = {"FWD": 0.35, "MID": 0.15, "DEF": 0.05, "GKP": 0.00}.get(position, 0.15)
+        pos_default_xa = {"FWD": 0.15, "MID": 0.15, "DEF": 0.08, "GKP": 0.00}.get(position, 0.12)
+
+        # Price-informed prior adjustment for new/unproven signings
+        cost_m = float(raw.get("now_cost") or 50) / 10.0
+        if position == "FWD" and cost_m > 8.0:
+            pos_default_xg = min(0.55, pos_default_xg + (cost_m - 8.0) * 0.03)
+        elif position == "MID" and cost_m > 7.0:
+            pos_default_xg = min(0.30, pos_default_xg + (cost_m - 7.0) * 0.02)
+            pos_default_xa = min(0.25, pos_default_xa + (cost_m - 7.0) * 0.015)
+
+        # Point 3: Blend previous season history (prior-informed regression)
+        p_id = raw.get("id")
+        past_histories = self.get_past_histories()
+        past_seasons = past_histories.get(str(p_id), []) if past_histories else []
+
+        recent_seasons = past_seasons[-2:] if past_seasons else []
+        past_mins = sum(s.get("minutes", 0) for s in recent_seasons)
+        past_xg = sum(float(s.get("expected_goals") or 0.0) for s in recent_seasons)
+        past_xa = sum(float(s.get("expected_assists") or 0.0) for s in recent_seasons)
+
+        if past_mins >= 450:
+            hist_xg90 = past_xg / (past_mins / 90.0)
+            hist_xa90 = past_xa / (past_mins / 90.0)
+            # Weight past history based on minutes up to 1,800 mins (20 full matches)
+            hist_weight = min(1.0, max(0.0, past_mins / 1800.0))
+            prior_xg90 = (hist_xg90 * hist_weight) + (pos_default_xg * (1.0 - hist_weight))
+            prior_xa90 = (hist_xa90 * hist_weight) + (pos_default_xa * (1.0 - hist_weight))
+        else:
+            prior_xg90 = pos_default_xg
+            prior_xa90 = pos_default_xa
+
+        # Point 1: Extended Bayesian shrinkage sample window (1,080 minutes / ~12 matches)
+        att_sample_mins = 1080.0
         att_weight = min(1.0, max(0.0, total_minutes / att_sample_mins))
         
-        regressed_xg90 = (raw_xg90 * att_weight) + (pos_baseline_xg * (1.0 - att_weight))
-        regressed_xa90 = (raw_xa90 * att_weight) + (pos_baseline_xa * (1.0 - att_weight))
+        regressed_xg90 = (raw_xg90 * att_weight) + (prior_xg90 * (1.0 - att_weight))
+        regressed_xa90 = (raw_xa90 * att_weight) + (prior_xa90 * (1.0 - att_weight))
 
         pen_order = raw.get("penalties_order")
         is_pen_taker = (pen_order == 1)
@@ -346,9 +392,21 @@ class FPLApiClient:
         else:
             base_npxg90 = regressed_xg90
 
+        # Point 2: Position plausibility ceilings on base rates (FUTURE_LOG Item #1)
+        base_npxg_caps = {"FWD": 1.15, "MID": 0.65, "DEF": 0.25, "GKP": 0.02}
+        base_xa_caps = {"FWD": 0.45, "MID": 0.60, "DEF": 0.40, "GKP": 0.02}
+        base_npxg90 = min(base_npxg90, base_npxg_caps.get(position, 0.65))
+        regressed_xa90 = min(regressed_xa90, base_xa_caps.get(position, 0.60))
+
         # Apply opponent defense and venue scaling!
         scaled_npxg90 = round(max(0.01, base_npxg90 * attack_multiplier), 2)
         scaled_xa90 = round(max(0.01, regressed_xa90 * attack_multiplier), 2)
+
+        # Point 2: Match-level plausibility ceilings (absolute outer bounds)
+        match_npxg_caps = {"FWD": 1.30, "MID": 0.75, "DEF": 0.35, "GKP": 0.02}
+        match_xa_caps = {"FWD": 0.55, "MID": 0.70, "DEF": 0.50, "GKP": 0.02}
+        scaled_npxg90 = min(scaled_npxg90, match_npxg_caps.get(position, 0.75))
+        scaled_xa90 = min(scaled_xa90, match_xa_caps.get(position, 0.70))
 
         # 5. Defensive Clean Sheet & Goals Conceded (Scaled by Opponent Attack)
         base_team_xgc = my_team_rating.get("xGC90", 1.20)

@@ -107,5 +107,6 @@ export interface OptimalSquad {
   };
   starters: SquadPlayer[];
   bench: SquadPlayer[];
+  notes?: string[];
 }
 

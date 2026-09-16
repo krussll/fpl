@@ -1,6 +1,12 @@
 # Future Improvements & Modeling Backlog
 
-## 1. Hard Plausibility Clamps on Attacking Rates (npxG90 & xA90)
+## 1. Hard Plausibility Clamps on Attacking Rates (npxG90 & xA90) — [IMPLEMENTED]
+
+### Status: Complete
+Implemented two-tier plausibility bounds in `fpl_api.py` for both base rates and match-scaled rates:
+- **Base npxG90 Caps**: FWD: 1.15, MID: 0.65, DEF: 0.25, GKP: 0.02.
+- **Base xA90 Caps**: FWD: 0.45, MID: 0.60, DEF: 0.40, GKP: 0.02.
+- **Match-Scaled Absolute Outer Bounds**: FWD: 1.30 npxG90 (0.55 xA90), MID: 0.75 npxG90 (0.70 xA90), DEF: 0.35 npxG90 (0.50 xA90), GKP: 0.02.
 
 ### Background & Motivation
 In Fantasy Premier League, per-90 statistics provided by the official API or raw Opta metrics can experience extreme skew during early season weeks or following small-minute substitute appearances (e.g., a player playing 1 minute and registering a single shot of 0.17 xG ends up with an artificial 15.3 xG90).
@@ -12,12 +18,15 @@ Introduce hard plausibility ceilings to prevent any player profile from exceedin
 
 - **npxG90 Caps**:
   - `FWD`: Maximum **1.15** non-penalty xG per 90 (at or above peak prime Erling Haaland).
-  - `MID`: Maximum **0.75** non-penalty xG per 90 (at or above peak Mohamed Salah).
-  - `DEF`: Maximum **0.30** non-penalty xG per 90 (at or above peak Gabriel / Trent Alexander-Arnold).
+  - `MID`: Maximum **0.65** non-penalty xG per 90 (at or above peak Mohamed Salah).
+  - `DEF`: Maximum **0.25** non-penalty xG per 90 (at or above peak Gabriel / Trent Alexander-Arnold).
   - `GKP`: Maximum **0.02** non-penalty xG per 90.
 
 - **xA90 Caps**:
-  - **0.75** expected assists per 90 across all outfield positions (at or above peak Kevin De Bruyne).
+  - `FWD`: Maximum **0.45** expected assists per 90.
+  - `MID`: Maximum **0.60** expected assists per 90 (at or above peak Kevin De Bruyne).
+  - `DEF`: Maximum **0.40** expected assists per 90 (at or above peak Trent Alexander-Arnold).
+  - `GKP`: Maximum **0.02** expected assists per 90.
 
 ### Implementation Considerations & Trade-Offs
 - **Pros**: Guarantees immunity against statistical anomalies, bugged data feeds, or extreme small-to-medium sample heaters distorting captaincy picks and squad optimizers.
@@ -142,30 +151,29 @@ Add a dedicated **"Tactical Alternatives (Same Price Bracket)"** section inside 
 
 ---
 
-## 6. Expanded Bayesian Regression Sample Window (Early-Season Outlier Dampening)
+## 6. Expanded Bayesian Regression Sample Window (Early-Season Outlier Dampening) — [IMPLEMENTED]
+
+### Status: Complete
+Implemented in `fpl_api.py`:
+- **1,080-Minute Sample Window**: Extended shrinkage window from 360.0 to 1,080.0 minutes (~12 matches), smoothly weighting current form vs proven prior.
+- **Historical Multi-Season Blending (Point 3)**: Prior baselines now integrate up to 2 prior Premier League seasons per player (weighted by historical sample size up to 1,800 minutes).
+- **Price-Aware Fallback Priors**: Unproven players and new signings without PL history are initialized with price-tiered baselines, ensuring sensible separation between premium assets and budget options.
 
 ### Background & Motivation
-In early gameweeks (GW1–GW4), raw per-90 metrics can experience extreme small-sample noise. For instance, a player with an explosive 2–3 fixture run can accumulate an unsustainable per-90 rate (e.g., Thierno Barry logging 2.31 xG in 237 minutes = 0.88 raw xG/90).
+In early gameweeks (GW1–GW4), raw per-90 metrics can experience extreme small-sample noise. For instance, a player with an explosive 2–3 fixture run can accumulate an unsustainable per-90 rate (e.g., Bryan Mbeumo or Thierno Barry accumulating high xG in small minutes).
 
-Currently, the model's Bayesian regression uses a 360-minute sample window (`att_sample_mins = 360.0`) in `fpl_api.py` to shrink players toward their positional baseline (0.35 xG/90 for forwards):
-$$\text{Weight} = \min\left(1.0, \frac{\text{Minutes}}{360}\right)$$
-
-At 237 minutes played (~2.6 matches), the model assigns ~65.8% weight to the player's small sample and only ~34.2% to the baseline, leaving a regressed expectation of ~0.70 xG/90. Coupled with favorable opponent matchups and penalty duties, this can elevate a £5.6m budget striker above established premium assets like Erling Haaland in projected xP.
+Previously, the model's Bayesian regression used a 360-minute sample window (`att_sample_mins = 360.0`) in `fpl_api.py` to shrink players toward their positional baseline. By Gameweek 4, this turned off prior shrinkage completely for regular starters.
 
 ### Proposed Feature
 1. **Enlarge the Regression Horizon**:
-   - Increase `att_sample_mins` from 360 minutes (~4 matches) to **720 minutes** (~8 matches) or **900 minutes** (~10 matches) during early-season gameweeks.
-   - Alternatively, implement a non-linear sigmoid shrinkage function that dampens extreme per-90 rates more heavily below 500 minutes.
-2. **Price-Aware / Tier-Aware Bayesian Priors**:
-   - Rather than applying a single flat baseline for all forwards (0.35 xG/90), introduce tiered priors based on player market tier:
-     - Premium FWD ($\ge £9.0\text{m}$): 0.55–0.60 xG/90 baseline
-     - Mid-Price FWD (£6.5m–£8.5m): 0.38–0.42 xG/90 baseline
-     - Budget FWD ($< £6.5\text{m}$): 0.25–0.30 xG/90 baseline
-   - Budget assets must demonstrate sustained output over a significantly larger sample before their projected baseline approaches elite levels.
+   - Extended `att_sample_mins` from 360 minutes to **1,080 minutes** (~12 matches).
+2. **Multi-Season & Price-Aware Bayesian Priors**:
+   - Incorporate the player's 2-year historical xG90 and xA90 baselines.
+   - Price-tier fallbacks for new signings without historical Premier League minutes.
 
 ### Implementation Considerations & Trade-Offs
-- **Pros**: Prevents flash-in-the-pan early-season heaters from distorting transfers and captaincy models; stabilizes projections during GW1–8.
-- **Cons / Nuances**: Slightly slower to reward genuine breakout players who have earned a regular starting berth in an improved offensive system.
+- **Pros**: Prevents flash-in-the-pan early-season heaters from distorting transfers and captaincy models; stabilizes projections during GW1–8 while respecting proven elite historical performers.
+- **Cons / Nuances**: Slightly slower to reward genuine breakout players who have earned a regular starting berth in an improved offensive system, but balances smoothly as minutes accumulate towards 1,080.
 
 ---
 
