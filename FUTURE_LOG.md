@@ -395,6 +395,35 @@ When exploring a player in FPL, managers frequently need to benchmark them again
    - Three distinct strategy cards rendered directly inside the modal with strategy badges, price and cost difference (`+£0.5m`, `-£0.2m`), key highlighted metrics, points differential vs current player, and upcoming fixture FDR pills.
    - **Interactive Navigation**: Clicking any alternative card seamlessly switches the modal to inspect that player's projections, 5-GW history, and fixture schedule, with an instant "Back to [Original Player]" button for easy navigation.
 
+---
+
+## 15. Team Expected Goals Against (xGC) Defensive Ticker [COMPLETED]
+
+### Background & Motivation
+While the Team Expected Goals (xG) Ticker allows managers to target attacking returns for midfielders and forwards, targeting defensive assets (goalkeepers and defenders) requires analyzing the defensive counterpart: **Expected Goals Conceded (xGC)** and clean sheet potential. Evaluating fixtures solely by opponent rank or official FDR overlooks tactical matchups, home/away venue splits, and team defensive solidity.
+
+### Implemented Solutions
+1. **Defensive Projection Engine (`/api/fixture-xgc-ticker`)**:
+   - Computes symmetric, fixture-level expected goals conceded ($xGC$) and clean sheet probabilities ($P(\text{CS}) = e^{-xGC} \times 100\%$) for all 20 Premier League clubs across multi-gameweek horizons (3, 5, and 8 GWs).
+   - Accurately accounts for opponent attacking strength ($xG_{90}$, attack ratio), team defensive resilience ($xGC_{90}$, defensive ratio, goal concession factor), and venue weighting (home advantage vs away disadvantage).
+   - Defaults to ranking clubs with the lowest total xGC at #1 (best defensive schedule).
+2. **Interactive UI Tool (`/fixture-xgc-ticker` & `FixtureXgcTickerView.tsx`)**:
+   - **Defensive-Reward Color Coding**: Inverts the color scale to reward defensive resilience and low expected concession:
+     - $\le 0.85$ xGC: Deep Emerald (`bg-emerald-600 text-white`, Prime Clean Sheet Target)
+     - $0.86\text{–}1.15$ xGC: Light Emerald (`bg-emerald-100 text-emerald-950`, Strong Matchup)
+     - $1.16\text{–}1.45$ xGC: Slate (`bg-slate-100 text-slate-800`, Average Fixture)
+     - $1.46\text{–}1.75$ xGC: Amber (`bg-amber-100 text-amber-950`, High Concession Risk)
+     - $> 1.75$ xGC: Rose (`bg-rose-500 text-white`, Difficult Matchup)
+   - **Controls & Filtering**:
+     - Horizon selector for 3, 5, or 8 gameweeks.
+     - Live club search filter.
+     - Interactive table sorting by Total xGC, Average xGC, or any individual gameweek column with toggleable ascending/descending directions.
+   - **Defensive Podium**:
+     - Highlights the Top 3 best defensive schedules over the selected horizon, displaying total xGC, average xGC per match, and highest single-fixture clean sheet probability.
+3. **Navigation Integration (`Navbar.tsx`)**:
+   - Added `Fixture xGC ticker` to the desktop "Tools" dropdown menu and mobile navigation drawer with a dedicated `Shield` icon.
+
+
 
 
 
