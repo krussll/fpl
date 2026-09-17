@@ -351,5 +351,30 @@ FPL managers evaluate captaincy picks, rotation strategies, and long-term transf
    - **Color-Coded Heatmap**: Visually highlights green/emerald runs ($\ge 2.0$ xG), neutral amber/yellow, and tough rose/red runs ($< 1.0$ xG).
    - **Summary Stats**: Displays Total Projected xG, Average xG/match, and Best Matchup indicators.
 
+---
+
+## 13. Custom Team Value & Sub-£100m Squad Budget Optimizer [COMPLETED]
+
+### Background & Motivation
+In Fantasy Premier League, many managers do not have exactly £100.0m available for squad selection. Early-season price drops, early transfers, or poor player value preservation frequently leave managers with team values below £100.0m (e.g. £94.5m–£98.5m). Previously, optimal squad selections were hard-coded to a static £100.0m limit, rendering the recommendations unusable or over-budget for managers with constrained squads.
+
+### Implemented Solutions
+1. **Dynamic Custom Budget Solver Engine (`/api/budget-optimizer`)**:
+   - Solves for the optimal 15-player squad (2 GKP, 5 DEF, 5 MID, 3 FWD) matching any user-defined team value constraint (e.g. £70.0m to £115.0m).
+   - Evaluates direct Starting XI points under all 7 valid FPL formations: 3-4-3, 3-5-2, 4-4-2, 4-3-3, 4-5-1, 5-3-2, 5-4-1.
+   - Enforces the starting goalkeeper rule (`start_prob >= 50%` or `minutes >= 180 && start_prob >= 25%`) and valid goalkeeper pairing pricing strategies (premium + £4.0m reserve or rotating budget keepers).
+   - Maximum 3 players per Premier League team strictly enforced.
+   - Supports 1-GW, 3-GW, and 5-GW simulation horizons with instantaneous (<50ms) execution time.
+2. **Interactive UI Tool (`/budget-optimizer`)**:
+   - Numeric input and smooth range slider (£80.0m to £108.0m) with 0.1m precision.
+   - Quick preset buttons for common sub-£100m budgets (£94.0m, £96.0m, £97.5m, £99.0m, £100.0m, £102.0m, £104.0m).
+   - Authentic pitch formation view with club kit jerseys, FDR fixture timeline badges, captaincy armbands (C / VC), and ordered bench layout.
+   - Table view toggle with sortable player metrics (Price, xP, PPM, Ownership %, Form).
+   - Full integration with `PlayerModal` for detailed historical breakdown.
+   - Added to navigation bar under the "Tools" dropdown.
+3. **Python CLI Integration (`optimizer.py`)**:
+   - Added command line arguments `--budget` and `--horizon` to `optimizer.py` (e.g. `python3 optimizer.py --budget 96.5 --horizon 3`).
+
+
 
 
