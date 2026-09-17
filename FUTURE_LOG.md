@@ -324,4 +324,32 @@ Root-cause analysis pinpointed four compounding mathematical drivers:
 - **Goalkeeper Rankings Restored**: Donnarumma (£5.5m, 21.26 xP), Raya (£6.0m, 21.23 xP), Kelleher (£5.0m, 20.33 xP), Pickford (£5.5m, 20.21 xP), and Kinsky (£4.5m, 18.50 xP) correctly occupy top tier; Scherpen ranks 20th among starters (12.88 xP).
 - **Optimal Squad Selections**: Goalkeeper slots now feature reliable starting goalkeepers (Kinsky / Raya) paired with valid budget backups across all horizons (1-GW, 3-GW, 5-GW, and Template).
 
+---
+
+## 12. Team-Level Match Odds & Fixture Expected Goals Ticker [COMPLETED]
+
+### Background & Motivation
+FPL managers evaluate captaincy picks, rotation strategies, and long-term transfers by assessing fixture difficulty and expected goal volumes across upcoming match schedules. Previously, expected goals were calculated solely at the individual player level, making it difficult to evaluate team-level match probabilities, clean sheet odds, over/under goal trends, or club-level attacking fixture runs.
+
+### Implemented Solutions
+1. **Blended Team Fixture xG Model**:
+   - For any matchup between Home team $H$ and Away team $A$:
+     $$\text{xG}_H = \frac{(H.\text{xG90} \times A.\text{def\_ratio} \times 1.08) + (A.\text{xGC90} \times A.\text{gc\_factor} \times H.\text{att\_ratio} \times 1.10)}{2}$$
+     $$\text{xG}_A = \frac{(A.\text{xG90} \times H.\text{def\_ratio} \times 0.92) + (H.\text{xGC90} \times H.\text{gc\_factor} \times A.\text{att\_ratio} \times 0.90)}{2}$$
+2. **Match Odds & Scorelines Tool (`/match-odds`)**:
+   - **Projected Match xG**: Displays projected home and away xG with total match goal projection.
+   - **Bivariate Poisson Probability Matrix**: Computes probabilities for all scorelines $(i, j) \in [0..7] \times [0..7]$ via $P(i, j) = \frac{\lambda_H^i e^{-\lambda_H}}{i!} \times \frac{\lambda_A^j e^{-\lambda_A}}{j!}$.
+   - **Win / Draw / Loss Odds**: Aggregates home win %, draw %, and away win % probabilities.
+   - **Top 5 Most Probable Exact Scorelines**: Identifies exact score outcomes sorted by probability.
+   - **Over / Under 2.5 Goals & Both Teams to Score (BTTS)**: Calculates betting/FPL-relevant goal volume indicators.
+   - **Clean Sheet Probabilities**: Highlights home and away shutout percentages.
+   - **Gameweek Selector**: Filters upcoming fixtures by gameweek.
+3. **Fixture Expected Goals Ticker (`/fixture-ticker`)**:
+   - **Ranked League Table**: Ranks all 20 Premier League clubs by projected expected goals.
+   - **Horizon Filtering**: Toggles between Next 3 GWs, Next 5 GWs, and Next 8 GWs.
+   - **Gameweek Breakdown**: Shows individual opponent badges (with Home/Away tag) and projected xG per match.
+   - **Color-Coded Heatmap**: Visually highlights green/emerald runs ($\ge 2.0$ xG), neutral amber/yellow, and tough rose/red runs ($< 1.0$ xG).
+   - **Summary Stats**: Displays Total Projected xG, Average xG/match, and Best Matchup indicators.
+
+
 

@@ -243,11 +243,24 @@ class FPLApiClient:
             r["def_ratio"] = round(r["xGC90"] / avg_xgc, 2)
             r["att_ratio"] = round(r["xG90"] / avg_xg, 2)
 
-        return {
+        ratings_result = {
             "teams": team_ratings,
             "avg_xgc": round(avg_xgc, 2),
             "avg_xg": round(avg_xg, 2)
         }
+
+        try:
+            cache_path = os.path.join(self.cache_dir, "team_ratings.json")
+            with open(cache_path, "w", encoding="utf-8") as f:
+                json.dump(ratings_result, f, indent=2)
+            fe_path = os.path.join("frontend", ".fpl_cache", "team_ratings.json")
+            if os.path.exists(os.path.dirname(fe_path)):
+                with open(fe_path, "w", encoding="utf-8") as f:
+                    json.dump(ratings_result, f, indent=2)
+        except Exception:
+            pass
+
+        return ratings_result
 
     def get_upcoming_fixtures(self, team_id: int, count: int = 1) -> List[Dict[str, Any]]:
         """Finds the next 'count' scheduled upcoming fixtures for a team."""
