@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FPL Monte Carlo | Probabilistic Fantasy Premier League Analytics",
+  title: "FPL Hauls | Fantasy Premier League Prediction Models & Data Science",
   description:
-    "Monte Carlo simulation engine and squad optimizer for Fantasy Premier League. Forecast points distributions, fixture difficulties, and optimize your squad.",
+    "Data science prediction models and squad optimization engine for Fantasy Premier League. Forecast points distributions, fixture difficulties, and target optimal hauls.",
 };
 
 export default function RootLayout({

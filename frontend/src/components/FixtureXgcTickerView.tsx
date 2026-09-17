@@ -222,8 +222,8 @@ export default function FixtureXgcTickerView() {
       <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-600/20">
-              <ShieldCheck className="h-3 w-3" />
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-[#FE5803] ring-1 ring-inset ring-orange-500/20">
+              <ShieldCheck className="h-3 w-3 text-[#FE5803]" />
               <span>Defensive Fixture Ticker</span>
             </div>
             <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
@@ -245,7 +245,7 @@ export default function FixtureXgcTickerView() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filter by club..."
-                className="w-full sm:w-48 rounded-xl border border-slate-300 bg-white pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full sm:w-48 rounded-xl border border-slate-300 bg-white pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#FE5803] focus:outline-none focus:ring-2 focus:ring-orange-500/20"
               />
             </div>
 
@@ -265,8 +265,8 @@ export default function FixtureXgcTickerView() {
                   onClick={() => setHorizon(h.val as 3 | 5 | 8)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                     horizon === h.val
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-white text-[#FE5803] shadow-xs font-extrabold"
+                      : "text-slate-600 hover:text-[#FE5803]"
                   }`}
                 >
                   {h.label}
@@ -351,7 +351,7 @@ export default function FixtureXgcTickerView() {
       {/* Loading Skeleton */}
       {loading && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-16 shadow-xs text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
+          <Loader2 className="h-10 w-10 animate-spin text-[#FE5803]" />
           <h3 className="mt-4 text-base font-bold text-slate-900">
             Calculating defensive fixture xGC across {horizon} gameweeks...
           </h3>
@@ -376,11 +376,11 @@ export default function FixtureXgcTickerView() {
                     <button
                       type="button"
                       onClick={() => handleSort("total")}
-                      className="inline-flex items-center gap-1 font-bold text-slate-900 hover:text-emerald-700 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 font-bold text-slate-900 hover:text-[#FE5803] transition-colors cursor-pointer"
                     >
                       <span>Total xGC</span>
                       {sortField === "total" ? (
-                        sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                        sortAsc ? <ArrowUp className="h-3 w-3 text-[#FE5803]" /> : <ArrowDown className="h-3 w-3 text-[#FE5803]" />
                       ) : (
                         <ArrowUpDown className="h-3 w-3 text-slate-400" />
                       )}
@@ -392,11 +392,11 @@ export default function FixtureXgcTickerView() {
                     <button
                       type="button"
                       onClick={() => handleSort("avg")}
-                      className="inline-flex items-center gap-1 font-bold text-slate-900 hover:text-emerald-700 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 font-bold text-slate-900 hover:text-[#FE5803] transition-colors cursor-pointer"
                     >
                       <span>Avg xGC</span>
                       {sortField === "avg" ? (
-                        sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                        sortAsc ? <ArrowUp className="h-3 w-3 text-[#FE5803]" /> : <ArrowDown className="h-3 w-3 text-[#FE5803]" />
                       ) : (
                         <ArrowUpDown className="h-3 w-3 text-slate-400" />
                       )}
@@ -412,11 +412,11 @@ export default function FixtureXgcTickerView() {
                         <button
                           type="button"
                           onClick={() => handleSort(idx)}
-                          className="inline-flex items-center gap-1 font-bold text-slate-800 hover:text-emerald-700 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 font-bold text-slate-800 hover:text-[#FE5803] transition-colors cursor-pointer"
                         >
                           <span>{label}</span>
                           {sortField === idx && (
-                            sortAsc ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />
+                            sortAsc ? <ArrowUp className="h-2.5 w-2.5 text-[#FE5803]" /> : <ArrowDown className="h-2.5 w-2.5 text-[#FE5803]" />
                           )}
                         </button>
                       </th>

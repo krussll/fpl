@@ -423,6 +423,28 @@ While the Team Expected Goals (xG) Ticker allows managers to target attacking re
 3. **Navigation Integration (`Navbar.tsx`)**:
    - Added `Fixture xGC ticker` to the desktop "Tools" dropdown menu and mobile navigation drawer with a dedicated `Shield` icon.
 
+---
+
+## 16. Rebranding to "FPL Hauls", Data Science Terminology & Namecheap Color System [COMPLETED]
+
+### Background & Motivation
+The platform transitioned its identity from "FPL Monte Carlo" to **"FPL Hauls"** to align directly with Fantasy Premier League culture and focus on high-impact gameweek hauls. Rather than using the specialized academic phrasing "Monte Carlo", the user experience was updated to more generic, accessible, and professional terminology: **"Data science"** and **"prediction models"**. The visual hierarchy was redesigned using the **Namecheap.com design palette** as a guide for headers, links, and icons.
+
+### Implemented Solutions
+1. **Brand Identity & Name Update**:
+   - Updated site title and global brand mark to **FPL Hauls**.
+   - Replaced logo icon with an energetic `Flame` mark in Namecheap Willpower Orange (`#FE5803`) and Comforting Orange (`#FF8C44`).
+   - Rebranded sub-badges to **Data Science** and **Prediction Models**.
+   - Updated legal disclaimers, terms of service, contact endpoints (`support@fplhauls.com`), and footer metadata.
+2. **Terminology Modernization**:
+   - Replaced all customer-facing occurrences of "Monte Carlo" across the entire codebase with "Data science" and "prediction models" (e.g., in Player Modal projection headers, distribution models, optimal squad horizon banners, and transfer engine summaries).
+3. **Namecheap Color System Integration**:
+   - **Headers**: Clean, high-contrast dark charcoal / slate typography (`text-slate-900` / `#2B2E34`).
+   - **Links & Interactive States**: Primary links, navigation items, and hover states adopt Namecheap Willpower Orange (`text-[#FE5803]` / `hover:text-[#FE5803]`).
+   - **Icons & Badges**: Soft warm orange pill badges (`bg-orange-50 text-[#FE5803] ring-1 ring-orange-500/20`), active tabs, and animated loaders (`text-[#FE5803]`).
+   - **Primary Action Buttons**: Styled in bold Willpower Orange (`bg-[#FE5803] hover:bg-[#DE4902] text-white shadow-md shadow-orange-500/20`).
+
+
 
 
 

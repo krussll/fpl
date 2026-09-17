@@ -266,7 +266,7 @@ function MatchCard({ match }: { match: MatchProjection }) {
         <button
           type="button"
           onClick={() => setShowMatrix((prev) => !prev)}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[#FE5803] hover:text-[#DE4902] transition-colors cursor-pointer"
         >
           <Grid3X3 className="h-3.5 w-3.5" />
           <span>{showMatrix ? "Hide Matrix" : "Full Scoreline Matrix"}</span>
@@ -377,8 +377,8 @@ export default function MatchOddsView() {
       <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-600/20">
-              <TrendingUp className="h-3 w-3" />
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-[#FE5803] ring-1 ring-inset ring-orange-500/20">
+              <TrendingUp className="h-3 w-3 text-[#FE5803]" />
               <span>Bivariate Poisson Match Engine</span>
             </div>
             <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
@@ -402,8 +402,8 @@ export default function MatchOddsView() {
                   onClick={() => setSelectedGw(gw)}
                   className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                     selectedGw === gw
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-white text-[#FE5803] shadow-xs font-extrabold"
+                      : "text-slate-600 hover:text-[#FE5803]"
                   }`}
                 >
                   GW{gw}
@@ -466,7 +466,7 @@ export default function MatchOddsView() {
       {/* Loading Skeleton */}
       {loading && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-16 shadow-xs text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
+          <Loader2 className="h-10 w-10 animate-spin text-[#FE5803]" />
           <h3 className="mt-4 text-base font-bold text-slate-900">
             Calculating Poisson scoreline grids for Gameweek {selectedGw}...
           </h3>
