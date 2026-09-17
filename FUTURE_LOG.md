@@ -324,4 +324,107 @@ Root-cause analysis pinpointed four compounding mathematical drivers:
 - **Goalkeeper Rankings Restored**: Donnarumma (£5.5m, 21.26 xP), Raya (£6.0m, 21.23 xP), Kelleher (£5.0m, 20.33 xP), Pickford (£5.5m, 20.21 xP), and Kinsky (£4.5m, 18.50 xP) correctly occupy top tier; Scherpen ranks 20th among starters (12.88 xP).
 - **Optimal Squad Selections**: Goalkeeper slots now feature reliable starting goalkeepers (Kinsky / Raya) paired with valid budget backups across all horizons (1-GW, 3-GW, 5-GW, and Template).
 
+---
+
+## 12. Team-Level Match Odds & Fixture Expected Goals Ticker [COMPLETED]
+
+### Background & Motivation
+FPL managers evaluate captaincy picks, rotation strategies, and long-term transfers by assessing fixture difficulty and expected goal volumes across upcoming match schedules. Previously, expected goals were calculated solely at the individual player level, making it difficult to evaluate team-level match probabilities, clean sheet odds, over/under goal trends, or club-level attacking fixture runs.
+
+### Implemented Solutions
+1. **Blended Team Fixture xG Model**:
+   - For any matchup between Home team $H$ and Away team $A$:
+     $$\text{xG}_H = \frac{(H.\text{xG90} \times A.\text{def\_ratio} \times 1.08) + (A.\text{xGC90} \times A.\text{gc\_factor} \times H.\text{att\_ratio} \times 1.10)}{2}$$
+     $$\text{xG}_A = \frac{(A.\text{xG90} \times H.\text{def\_ratio} \times 0.92) + (H.\text{xGC90} \times H.\text{gc\_factor} \times A.\text{att\_ratio} \times 0.90)}{2}$$
+2. **Match Odds & Scorelines Tool (`/match-odds`)**:
+   - **Projected Match xG**: Displays projected home and away xG with total match goal projection.
+   - **Bivariate Poisson Probability Matrix**: Computes probabilities for all scorelines $(i, j) \in [0..7] \times [0..7]$ via $P(i, j) = \frac{\lambda_H^i e^{-\lambda_H}}{i!} \times \frac{\lambda_A^j e^{-\lambda_A}}{j!}$.
+   - **Win / Draw / Loss Odds**: Aggregates home win %, draw %, and away win % probabilities.
+   - **Top 5 Most Probable Exact Scorelines**: Identifies exact score outcomes sorted by probability.
+   - **Over / Under 2.5 Goals & Both Teams to Score (BTTS)**: Calculates betting/FPL-relevant goal volume indicators.
+   - **Clean Sheet Probabilities**: Highlights home and away shutout percentages.
+   - **Gameweek Selector**: Filters upcoming fixtures by gameweek.
+3. **Fixture Expected Goals Ticker (`/fixture-ticker`)**:
+   - **Ranked League Table**: Ranks all 20 Premier League clubs by projected expected goals.
+   - **Horizon Filtering**: Toggles between Next 3 GWs, Next 5 GWs, and Next 8 GWs.
+   - **Gameweek Breakdown**: Shows individual opponent badges (with Home/Away tag) and projected xG per match.
+   - **Color-Coded Heatmap**: Visually highlights green/emerald runs ($\ge 2.0$ xG), neutral amber/yellow, and tough rose/red runs ($< 1.0$ xG).
+   - **Summary Stats**: Displays Total Projected xG, Average xG/match, and Best Matchup indicators.
+
+---
+
+## 13. Custom Team Value & Sub-£100m Squad Budget Optimizer [COMPLETED]
+
+### Background & Motivation
+In Fantasy Premier League, many managers do not have exactly £100.0m available for squad selection. Early-season price drops, early transfers, or poor player value preservation frequently leave managers with team values below £100.0m (e.g. £94.5m–£98.5m). Previously, optimal squad selections were hard-coded to a static £100.0m limit, rendering the recommendations unusable or over-budget for managers with constrained squads.
+
+### Implemented Solutions
+1. **Dynamic Custom Budget Solver Engine (`/api/budget-optimizer`)**:
+   - Solves for the optimal 15-player squad (2 GKP, 5 DEF, 5 MID, 3 FWD) matching any user-defined team value constraint (e.g. £70.0m to £115.0m).
+   - Evaluates direct Starting XI points under all 7 valid FPL formations: 3-4-3, 3-5-2, 4-4-2, 4-3-3, 4-5-1, 5-3-2, 5-4-1.
+   - Enforces the starting goalkeeper rule (`start_prob >= 50%` or `minutes >= 180 && start_prob >= 25%`) and valid goalkeeper pairing pricing strategies (premium + £4.0m reserve or rotating budget keepers).
+   - Maximum 3 players per Premier League team strictly enforced.
+   - Supports 1-GW, 3-GW, and 5-GW simulation horizons with instantaneous (<50ms) execution time.
+2. **Interactive UI Tool (`/budget-optimizer`)**:
+   - Numeric input and smooth range slider (£80.0m to £108.0m) with 0.1m precision.
+   - Quick preset buttons for common sub-£100m budgets (£94.0m, £96.0m, £97.5m, £99.0m, £100.0m, £102.0m, £104.0m).
+   - Authentic pitch formation view with club kit jerseys, FDR fixture timeline badges, captaincy armbands (C / VC), and ordered bench layout.
+   - Table view toggle with sortable player metrics (Price, xP, PPM, Ownership %, Form).
+   - Full integration with `PlayerModal` for detailed historical breakdown.
+   - Added to navigation bar under the "Tools" dropdown.
+3. **Python CLI Integration (`optimizer.py`)**:
+   - Added command line arguments `--budget` and `--horizon` to `optimizer.py` (e.g. `python3 optimizer.py --budget 96.5 --horizon 3`).
+
+---
+
+## 14. Similar Price Alternative Recommendations in Player Projection Modal [COMPLETED]
+
+### Background & Motivation
+When exploring a player in FPL, managers frequently need to benchmark them against other viable assets at a similar price point (±£0.5m). Finding whether a player is the consensus template pick, an explosive high-ceiling differential, or whether an alternative offers higher expected points requires manually cross-referencing multiple tables.
+
+### Implemented Solutions
+1. **Player Alternatives Engine (`/api/player-alternatives`)**:
+   - Analyzes all players in the same position within ±£0.5m of the viewed player's price (`[price - 0.5, price + 0.5]`).
+   - Categorizes alternatives into 3 distinct strategies:
+     - **1. Safe "Template" Pick**: Highest FPL ownership percentage (`selected_by_percent`) to protect overall rank and minimize volatility.
+     - **2. High Upside "Haul" Potential**: Highest haul probability (`haul_prob >= 10 pts`) and 90th percentile ceiling (`ceiling`) for chasing rank or captaincy upside.
+     - **3. Balanced "Optimized" Pick**: Highest expected points (`xp`). If the currently viewed player is already the #1 optimal pick at that price, the engine automatically recommends the **next most optimal player** at that price point.
+   - Enforces unique recommendation diversity across the 3 options when candidate pool size permits.
+   - Gracefully handles premium outliers (e.g. Haaland, Gabriel) with nearest adjacent price bracket fallbacks.
+2. **Interactive UI in Player Modal (`PlayerModal.tsx`)**:
+   - Three distinct strategy cards rendered directly inside the modal with strategy badges, price and cost difference (`+£0.5m`, `-£0.2m`), key highlighted metrics, points differential vs current player, and upcoming fixture FDR pills.
+   - **Interactive Navigation**: Clicking any alternative card seamlessly switches the modal to inspect that player's projections, 5-GW history, and fixture schedule, with an instant "Back to [Original Player]" button for easy navigation.
+
+---
+
+## 15. Team Expected Goals Against (xGC) Defensive Ticker [COMPLETED]
+
+### Background & Motivation
+While the Team Expected Goals (xG) Ticker allows managers to target attacking returns for midfielders and forwards, targeting defensive assets (goalkeepers and defenders) requires analyzing the defensive counterpart: **Expected Goals Conceded (xGC)** and clean sheet potential. Evaluating fixtures solely by opponent rank or official FDR overlooks tactical matchups, home/away venue splits, and team defensive solidity.
+
+### Implemented Solutions
+1. **Defensive Projection Engine (`/api/fixture-xgc-ticker`)**:
+   - Computes symmetric, fixture-level expected goals conceded ($xGC$) and clean sheet probabilities ($P(\text{CS}) = e^{-xGC} \times 100\%$) for all 20 Premier League clubs across multi-gameweek horizons (3, 5, and 8 GWs).
+   - Accurately accounts for opponent attacking strength ($xG_{90}$, attack ratio), team defensive resilience ($xGC_{90}$, defensive ratio, goal concession factor), and venue weighting (home advantage vs away disadvantage).
+   - Defaults to ranking clubs with the lowest total xGC at #1 (best defensive schedule).
+2. **Interactive UI Tool (`/fixture-xgc-ticker` & `FixtureXgcTickerView.tsx`)**:
+   - **Defensive-Reward Color Coding**: Inverts the color scale to reward defensive resilience and low expected concession:
+     - $\le 0.85$ xGC: Deep Emerald (`bg-emerald-600 text-white`, Prime Clean Sheet Target)
+     - $0.86\text{–}1.15$ xGC: Light Emerald (`bg-emerald-100 text-emerald-950`, Strong Matchup)
+     - $1.16\text{–}1.45$ xGC: Slate (`bg-slate-100 text-slate-800`, Average Fixture)
+     - $1.46\text{–}1.75$ xGC: Amber (`bg-amber-100 text-amber-950`, High Concession Risk)
+     - $> 1.75$ xGC: Rose (`bg-rose-500 text-white`, Difficult Matchup)
+   - **Controls & Filtering**:
+     - Horizon selector for 3, 5, or 8 gameweeks.
+     - Live club search filter.
+     - Interactive table sorting by Total xGC, Average xGC, or any individual gameweek column with toggleable ascending/descending directions.
+   - **Defensive Podium**:
+     - Highlights the Top 3 best defensive schedules over the selected horizon, displaying total xGC, average xGC per match, and highest single-fixture clean sheet probability.
+3. **Navigation Integration (`Navbar.tsx`)**:
+   - Added `Fixture xGC ticker` to the desktop "Tools" dropdown menu and mobile navigation drawer with a dedicated `Shield` icon.
+
+
+
+
+
 
