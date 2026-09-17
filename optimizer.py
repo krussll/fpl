@@ -937,4 +937,23 @@ def regenerate_all_optimal_squads(
 
 
 if __name__ == "__main__":
-    regenerate_all_optimal_squads(horizons=[1, 3, 5], include_template=True)
+    import argparse
+    parser = argparse.ArgumentParser(description="FPL Optimal Squad Solver")
+    parser.add_argument("--budget", type=float, default=None, help="Custom budget cap in millions (e.g. 95.0, 98.0)")
+    parser.add_argument("--horizon", type=int, default=1, choices=[1, 2, 3, 4, 5], help="Gameweek horizon (1, 3, or 5)")
+    args = parser.parse_args()
+
+    if args.budget is not None:
+        print(f"\n[*] Solving optimal squad under custom budget £{args.budget:.1f}m for Horizon {args.horizon}...")
+        res = generate_optimal_squad_for_horizon(horizon=args.horizon, budget=args.budget)
+        print(f"[✔] Budget: £{res['budget']:.1f}m | Cost: £{res['total_cost']:.1f}m | Bank: £{res['bank_remaining']:.1f}m")
+        print(f"[✔] Formation: {res['formation']} | Starting XI xP: {res['starting_xi_xp']:.2f} | With Captain: {res['total_match_xp']:.2f}")
+        print(f"[✔] Captain: {res['captain']['name']} ({res['captain']['xp']:.2f} xP) vs {res['captain']['opponent']}")
+        print(f"\nStarters:")
+        for p in res['starters']:
+            print(f"  - {p['position']} {p['name']} ({p['team']}) - £{p['price']:.1f}m, {p['xp']:.2f} xP")
+        print(f"\nBench:")
+        for p in res['bench']:
+            print(f"  - {p['position']} {p['name']} ({p['team']}) - £{p['price']:.1f}m, {p['xp']:.2f} xP")
+    else:
+        regenerate_all_optimal_squads(horizons=[1, 3, 5], include_template=True)

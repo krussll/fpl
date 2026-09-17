@@ -1,8 +1,30 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Player, PlayerFixture, PlayerHistoryMatch } from "@/types/player";
-import { X, Clock, Target, Shield, ShieldCheck, Star, BarChart3, ChevronDown } from "lucide-react";
+import {
+  Player,
+  PlayerFixture,
+  PlayerHistoryMatch,
+  PlayerAlternativesData,
+  PlayerAlternativeOption,
+} from "@/types/player";
+import {
+  X,
+  Clock,
+  Target,
+  Shield,
+  ShieldCheck,
+  Star,
+  BarChart3,
+  ChevronDown,
+  Users,
+  Zap,
+  TrendingUp,
+  ArrowRight,
+  Sparkles,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
 
 interface PlayerModalProps {
   player: Player;
@@ -53,19 +75,26 @@ function getCleanSheetPoints(
 }
 
 export default function PlayerModal({
-  player,
+  player: initialPlayer,
   gameweeks = 1,
   onClose,
 }: PlayerModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // Active player in modal (allows switching when clicking an alternative recommendation)
+  const [activePlayer, setActivePlayer] = useState<Player>(initialPlayer);
+
+  useEffect(() => {
+    setActivePlayer(initialPlayer);
+  }, [initialPlayer]);
+
   // Modal always displays the next 5 upcoming GW fixtures
   const fixtures =
-    player.fixtures_5 && player.fixtures_5.length > 0
-      ? player.fixtures_5
-      : player.five_gw?.fixtures && player.five_gw.fixtures.length > 0
-      ? player.five_gw.fixtures
-      : player.fixtures || [];
+    activePlayer.fixtures_5 && activePlayer.fixtures_5.length > 0
+      ? activePlayer.fixtures_5
+      : activePlayer.five_gw?.fixtures && activePlayer.five_gw.fixtures.length > 0
+      ? activePlayer.five_gw.fixtures
+      : activePlayer.fixtures || [];
 
   const gwLabel = gameweeks === 1 ? "Current GW" : `Next ${gameweeks} GWs`;
 
@@ -73,9 +102,12 @@ export default function PlayerModal({
   const [fetchedHistory, setFetchedHistory] = useState<PlayerHistoryMatch[] | null>(null);
 
   useEffect(() => {
-    if (player.history && player.history.length > 0) return;
+    if (activePlayer.history && activePlayer.history.length > 0) {
+      setFetchedHistory(null);
+      return;
+    }
     let active = true;
-    fetch(`/api/player-history?id=${player.id}`)
+    fetch(`/api/player-history?id=${activePlayer.id}`)
       .then((res) => res.json())
       .then((data) => {
         if (active && Array.isArray(data.history)) {
@@ -86,17 +118,44 @@ export default function PlayerModal({
     return () => {
       active = false;
     };
-  }, [player.id, player.history]);
+  }, [activePlayer.id, activePlayer.history]);
 
   const history =
-    player.history && player.history.length > 0
-      ? player.history
+    activePlayer.history && activePlayer.history.length > 0
+      ? activePlayer.history
       : fetchedHistory || [];
 
   const recentMatches = history.slice(-5);
 
   // Distribution chart visibility toggle (hidden by default)
   const [showDistribution, setShowDistribution] = useState<boolean>(false);
+
+  // Similar Price Alternatives State
+  const [alternativesData, setAlternativesData] = useState<PlayerAlternativesData | null>(null);
+  const [loadingAlternatives, setLoadingAlternatives] = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    setLoadingAlternatives(true);
+
+    fetch(`/api/player-alternatives?id=${activePlayer.id}&horizon=${gameweeks}`)
+      .then((res) => res.json())
+      .then((data: PlayerAlternativesData) => {
+        if (active && !("error" in data)) {
+          setAlternativesData(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load player alternatives:", err);
+      })
+      .finally(() => {
+        if (active) setLoadingAlternatives(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activePlayer.id, gameweeks]);
 
   // Close on Escape & lock body scrolling
   useEffect(() => {
@@ -117,7 +176,7 @@ export default function PlayerModal({
   }, [onClose]);
 
   // Distribution Chart Math (matches the selected gameweek horizon)
-  const distMap = player.distribution || {};
+  const distMap = activePlayer.distribution || {};
   const scores = Object.keys(distMap)
     .map(Number)
     .sort((a, b) => a - b);
@@ -144,9 +203,9 @@ export default function PlayerModal({
   const barWidth = Math.max(4, plotWidth / numBins - 2.5);
 
   const median =
-    player.median !== undefined ? player.median : player.xp;
-  const floor = player.floor;
-  const ceiling = player.ceiling;
+    activePlayer.median !== undefined ? activePlayer.median : activePlayer.xp;
+  const floor = activePlayer.floor;
+  const ceiling = activePlayer.ceiling;
 
   const getX = (val: number) =>
     padLeft +
@@ -157,7 +216,8 @@ export default function PlayerModal({
   const medX = getX(median);
   const p90X = getX(ceiling);
 
-  const isDifferential = player.selected_by_percent < 5.0;
+  const isDifferential = activePlayer.selected_by_percent < 5.0;
+  const hasSwitchedPlayer = activePlayer.id !== initialPlayer.id;
 
   return (
     <div
@@ -178,45 +238,55 @@ export default function PlayerModal({
         {/* Header */}
         <div className="flex items-start justify-between border-b border-slate-100 p-5 sm:p-6 bg-slate-50/50">
           <div>
+            {hasSwitchedPlayer && (
+              <button
+                type="button"
+                onClick={() => setActivePlayer(initialPlayer)}
+                className="mb-2 inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-emerald-700 transition-colors"
+              >
+                <ArrowLeft className="h-3 w-3" />
+                <span>Back to {initialPlayer.name}</span>
+              </button>
+            )}
             <div className="flex flex-wrap items-center gap-2">
               <span
                 className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${getPosBadgeClasses(
-                  player.position
+                  activePlayer.position
                 )}`}
               >
-                {player.position}
+                {activePlayer.position}
               </span>
               <h2
                 id="modalPlayerName"
                 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900"
               >
-                {player.full_name || player.name}
+                {activePlayer.full_name || activePlayer.name}
               </h2>
               <span className="text-base sm:text-lg font-bold text-emerald-700">
-                £{player.price.toFixed(1)}m
+                £{activePlayer.price.toFixed(1)}m
               </span>
               {isDifferential ? (
                 <span
                   className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-semibold text-violet-700 ring-1 ring-inset ring-violet-600/20"
                   title="Differential player with under 5% ownership"
                 >
-                  <span>{player.selected_by_percent.toFixed(1)}% Own</span>
+                  <span>{activePlayer.selected_by_percent.toFixed(1)}% Own</span>
                   <span>🎯</span>
                 </span>
               ) : (
                 <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200">
-                  {player.selected_by_percent.toFixed(1)}% Own
+                  {activePlayer.selected_by_percent.toFixed(1)}% Own
                 </span>
               )}
             </div>
             <p className="mt-1.5 text-xs sm:text-sm text-slate-500">
-              <span className="font-semibold text-slate-700">{player.team}</span>
+              <span className="font-semibold text-slate-700">{activePlayer.team}</span>
               {" • "}
               <span>Next: {fixtures?.[0]?.opponent || "TBD"}</span>
               {" • "}
-              <span>Start: {player.start_prob ?? 100}%</span>
+              <span>Start: {activePlayer.start_prob ?? 100}%</span>
               {" • "}
-              <span>Form: {player.form ?? 0.0}</span>
+              <span>Form: {activePlayer.form ?? 0.0}</span>
             </p>
           </div>
 
@@ -243,7 +313,7 @@ export default function PlayerModal({
                   Expected Pts
                 </div>
                 <div className="mt-1 text-xl font-extrabold text-emerald-700">
-                  {player.xp.toFixed(2)}
+                  {activePlayer.xp.toFixed(2)}
                 </div>
               </div>
 
@@ -252,7 +322,7 @@ export default function PlayerModal({
                   P10 Floor (Safe)
                 </div>
                 <div className="mt-1 font-mono text-xl font-extrabold text-rose-600">
-                  {player.floor.toFixed(1)}
+                  {activePlayer.floor.toFixed(1)}
                 </div>
               </div>
 
@@ -270,7 +340,7 @@ export default function PlayerModal({
                   P90 Ceiling
                 </div>
                 <div className="mt-1 font-mono text-xl font-extrabold text-amber-600">
-                  {player.ceiling.toFixed(1)}
+                  {activePlayer.ceiling.toFixed(1)}
                 </div>
               </div>
 
@@ -279,7 +349,7 @@ export default function PlayerModal({
                   Haul Rate (≥10)
                 </div>
                 <div className="mt-1 text-xl font-extrabold text-pink-600">
-                  {player.haul_prob.toFixed(1)}%
+                  {activePlayer.haul_prob.toFixed(1)}%
                 </div>
               </div>
 
@@ -288,7 +358,7 @@ export default function PlayerModal({
                   DefCon Rate (+2)
                 </div>
                 <div className="mt-1 text-xl font-extrabold text-sky-600">
-                  {player.defcon_prob.toFixed(1)}%
+                  {activePlayer.defcon_prob.toFixed(1)}%
                 </div>
               </div>
             </div>
@@ -325,8 +395,8 @@ export default function PlayerModal({
                     Monte Carlo Point Distribution ({gwLabel} • 10,000 Simulations)
                   </span>
                   <span className="text-xs font-medium text-emerald-800">
-                    {player.sigma !== undefined && (
-                      <span>Vol: ±{player.sigma.toFixed(2)} pts | </span>
+                    {activePlayer.sigma !== undefined && (
+                      <span>Vol: ±{activePlayer.sigma.toFixed(2)} pts | </span>
                     )}
                     <span>
                       Range: {minScore} - {maxScore} pts (10,000 simulations)
@@ -369,7 +439,7 @@ export default function PlayerModal({
                         fontSize={10}
                         fontWeight="bold"
                       >
-                        Floor {floor.toFixed(1)}
+                        P10 Floor: {floor.toFixed(1)}
                       </text>
 
                       {/* Median P50 vertical line */}
@@ -378,18 +448,18 @@ export default function PlayerModal({
                         y1={padTop}
                         x2={medX}
                         y2={padTop + plotHeight}
-                        stroke="#059669"
+                        stroke="#10b981"
                         strokeWidth={2}
                       />
                       <text
                         x={medX}
                         y={padTop - 8}
                         textAnchor="middle"
-                        fill="#059669"
+                        fill="#047857"
                         fontSize={10}
                         fontWeight="bold"
                       >
-                        Median {median.toFixed(1)}
+                        Median: {median.toFixed(1)}
                       </text>
 
                       {/* Ceiling P90 vertical line */}
@@ -398,7 +468,7 @@ export default function PlayerModal({
                         y1={padTop}
                         x2={p90X}
                         y2={padTop + plotHeight}
-                        stroke="#d97706"
+                        stroke="#f59e0b"
                         strokeDasharray="3 3"
                         strokeWidth={1.5}
                       />
@@ -406,63 +476,66 @@ export default function PlayerModal({
                         x={p90X}
                         y={padTop - 8}
                         textAnchor="middle"
-                        fill="#d97706"
+                        fill="#b45309"
                         fontSize={10}
                         fontWeight="bold"
                       >
-                        Ceiling {ceiling.toFixed(1)}
+                        P90 Ceiling: {ceiling.toFixed(1)}
                       </text>
 
-                      {/* Frequency bars */}
-                      {scores.map((s) => {
-                        const prob = distMap[s] || 0;
+                      {/* Probability Bars */}
+                      {scores.map((score) => {
+                        const prob = distMap[score] || 0;
+                        const barHeight = (prob / maxProb) * plotHeight;
                         const x =
                           padLeft +
-                          ((s - minScore) / (maxScore - minScore)) *
+                          ((score - minScore) / (maxScore - minScore)) *
                             (plotWidth - barWidth);
-                        const bHeight = Math.max(
-                          2,
-                          (prob / maxProb) * plotHeight
-                        );
-                        const y = padTop + plotHeight - bHeight;
+                        const y = padTop + plotHeight - barHeight;
 
-                        const isHaul = s >= 10;
-                        const isSolid = s >= 5;
-                        const fillColor = isHaul
-                          ? "#ec4899"
-                          : isSolid
-                          ? "#10b981"
-                          : "#94a3b8";
+                        const isFloor = Math.abs(score - floor) < 0.5;
+                        const isMed = Math.abs(score - median) < 0.5;
+                        const isCeil = Math.abs(score - ceiling) < 0.5;
 
-                        const showLabel =
-                          numBins <= 25
-                            ? true
-                            : s % 2 === 0 || s === minScore || s === maxScore;
+                        let fill = "#34d399";
+                        if (isFloor) fill = "#fb7185";
+                        else if (isCeil) fill = "#fbbf24";
+                        else if (isMed) fill = "#059669";
 
                         return (
-                          <g key={s}>
+                          <g key={score} className="group">
                             <rect
                               x={x}
                               y={y}
                               width={barWidth}
-                              height={bHeight}
+                              height={Math.max(2, barHeight)}
+                              fill={fill}
                               rx={1.5}
-                              fill={fillColor}
-                              className="transition-opacity hover:opacity-80 cursor-pointer"
+                              className="transition-opacity hover:opacity-80"
                             >
-                              <title>
-                                Score: {s} pts | Prob: {(prob * 100).toFixed(1)}%
-                              </title>
+                              <title>{`Score ${score} pts: ${(
+                                prob * 100
+                              ).toFixed(1)}%`}</title>
                             </rect>
-                            {showLabel && (
+                            <text
+                              x={x + barWidth / 2}
+                              y={padTop + plotHeight + 14}
+                              textAnchor="middle"
+                              fill="#64748b"
+                              fontSize={9}
+                            >
+                              {score}
+                            </text>
+                            {prob > maxProb * 0.25 && (
                               <text
                                 x={x + barWidth / 2}
-                                y={viewBoxHeight - 10}
+                                y={y - 4}
                                 textAnchor="middle"
-                                fill="#64748b"
-                                fontSize={9.5}
+                                fill="#475569"
+                                fontSize={8}
+                                fontWeight="bold"
                               >
-                                {s}
+                                {(prob * 100).toFixed(0)}%
                               </text>
                             )}
                           </g>
@@ -474,6 +547,204 @@ export default function PlayerModal({
                   <div className="py-8 text-center text-xs text-slate-400">
                     Distribution data not available for this player.
                   </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Similar Price Point Alternatives (±£0.5m) */}
+          <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-4 sm:p-5 space-y-3.5">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-emerald-600" />
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Similar Price Alternatives
+                  </h3>
+                  {alternativesData?.bracket_label && (
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-200/80">
+                      {alternativesData.bracket_label}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Alternative {activePlayer.position}s at a similar price point. Compare safe template, high upside haul, and balanced optimized picks. Click any card to inspect.
+                </p>
+              </div>
+
+              {loadingAlternatives && (
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600" />
+                  <span>Loading...</span>
+                </div>
+              )}
+            </div>
+
+            {alternativesData && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {/* 1. Safe "Template" Pick */}
+                {alternativesData.template && (
+                  <button
+                    type="button"
+                    onClick={() => setActivePlayer(alternativesData.template!.player)}
+                    className="group flex flex-col justify-between rounded-xl border border-blue-200/90 bg-white p-3.5 shadow-xs transition-all hover:border-blue-500 hover:shadow-md cursor-pointer text-left focus:outline-none"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-700 border border-blue-200">
+                          <Users className="h-3 w-3" />
+                          Safe &quot;Template&quot;
+                        </span>
+                        <span className="text-[11px] font-semibold text-slate-500">
+                          £{alternativesData.template.player.price.toFixed(1)}m{" "}
+                          <span className="text-[10px] text-slate-400">
+                            ({alternativesData.template.cost_diff > 0 ? `+£${alternativesData.template.cost_diff}m` : alternativesData.template.cost_diff < 0 ? `-£${Math.abs(alternativesData.template.cost_diff)}m` : "Same"})
+                          </span>
+                        </span>
+                      </div>
+
+                      <div className="mt-2.5 font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
+                        {alternativesData.template.player.name}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        {alternativesData.template.player.position} • {alternativesData.template.player.team}
+                      </div>
+
+                      <div className="mt-2.5 rounded-lg bg-blue-50/60 p-2 border border-blue-100 text-xs">
+                        <div className="text-[9.5px] font-bold uppercase tracking-wider text-blue-600">
+                          {alternativesData.template.badge}
+                        </div>
+                        <div className="font-bold text-blue-950 mt-0.5">
+                          {alternativesData.template.key_stat}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-black text-emerald-700">
+                          {alternativesData.template.player.xp.toFixed(1)} xP
+                        </span>
+                        <span className="ml-1 text-[10px] text-slate-400">
+                          ({alternativesData.template.xp_diff >= 0 ? `+${alternativesData.template.xp_diff}` : alternativesData.template.xp_diff} vs cur)
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-blue-600 group-hover:translate-x-0.5 transition-transform">
+                        <span>Inspect</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* 2. High Upside "Haul" Potential */}
+                {alternativesData.haul && (
+                  <button
+                    type="button"
+                    onClick={() => setActivePlayer(alternativesData.haul!.player)}
+                    className="group flex flex-col justify-between rounded-xl border border-purple-200/90 bg-white p-3.5 shadow-xs transition-all hover:border-purple-500 hover:shadow-md cursor-pointer text-left focus:outline-none"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-black text-purple-700 border border-purple-200">
+                          <Zap className="h-3 w-3" />
+                          High Upside &quot;Haul&quot;
+                        </span>
+                        <span className="text-[11px] font-semibold text-slate-500">
+                          £{alternativesData.haul.player.price.toFixed(1)}m{" "}
+                          <span className="text-[10px] text-slate-400">
+                            ({alternativesData.haul.cost_diff > 0 ? `+£${alternativesData.haul.cost_diff}m` : alternativesData.haul.cost_diff < 0 ? `-£${Math.abs(alternativesData.haul.cost_diff)}m` : "Same"})
+                          </span>
+                        </span>
+                      </div>
+
+                      <div className="mt-2.5 font-bold text-sm text-slate-900 group-hover:text-purple-600 transition-colors">
+                        {alternativesData.haul.player.name}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        {alternativesData.haul.player.position} • {alternativesData.haul.player.team}
+                      </div>
+
+                      <div className="mt-2.5 rounded-lg bg-purple-50/60 p-2 border border-purple-100 text-xs">
+                        <div className="text-[9.5px] font-bold uppercase tracking-wider text-purple-600">
+                          {alternativesData.haul.badge}
+                        </div>
+                        <div className="font-bold text-purple-950 mt-0.5">
+                          {alternativesData.haul.key_stat}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-black text-emerald-700">
+                          {alternativesData.haul.player.xp.toFixed(1)} xP
+                        </span>
+                        <span className="ml-1 text-[10px] text-slate-400">
+                          ({alternativesData.haul.xp_diff >= 0 ? `+${alternativesData.haul.xp_diff}` : alternativesData.haul.xp_diff} vs cur)
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-purple-600 group-hover:translate-x-0.5 transition-transform">
+                        <span>Inspect</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* 3. Balanced "Optimized" Pick */}
+                {alternativesData.optimized && (
+                  <button
+                    type="button"
+                    onClick={() => setActivePlayer(alternativesData.optimized!.player)}
+                    className="group flex flex-col justify-between rounded-xl border border-emerald-200/90 bg-white p-3.5 shadow-xs transition-all hover:border-emerald-500 hover:shadow-md cursor-pointer text-left focus:outline-none"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700 border border-emerald-200">
+                          <TrendingUp className="h-3 w-3" />
+                          Balanced &quot;Optimized&quot;
+                        </span>
+                        <span className="text-[11px] font-semibold text-slate-500">
+                          £{alternativesData.optimized.player.price.toFixed(1)}m{" "}
+                          <span className="text-[10px] text-slate-400">
+                            ({alternativesData.optimized.cost_diff > 0 ? `+£${alternativesData.optimized.cost_diff}m` : alternativesData.optimized.cost_diff < 0 ? `-£${Math.abs(alternativesData.optimized.cost_diff)}m` : "Same"})
+                          </span>
+                        </span>
+                      </div>
+
+                      <div className="mt-2.5 font-bold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors">
+                        {alternativesData.optimized.player.name}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        {alternativesData.optimized.player.position} • {alternativesData.optimized.player.team}
+                      </div>
+
+                      <div className="mt-2.5 rounded-lg bg-emerald-50/60 p-2 border border-emerald-100 text-xs">
+                        <div className="text-[9.5px] font-bold uppercase tracking-wider text-emerald-700">
+                          {alternativesData.optimized.badge}
+                        </div>
+                        <div className="font-bold text-emerald-950 mt-0.5">
+                          {alternativesData.optimized.key_stat}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-black text-emerald-700">
+                          {alternativesData.optimized.player.xp.toFixed(1)} xP
+                        </span>
+                        <span className="ml-1 text-[10px] text-slate-400">
+                          ({alternativesData.optimized.xp_diff >= 0 ? `+${alternativesData.optimized.xp_diff}` : alternativesData.optimized.xp_diff} vs cur)
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 group-hover:translate-x-0.5 transition-transform">
+                        <span>Inspect</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </div>
+                    </div>
+                  </button>
                 )}
               </div>
             )}
@@ -522,7 +793,7 @@ export default function PlayerModal({
               >
                 {recentMatches.map((m: PlayerHistoryMatch, idx: number) => {
                   const csPoints = getCleanSheetPoints(
-                    player.position,
+                    activePlayer.position,
                     m.clean_sheets,
                     m.minutes
                   );
@@ -584,14 +855,14 @@ export default function PlayerModal({
                         <div
                           className="flex items-center gap-1.5"
                           title={
-                            player.position === "FWD"
+                            activePlayer.position === "FWD"
                               ? "Clean sheets award 0 pts to forwards"
                               : `Clean Sheet: +${csPoints} pts (${m.clean_sheets ? "clean sheet kept" : "no clean sheet"})`
                           }
                         >
                           <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${csPoints > 0 ? "text-indigo-600" : "text-slate-300"}`} />
                           <span className={`font-mono font-bold ${csPoints > 0 ? "text-indigo-700 font-extrabold" : "text-slate-400"}`}>
-                            {csPoints > 0 ? `+${csPoints} CS` : player.position === "FWD" ? "- CS" : "0 CS"}
+                            {csPoints > 0 ? `+${csPoints} CS` : activePlayer.position === "FWD" ? "- CS" : "0 CS"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5" title="Defensive Contribution actions">
@@ -648,7 +919,7 @@ export default function PlayerModal({
                     </div>
                     <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500">
                       <span>
-                        {player.position !== "FWD"
+                        {activePlayer.position !== "FWD"
                           ? `CS: ${f.cs_prob}%`
                           : "CS: N/A (0 pts)"}
                       </span>

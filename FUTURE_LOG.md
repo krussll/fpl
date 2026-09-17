@@ -351,5 +351,51 @@ FPL managers evaluate captaincy picks, rotation strategies, and long-term transf
    - **Color-Coded Heatmap**: Visually highlights green/emerald runs ($\ge 2.0$ xG), neutral amber/yellow, and tough rose/red runs ($< 1.0$ xG).
    - **Summary Stats**: Displays Total Projected xG, Average xG/match, and Best Matchup indicators.
 
+---
+
+## 13. Custom Team Value & Sub-£100m Squad Budget Optimizer [COMPLETED]
+
+### Background & Motivation
+In Fantasy Premier League, many managers do not have exactly £100.0m available for squad selection. Early-season price drops, early transfers, or poor player value preservation frequently leave managers with team values below £100.0m (e.g. £94.5m–£98.5m). Previously, optimal squad selections were hard-coded to a static £100.0m limit, rendering the recommendations unusable or over-budget for managers with constrained squads.
+
+### Implemented Solutions
+1. **Dynamic Custom Budget Solver Engine (`/api/budget-optimizer`)**:
+   - Solves for the optimal 15-player squad (2 GKP, 5 DEF, 5 MID, 3 FWD) matching any user-defined team value constraint (e.g. £70.0m to £115.0m).
+   - Evaluates direct Starting XI points under all 7 valid FPL formations: 3-4-3, 3-5-2, 4-4-2, 4-3-3, 4-5-1, 5-3-2, 5-4-1.
+   - Enforces the starting goalkeeper rule (`start_prob >= 50%` or `minutes >= 180 && start_prob >= 25%`) and valid goalkeeper pairing pricing strategies (premium + £4.0m reserve or rotating budget keepers).
+   - Maximum 3 players per Premier League team strictly enforced.
+   - Supports 1-GW, 3-GW, and 5-GW simulation horizons with instantaneous (<50ms) execution time.
+2. **Interactive UI Tool (`/budget-optimizer`)**:
+   - Numeric input and smooth range slider (£80.0m to £108.0m) with 0.1m precision.
+   - Quick preset buttons for common sub-£100m budgets (£94.0m, £96.0m, £97.5m, £99.0m, £100.0m, £102.0m, £104.0m).
+   - Authentic pitch formation view with club kit jerseys, FDR fixture timeline badges, captaincy armbands (C / VC), and ordered bench layout.
+   - Table view toggle with sortable player metrics (Price, xP, PPM, Ownership %, Form).
+   - Full integration with `PlayerModal` for detailed historical breakdown.
+   - Added to navigation bar under the "Tools" dropdown.
+3. **Python CLI Integration (`optimizer.py`)**:
+   - Added command line arguments `--budget` and `--horizon` to `optimizer.py` (e.g. `python3 optimizer.py --budget 96.5 --horizon 3`).
+
+---
+
+## 14. Similar Price Alternative Recommendations in Player Projection Modal [COMPLETED]
+
+### Background & Motivation
+When exploring a player in FPL, managers frequently need to benchmark them against other viable assets at a similar price point (±£0.5m). Finding whether a player is the consensus template pick, an explosive high-ceiling differential, or whether an alternative offers higher expected points requires manually cross-referencing multiple tables.
+
+### Implemented Solutions
+1. **Player Alternatives Engine (`/api/player-alternatives`)**:
+   - Analyzes all players in the same position within ±£0.5m of the viewed player's price (`[price - 0.5, price + 0.5]`).
+   - Categorizes alternatives into 3 distinct strategies:
+     - **1. Safe "Template" Pick**: Highest FPL ownership percentage (`selected_by_percent`) to protect overall rank and minimize volatility.
+     - **2. High Upside "Haul" Potential**: Highest haul probability (`haul_prob >= 10 pts`) and 90th percentile ceiling (`ceiling`) for chasing rank or captaincy upside.
+     - **3. Balanced "Optimized" Pick**: Highest expected points (`xp`). If the currently viewed player is already the #1 optimal pick at that price, the engine automatically recommends the **next most optimal player** at that price point.
+   - Enforces unique recommendation diversity across the 3 options when candidate pool size permits.
+   - Gracefully handles premium outliers (e.g. Haaland, Gabriel) with nearest adjacent price bracket fallbacks.
+2. **Interactive UI in Player Modal (`PlayerModal.tsx`)**:
+   - Three distinct strategy cards rendered directly inside the modal with strategy badges, price and cost difference (`+£0.5m`, `-£0.2m`), key highlighted metrics, points differential vs current player, and upcoming fixture FDR pills.
+   - **Interactive Navigation**: Clicking any alternative card seamlessly switches the modal to inspect that player's projections, 5-GW history, and fixture schedule, with an instant "Back to [Original Player]" button for easy navigation.
+
+
+
 
 

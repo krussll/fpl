@@ -10,6 +10,7 @@ import {
   ArrowRightLeft,
   Percent,
   Calendar,
+  Wallet,
   ChevronDown,
   Menu,
   X,
@@ -57,6 +58,7 @@ export default function Navbar() {
     pathname.startsWith("/player-search") ||
     pathname.startsWith("/team-selections") ||
     pathname.startsWith("/transfer-recommendations") ||
+    pathname.startsWith("/budget-optimizer") ||
     pathname.startsWith("/match-odds") ||
     pathname.startsWith("/fixture-ticker");
 
@@ -199,6 +201,28 @@ export default function Navbar() {
                   </Link>
 
                   <Link
+                    href="/budget-optimizer"
+                    onClick={closeMenus}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
+                      pathname === "/budget-optimizer"
+                        ? "bg-emerald-50/80 text-emerald-950"
+                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                    }`}
+                  >
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100/70 text-emerald-700 group-hover:bg-emerald-100">
+                      <Wallet className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-slate-900">
+                        Budget squad optimizer
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Solve optimal squads for any team value (&lt;£100m)
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link
                     href="/match-odds"
                     onClick={closeMenus}
                     className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
@@ -335,6 +359,19 @@ export default function Navbar() {
                 >
                   <ArrowRightLeft className="h-4 w-4 text-amber-600" />
                   <span>Transfer recommendations</span>
+                </Link>
+
+                <Link
+                  href="/budget-optimizer"
+                  onClick={closeMenus}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
+                    pathname === "/budget-optimizer"
+                      ? "bg-emerald-50 text-emerald-900"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <Wallet className="h-4 w-4 text-emerald-600" />
+                  <span>Budget squad optimizer</span>
                 </Link>
 
                 <Link
