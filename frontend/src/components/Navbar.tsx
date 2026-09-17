@@ -281,6 +281,17 @@ export default function Navbar() {
           </div>
 
           <Link
+            href="/blog"
+            onClick={closeMenus}
+            className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${pathname.startsWith("/blog")
+              ? "bg-orange-50 text-[#FE5803] font-semibold"
+              : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
+              }`}
+          >
+            Blog
+          </Link>
+
+          <Link
             href="/about"
             onClick={closeMenus}
             className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${pathname === "/about"
@@ -415,6 +426,17 @@ export default function Navbar() {
                 </Link>
               </div>
             </div>
+
+            <Link
+              href="/blog"
+              onClick={closeMenus}
+              className={`block rounded-lg px-3 py-2 text-base font-medium ${pathname.startsWith("/blog")
+                ? "bg-orange-50 text-[#FE5803] font-semibold"
+                : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                }`}
+            >
+              Blog
+            </Link>
 
             <Link
               href="/about"
