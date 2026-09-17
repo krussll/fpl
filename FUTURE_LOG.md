@@ -446,7 +446,41 @@ The platform transitioned its identity from "FPL Monte Carlo" to **"FPL Hauls"**
 
 
 
+---
 
+## 17. SEO Blog Engine & Low-Competition Longtail Keyword Content [COMPLETED]
 
+### Background & Motivation
+To drive organic top-of-funnel discovery and search engine traffic for FPL Hauls, a content marketing and editorial blog engine was added. The strategy targets low-competition, high-intent longtail search queries in the Fantasy Premier League niche where managers seek concrete mathematical frameworks, budget solutions, and fixture analysis that mainstream content overlooks.
 
+### Design & Layout Reference
+Modeled directly after the modern, clean layout of [NowNext.live/blog](https://nownext.live/blog) and its individual article pages:
+- **Index Layout (`/blog`)**:
+  - Hero with editorial badge, large bold typography, and descriptive strategy subtitle.
+  - Real-time search filter and category pill navigation (All Guides, Budget Strategy, Defensive Analysis, Transfer Tactics).
+  - Responsive 3-column card grid (`rounded-3xl`, soft slate borders, card lift hover animations, Namecheap Willpower Orange accenting).
+  - Author avatar circles (`RW`), published date, reading times, and category tags.
+  - Bottom contextual tool spotlight banner inviting readers to test their teams in FPL Hauls solvers.
+- **Article Layout (`/blog/[slug]`)**:
+  - Breadcrumb navigation (`← Back to all articles`).
+  - Article header with category pill, publication date, reading time estimate, and author attribution row.
+  - Table of contents with anchor links for rapid section jumping.
+  - Rich typography with callout alert boxes (Key Data Takeaways, Scout Rules, Tactical Warnings), formatted comparison data tables, and bulleted takeaways.
+  - In-article contextual tool CTA banner linking directly to the relevant FPL Hauls tool (Budget Squad Optimizer, Fixture xGC Ticker, Transfer Recommendations).
+  - Author biography card, bottom navigation, and related articles grid.
 
+### Initial 3 SEO-Targeted Articles
+1. **`fpl-sub-100m-budget-team-selection`**:
+   - *Primary Keyword*: "FPL team value under 100m optimal squad"
+   - *Focus*: Data science approach to managing team value drops to £97m–£99m, starting XI preservation, sacrificial bench strategy, and links to `/budget-optimizer`.
+2. **`expected-goals-conceded-clean-sheet-targets`**:
+   - *Primary Keyword*: "FPL expected goals conceded ticker target clean sheets"
+   - *Focus*: Why blunt Official FPL FDR fails defensive planning, converting Poisson xGC to clean sheet probabilities, home/away defensive asymmetries, and links to `/fixture-xgc-ticker`.
+3. **`fpl-transfer-recommendation-strategies-template-vs-differential`**:
+   - *Primary Keyword*: "FPL transfer recommendation template protection vs differential haul"
+   - *Focus*: Effective Ownership (EO) dynamics, 3-option transfer methodology (Template Safe, Upside Haul, Balanced Optimal), price bracket clustering, and links to `/transfer-recommendations`.
+
+### Technical Implementation
+- Static Site Generation (SSG) with `generateStaticParams` for instant page loads and optimal SEO crawling.
+- Dynamic OpenGraph metadata, article schema tags, and keyword tags for each slug.
+- Integrated "Blog" links into desktop header, mobile drawer menu, footer information list, footer bottom bar, and home page feature section.

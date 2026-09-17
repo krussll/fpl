@@ -112,6 +112,14 @@ export default function Footer() {
               </li>
               <li>
                 <Link
+                  href="/blog"
+                  className="transition-colors hover:text-[#FE5803]"
+                >
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/contact"
                   className="group inline-flex items-center gap-1.5 transition-colors hover:text-[#FE5803]"
                 >
@@ -139,6 +147,13 @@ export default function Footer() {
           </p>
 
           <div className="flex items-center gap-6 text-xs text-slate-500">
+            <Link
+              href="/blog"
+              className="hover:text-[#FE5803] hover:underline underline-offset-4 transition-colors"
+            >
+              Blog
+            </Link>
+            <span className="text-slate-300">•</span>
             <Link
               href="/contact"
               className="hover:text-[#FE5803] hover:underline underline-offset-4 transition-colors"

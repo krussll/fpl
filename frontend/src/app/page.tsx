@@ -6,7 +6,9 @@ import {
   Sparkles,
   ArrowRight,
   Flame,
+  BookOpen,
 } from "lucide-react";
+import { getAllBlogPosts } from "@/data/blogPosts";
 
 export default function Home() {
   return (
@@ -140,6 +142,61 @@ export default function Home() {
               <BarChart3 className="h-4 w-4 text-slate-500 group-hover:text-[#FE5803]" />
               <span>Learn Methodology</span>
             </Link>
+          </div>
+        </div>
+
+        {/* Latest from the Blog Section */}
+        <div className="mt-20">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div>
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <BookOpen className="h-3.5 w-3.5 text-[#FE5803]" />
+                Strategy & Guides
+              </div>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                Latest from the FPL Hauls Blog
+              </h2>
+            </div>
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#FE5803] hover:text-[#DE4902] transition-colors"
+            >
+              <span>View all guides</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {getAllBlogPosts().map((post) => (
+              <Link
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                className="group flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xs hover:border-orange-300 hover:shadow-md transition-all duration-200"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-[#FE5803] ring-1 ring-orange-500/20">
+                      {post.category}
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">
+                      {post.readingTime}
+                    </span>
+                  </div>
+                  <h3 className="mt-3 text-base font-bold text-slate-900 group-hover:text-[#FE5803] transition-colors leading-snug">
+                    {post.title}
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600 line-clamp-3">
+                    {post.description}
+                  </p>
+                </div>
+                <div className="mt-5 border-t border-slate-100 pt-4 flex items-center justify-between text-xs">
+                  <span className="text-slate-400">{post.publishedAt}</span>
+                  <span className="font-semibold text-[#FE5803] flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                    Read guide <ArrowRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
