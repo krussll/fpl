@@ -81,13 +81,7 @@ export default function Navbar() {
               <span className="text-base font-bold tracking-tight text-slate-900 group-hover:text-[#FE5803] transition-colors">
                 FPL Hauls
               </span>
-              <span className="inline-flex items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#FE5803] ring-1 ring-inset ring-orange-500/20">
-                Data Science
-              </span>
             </div>
-            <span className="text-[11px] font-medium text-slate-500">
-              Prediction Models
-            </span>
           </div>
         </Link>
 
@@ -99,11 +93,10 @@ export default function Navbar() {
           <Link
             href="/"
             onClick={closeMenus}
-            className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
-              pathname === "/"
-                ? "bg-orange-50 text-[#FE5803] font-semibold"
-                : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
-            }`}
+            className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${pathname === "/"
+              ? "bg-orange-50 text-[#FE5803] font-semibold"
+              : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
+              }`}
           >
             Home
           </Link>
@@ -115,19 +108,17 @@ export default function Navbar() {
               onClick={() => setToolsOpen((prev) => !prev)}
               aria-expanded={toolsOpen}
               aria-haspopup="true"
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
-                toolsOpen || isToolsActive
-                  ? "bg-orange-50 text-[#FE5803] font-semibold"
-                  : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
-              }`}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${toolsOpen || isToolsActive
+                ? "bg-orange-50 text-[#FE5803] font-semibold"
+                : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                }`}
             >
               <span>Tools</span>
               <ChevronDown
-                className={`h-4 w-4 transition-transform duration-200 ${
-                  toolsOpen || isToolsActive
-                    ? "rotate-180 text-[#FE5803]"
-                    : "text-slate-500 group-hover:text-[#FE5803]"
-                }`}
+                className={`h-4 w-4 transition-transform duration-200 ${toolsOpen || isToolsActive
+                  ? "rotate-180 text-[#FE5803]"
+                  : "text-slate-500 group-hover:text-[#FE5803]"
+                  }`}
               />
             </button>
 
@@ -141,11 +132,10 @@ export default function Navbar() {
                   <Link
                     href="/player-search"
                     onClick={closeMenus}
-                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
-                      pathname === "/player-search"
-                        ? "bg-orange-50 text-orange-950 font-medium"
-                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
-                    }`}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${pathname === "/player-search"
+                      ? "bg-orange-50 text-orange-950 font-medium"
+                      : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
+                      }`}
                   >
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100/80 text-[#FE5803] group-hover:bg-orange-100">
                       <Search className="h-4 w-4" />
@@ -163,11 +153,10 @@ export default function Navbar() {
                   <Link
                     href="/team-selections"
                     onClick={closeMenus}
-                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
-                      pathname === "/team-selections"
-                        ? "bg-orange-50 text-orange-950 font-medium"
-                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
-                    }`}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${pathname === "/team-selections"
+                      ? "bg-orange-50 text-orange-950 font-medium"
+                      : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
+                      }`}
                   >
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100/80 text-amber-700 group-hover:bg-amber-100">
                       <Users className="h-4 w-4" />
@@ -185,11 +174,10 @@ export default function Navbar() {
                   <Link
                     href="/transfer-recommendations"
                     onClick={closeMenus}
-                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
-                      pathname === "/transfer-recommendations"
-                        ? "bg-orange-50 text-orange-950 font-medium"
-                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
-                    }`}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${pathname === "/transfer-recommendations"
+                      ? "bg-orange-50 text-orange-950 font-medium"
+                      : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
+                      }`}
                   >
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100/80 text-[#FE5803] group-hover:bg-orange-100">
                       <ArrowRightLeft className="h-4 w-4" />
@@ -207,11 +195,10 @@ export default function Navbar() {
                   <Link
                     href="/budget-optimizer"
                     onClick={closeMenus}
-                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
-                      pathname === "/budget-optimizer"
-                        ? "bg-orange-50 text-orange-950 font-medium"
-                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
-                    }`}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${pathname === "/budget-optimizer"
+                      ? "bg-orange-50 text-orange-950 font-medium"
+                      : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
+                      }`}
                   >
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100/80 text-[#FE5803] group-hover:bg-orange-100">
                       <Wallet className="h-4 w-4" />
@@ -229,11 +216,10 @@ export default function Navbar() {
                   <Link
                     href="/match-odds"
                     onClick={closeMenus}
-                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
-                      pathname === "/match-odds"
-                        ? "bg-orange-50 text-orange-950 font-medium"
-                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
-                    }`}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${pathname === "/match-odds"
+                      ? "bg-orange-50 text-orange-950 font-medium"
+                      : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
+                      }`}
                   >
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100/80 text-blue-700 group-hover:bg-blue-100">
                       <Percent className="h-4 w-4" />
@@ -251,11 +237,10 @@ export default function Navbar() {
                   <Link
                     href="/fixture-ticker"
                     onClick={closeMenus}
-                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
-                      pathname === "/fixture-ticker"
-                        ? "bg-orange-50 text-orange-950 font-medium"
-                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
-                    }`}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${pathname === "/fixture-ticker"
+                      ? "bg-orange-50 text-orange-950 font-medium"
+                      : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
+                      }`}
                   >
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100/70 text-purple-700 group-hover:bg-purple-100">
                       <Calendar className="h-4 w-4" />
@@ -273,11 +258,10 @@ export default function Navbar() {
                   <Link
                     href="/fixture-xgc-ticker"
                     onClick={closeMenus}
-                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
-                      pathname === "/fixture-xgc-ticker"
-                        ? "bg-orange-50 text-orange-950 font-medium"
-                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
-                    }`}
+                    className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${pathname === "/fixture-xgc-ticker"
+                      ? "bg-orange-50 text-orange-950 font-medium"
+                      : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
+                      }`}
                   >
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-100/70 text-teal-700 group-hover:bg-teal-100">
                       <Shield className="h-4 w-4" />
@@ -299,11 +283,10 @@ export default function Navbar() {
           <Link
             href="/about"
             onClick={closeMenus}
-            className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
-              pathname === "/about"
-                ? "bg-orange-50 text-[#FE5803] font-semibold"
-                : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
-            }`}
+            className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${pathname === "/about"
+              ? "bg-orange-50 text-[#FE5803] font-semibold"
+              : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
+              }`}
           >
             About
           </Link>
@@ -334,11 +317,10 @@ export default function Navbar() {
             <Link
               href="/"
               onClick={closeMenus}
-              className={`block rounded-lg px-3 py-2 text-base font-medium ${
-                pathname === "/"
-                  ? "bg-orange-50 text-[#FE5803] font-semibold"
-                  : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
-              }`}
+              className={`block rounded-lg px-3 py-2 text-base font-medium ${pathname === "/"
+                ? "bg-orange-50 text-[#FE5803] font-semibold"
+                : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                }`}
             >
               Home
             </Link>
@@ -351,11 +333,10 @@ export default function Navbar() {
                 <Link
                   href="/player-search"
                   onClick={closeMenus}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                    pathname === "/player-search"
-                      ? "bg-orange-50 text-[#FE5803] font-semibold"
-                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
-                  }`}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${pathname === "/player-search"
+                    ? "bg-orange-50 text-[#FE5803] font-semibold"
+                    : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                    }`}
                 >
                   <Search className="h-4 w-4 text-[#FE5803]" />
                   <span>Player search</span>
@@ -364,11 +345,10 @@ export default function Navbar() {
                 <Link
                   href="/team-selections"
                   onClick={closeMenus}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                    pathname === "/team-selections"
-                      ? "bg-orange-50 text-[#FE5803] font-semibold"
-                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
-                  }`}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${pathname === "/team-selections"
+                    ? "bg-orange-50 text-[#FE5803] font-semibold"
+                    : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                    }`}
                 >
                   <Users className="h-4 w-4 text-[#FE5803]" />
                   <span>Team selections</span>
@@ -377,11 +357,10 @@ export default function Navbar() {
                 <Link
                   href="/transfer-recommendations"
                   onClick={closeMenus}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                    pathname === "/transfer-recommendations"
-                      ? "bg-orange-50 text-[#FE5803] font-semibold"
-                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
-                  }`}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${pathname === "/transfer-recommendations"
+                    ? "bg-orange-50 text-[#FE5803] font-semibold"
+                    : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                    }`}
                 >
                   <ArrowRightLeft className="h-4 w-4 text-[#FE5803]" />
                   <span>Transfer recommendations</span>
@@ -390,11 +369,10 @@ export default function Navbar() {
                 <Link
                   href="/budget-optimizer"
                   onClick={closeMenus}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                    pathname === "/budget-optimizer"
-                      ? "bg-orange-50 text-[#FE5803] font-semibold"
-                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
-                  }`}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${pathname === "/budget-optimizer"
+                    ? "bg-orange-50 text-[#FE5803] font-semibold"
+                    : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                    }`}
                 >
                   <Wallet className="h-4 w-4 text-[#FE5803]" />
                   <span>Budget squad optimizer</span>
@@ -403,11 +381,10 @@ export default function Navbar() {
                 <Link
                   href="/match-odds"
                   onClick={closeMenus}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                    pathname === "/match-odds"
-                      ? "bg-orange-50 text-[#FE5803] font-semibold"
-                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
-                  }`}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${pathname === "/match-odds"
+                    ? "bg-orange-50 text-[#FE5803] font-semibold"
+                    : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                    }`}
                 >
                   <Percent className="h-4 w-4 text-[#FE5803]" />
                   <span>Match projections</span>
@@ -416,11 +393,10 @@ export default function Navbar() {
                 <Link
                   href="/fixture-ticker"
                   onClick={closeMenus}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                    pathname === "/fixture-ticker"
-                      ? "bg-orange-50 text-[#FE5803] font-semibold"
-                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
-                  }`}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${pathname === "/fixture-ticker"
+                    ? "bg-orange-50 text-[#FE5803] font-semibold"
+                    : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                    }`}
                 >
                   <Calendar className="h-4 w-4 text-[#FE5803]" />
                   <span>Fixture xG ticker</span>
@@ -429,11 +405,10 @@ export default function Navbar() {
                 <Link
                   href="/fixture-xgc-ticker"
                   onClick={closeMenus}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                    pathname === "/fixture-xgc-ticker"
-                      ? "bg-orange-50 text-[#FE5803] font-semibold"
-                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
-                  }`}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${pathname === "/fixture-xgc-ticker"
+                    ? "bg-orange-50 text-[#FE5803] font-semibold"
+                    : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                    }`}
                 >
                   <Shield className="h-4 w-4 text-[#FE5803]" />
                   <span>Fixture xGC ticker</span>
@@ -444,11 +419,10 @@ export default function Navbar() {
             <Link
               href="/about"
               onClick={closeMenus}
-              className={`block rounded-lg px-3 py-2 text-base font-medium ${
-                pathname === "/about"
-                  ? "bg-orange-50 text-[#FE5803] font-semibold"
-                  : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
-              }`}
+              className={`block rounded-lg px-3 py-2 text-base font-medium ${pathname === "/about"
+                ? "bg-orange-50 text-[#FE5803] font-semibold"
+                : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
+                }`}
             >
               About
             </Link>
