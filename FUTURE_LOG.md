@@ -375,6 +375,27 @@ In Fantasy Premier League, many managers do not have exactly £100.0m available 
 3. **Python CLI Integration (`optimizer.py`)**:
    - Added command line arguments `--budget` and `--horizon` to `optimizer.py` (e.g. `python3 optimizer.py --budget 96.5 --horizon 3`).
 
+---
+
+## 14. Similar Price Alternative Recommendations in Player Projection Modal [COMPLETED]
+
+### Background & Motivation
+When exploring a player in FPL, managers frequently need to benchmark them against other viable assets at a similar price point (±£0.5m). Finding whether a player is the consensus template pick, an explosive high-ceiling differential, or whether an alternative offers higher expected points requires manually cross-referencing multiple tables.
+
+### Implemented Solutions
+1. **Player Alternatives Engine (`/api/player-alternatives`)**:
+   - Analyzes all players in the same position within ±£0.5m of the viewed player's price (`[price - 0.5, price + 0.5]`).
+   - Categorizes alternatives into 3 distinct strategies:
+     - **1. Safe "Template" Pick**: Highest FPL ownership percentage (`selected_by_percent`) to protect overall rank and minimize volatility.
+     - **2. High Upside "Haul" Potential**: Highest haul probability (`haul_prob >= 10 pts`) and 90th percentile ceiling (`ceiling`) for chasing rank or captaincy upside.
+     - **3. Balanced "Optimized" Pick**: Highest expected points (`xp`). If the currently viewed player is already the #1 optimal pick at that price, the engine automatically recommends the **next most optimal player** at that price point.
+   - Enforces unique recommendation diversity across the 3 options when candidate pool size permits.
+   - Gracefully handles premium outliers (e.g. Haaland, Gabriel) with nearest adjacent price bracket fallbacks.
+2. **Interactive UI in Player Modal (`PlayerModal.tsx`)**:
+   - Three distinct strategy cards rendered directly inside the modal with strategy badges, price and cost difference (`+£0.5m`, `-£0.2m`), key highlighted metrics, points differential vs current player, and upcoming fixture FDR pills.
+   - **Interactive Navigation**: Clicking any alternative card seamlessly switches the modal to inspect that player's projections, 5-GW history, and fixture schedule, with an instant "Back to [Original Player]" button for easy navigation.
+
+
 
 
 

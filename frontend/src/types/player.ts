@@ -184,4 +184,22 @@ export interface UserTeamTransferResponse {
   horizon: number;
 }
 
+export interface PlayerAlternativeOption {
+  strategy: "template" | "haul" | "optimized";
+  title: string;
+  badge: string;
+  player: Player;
+  key_stat: string;
+  xp_diff: number;
+  cost_diff: number;
+  is_next_best?: boolean;
+  rationale: string;
+}
 
+export interface PlayerAlternativesData {
+  bracket_label: string;
+  is_viewed_player_rank1: boolean;
+  template: PlayerAlternativeOption | null;
+  haul: PlayerAlternativeOption | null;
+  optimized: PlayerAlternativeOption | null;
+}
