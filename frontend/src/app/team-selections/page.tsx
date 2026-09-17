@@ -3,7 +3,7 @@ import { ArrowLeft, Sparkles, CheckCircle2 } from "lucide-react";
 import OptimalSquadView from "@/components/OptimalSquadView";
 
 export const metadata = {
-  title: "Optimal Team Selections | FPL Monte Carlo",
+  title: "Optimal Team Selections | FPL Hauls",
   description: "Optimal starting XI and 15-player squad selection for the upcoming Fantasy Premier League gameweek.",
 };
 
@@ -14,7 +14,7 @@ export default function TeamSelectionsPage() {
       <div>
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-[#FE5803] transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Home</span>
@@ -23,15 +23,15 @@ export default function TeamSelectionsPage() {
 
       {/* Page Header */}
       <div className="border-b border-slate-200/80 pb-6">
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 ring-1 ring-inset ring-emerald-600/20">
-          <Sparkles className="h-3 w-3" />
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-medium text-[#FE5803] ring-1 ring-inset ring-orange-500/20">
+          <Sparkles className="h-3 w-3 text-[#FE5803]" />
           <span>Optimal Squad Solver</span>
         </div>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
           Optimal Team Selections
         </h1>
         <p className="mt-1 text-sm text-slate-500 max-w-3xl">
-          Monte Carlo optimized 15-player squad and starting XI for the upcoming gameweek.
+          Data science prediction model optimized 15-player squad and starting XI for the upcoming gameweek.
           Formations and player selections are mathematically optimized to maximize starting points under the official £100.0m budget and 3-player-per-club limits.
         </p>
       </div>

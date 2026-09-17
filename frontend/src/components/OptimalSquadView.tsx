@@ -563,9 +563,9 @@ export default function OptimalSquadView() {
             {isTemplate
               ? "The 15 most commonly owned FPL assets within the official £100.0m budget cap and 3-per-club limit"
               : activeHorizon === 5
-              ? `Long-term transfer horizon based on 10,000 Monte Carlo simulation runs per fixture (GW ${currentGw}–${currentGw + 4})`
+              ? `Long-term transfer horizon based on data science prediction models per fixture (GW ${currentGw}–${currentGw + 4})`
               : activeHorizon === 3
-              ? `Medium-term squad horizon based on 10,000 Monte Carlo simulation runs per fixture (GW ${currentGw}–${currentGw + 2})`
+              ? `Medium-term squad horizon based on data science prediction models per fixture (GW ${currentGw}–${currentGw + 2})`
               : "Single gameweek optimization maximizing immediate points under official £100m cap"}
           </span>
         </div>
@@ -1142,7 +1142,7 @@ export default function OptimalSquadView() {
               <span>Optimal Formation & Squad Selection</span>
             </div>
             <p className="mt-2 text-xs leading-relaxed text-slate-600">
-              Generated from 10,000 Monte Carlo simulation iterations solving for the highest-scoring 15-player squad within the £100m budget limit.
+              Generated from data science prediction models solving for the highest-scoring 15-player squad within the £100m budget limit.
             </p>
           </div>
         )}

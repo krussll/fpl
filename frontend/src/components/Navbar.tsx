@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  TrendingUp,
+  Flame,
   Search,
   Users,
   ArrowRightLeft,
@@ -65,28 +65,28 @@ export default function Navbar() {
     pathname.startsWith("/fixture-xgc-ticker");
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
       <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link
           href="/"
           onClick={closeMenus}
-          className="group flex items-center gap-2.5 transition-opacity hover:opacity-90"
+          className="group flex items-center gap-2.5 transition-opacity hover:opacity-95"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 shadow-sm shadow-emerald-500/25 ring-1 ring-emerald-600/20 transition-transform group-hover:scale-105">
-            <TrendingUp className="h-5 w-5 text-white" strokeWidth={2.2} />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#FE5803] to-[#FF8C44] shadow-sm shadow-orange-500/25 ring-1 ring-orange-600/20 transition-transform group-hover:scale-105">
+            <Flame className="h-5 w-5 text-white" strokeWidth={2.2} />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="text-base font-bold tracking-tight text-slate-900">
-                FPL Monte Carlo
+              <span className="text-base font-bold tracking-tight text-slate-900 group-hover:text-[#FE5803] transition-colors">
+                FPL Hauls
               </span>
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-                Sim
+              <span className="inline-flex items-center rounded-full bg-orange-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#FE5803] ring-1 ring-inset ring-orange-500/20">
+                Data Science
               </span>
             </div>
             <span className="text-[11px] font-medium text-slate-500">
-              Probabilistic Analytics
+              Prediction Models
             </span>
           </div>
         </Link>
@@ -101,8 +101,8 @@ export default function Navbar() {
             onClick={closeMenus}
             className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
               pathname === "/"
-                ? "bg-slate-100 text-slate-900"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                ? "bg-orange-50 text-[#FE5803] font-semibold"
+                : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
             }`}
           >
             Home
@@ -117,14 +117,16 @@ export default function Navbar() {
               aria-haspopup="true"
               className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
                 toolsOpen || isToolsActive
-                  ? "bg-slate-100 text-slate-900"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-orange-50 text-[#FE5803] font-semibold"
+                  : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
               }`}
             >
               <span>Tools</span>
               <ChevronDown
-                className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${
-                  toolsOpen ? "rotate-180 text-slate-900" : ""
+                className={`h-4 w-4 transition-transform duration-200 ${
+                  toolsOpen || isToolsActive
+                    ? "rotate-180 text-[#FE5803]"
+                    : "text-slate-500 group-hover:text-[#FE5803]"
                 }`}
               />
             </button>
@@ -133,7 +135,7 @@ export default function Navbar() {
             {toolsOpen && (
               <div className="absolute left-0 mt-2 w-80 origin-top-left rounded-2xl border border-slate-200/90 bg-white/95 p-2 shadow-xl shadow-slate-900/5 backdrop-blur-xl ring-1 ring-slate-900/5 focus:outline-none">
                 <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  Simulation & Analysis
+                  Data Science & Prediction Tools
                 </div>
                 <div className="space-y-1">
                   <Link
@@ -141,19 +143,19 @@ export default function Navbar() {
                     onClick={closeMenus}
                     className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
                       pathname === "/player-search"
-                        ? "bg-emerald-50/80 text-emerald-950"
-                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                        ? "bg-orange-50 text-orange-950 font-medium"
+                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
                     }`}
                   >
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100/70 text-emerald-700 group-hover:bg-emerald-100">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100/80 text-[#FE5803] group-hover:bg-orange-100">
                       <Search className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-slate-900 group-hover:text-[#FE5803] transition-colors">
                         Player search
                       </div>
                       <div className="text-xs text-slate-500">
-                        Simulate points distributions & upcoming fixtures
+                        Prediction models, points distributions & fixtures
                       </div>
                     </div>
                   </Link>
@@ -163,15 +165,15 @@ export default function Navbar() {
                     onClick={closeMenus}
                     className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
                       pathname === "/team-selections"
-                        ? "bg-teal-50/80 text-teal-950"
-                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                        ? "bg-orange-50 text-orange-950 font-medium"
+                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
                     }`}
                   >
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-100/70 text-teal-700 group-hover:bg-teal-100">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100/80 text-amber-700 group-hover:bg-amber-100">
                       <Users className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-slate-900 group-hover:text-[#FE5803] transition-colors">
                         Team selections
                       </div>
                       <div className="text-xs text-slate-500">
@@ -185,15 +187,15 @@ export default function Navbar() {
                     onClick={closeMenus}
                     className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
                       pathname === "/transfer-recommendations"
-                        ? "bg-amber-50/80 text-amber-950"
-                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                        ? "bg-orange-50 text-orange-950 font-medium"
+                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
                     }`}
                   >
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100/70 text-amber-700 group-hover:bg-amber-100">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100/80 text-[#FE5803] group-hover:bg-orange-100">
                       <ArrowRightLeft className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-slate-900 group-hover:text-[#FE5803] transition-colors">
                         Transfer recommendations
                       </div>
                       <div className="text-xs text-slate-500">
@@ -207,15 +209,15 @@ export default function Navbar() {
                     onClick={closeMenus}
                     className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
                       pathname === "/budget-optimizer"
-                        ? "bg-emerald-50/80 text-emerald-950"
-                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                        ? "bg-orange-50 text-orange-950 font-medium"
+                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
                     }`}
                   >
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100/70 text-emerald-700 group-hover:bg-emerald-100">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100/80 text-[#FE5803] group-hover:bg-orange-100">
                       <Wallet className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-slate-900 group-hover:text-[#FE5803] transition-colors">
                         Budget squad optimizer
                       </div>
                       <div className="text-xs text-slate-500">
@@ -229,15 +231,15 @@ export default function Navbar() {
                     onClick={closeMenus}
                     className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
                       pathname === "/match-odds"
-                        ? "bg-blue-50/80 text-blue-950"
-                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                        ? "bg-orange-50 text-orange-950 font-medium"
+                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
                     }`}
                   >
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100/70 text-blue-700 group-hover:bg-blue-100">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100/80 text-blue-700 group-hover:bg-blue-100">
                       <Percent className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-slate-900 group-hover:text-[#FE5803] transition-colors">
                         Match projections
                       </div>
                       <div className="text-xs text-slate-500">
@@ -251,15 +253,15 @@ export default function Navbar() {
                     onClick={closeMenus}
                     className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
                       pathname === "/fixture-ticker"
-                        ? "bg-purple-50/80 text-purple-950"
-                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                        ? "bg-orange-50 text-orange-950 font-medium"
+                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
                     }`}
                   >
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100/70 text-purple-700 group-hover:bg-purple-100">
                       <Calendar className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-slate-900 group-hover:text-[#FE5803] transition-colors">
                         Fixture xG ticker
                       </div>
                       <div className="text-xs text-slate-500">
@@ -273,15 +275,15 @@ export default function Navbar() {
                     onClick={closeMenus}
                     className={`group flex items-start gap-3 rounded-xl p-2.5 transition-colors ${
                       pathname === "/fixture-xgc-ticker"
-                        ? "bg-teal-50/80 text-teal-950"
-                        : "hover:bg-slate-50 text-slate-700 hover:text-slate-900"
+                        ? "bg-orange-50 text-orange-950 font-medium"
+                        : "hover:bg-orange-50/50 text-slate-700 hover:text-[#FE5803]"
                     }`}
                   >
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-100/70 text-teal-700 group-hover:bg-teal-100">
                       <Shield className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-slate-900 group-hover:text-[#FE5803] transition-colors">
                         Fixture xGC ticker
                       </div>
                       <div className="text-xs text-slate-500">
@@ -299,8 +301,8 @@ export default function Navbar() {
             onClick={closeMenus}
             className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
               pathname === "/about"
-                ? "bg-slate-100 text-slate-900"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                ? "bg-orange-50 text-[#FE5803] font-semibold"
+                : "text-slate-600 hover:bg-orange-50/50 hover:text-[#FE5803]"
             }`}
           >
             About
@@ -312,7 +314,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:outline-none"
+            className="inline-flex items-center justify-center rounded-lg p-2 text-slate-600 hover:bg-orange-50 hover:text-[#FE5803] focus:outline-none"
             aria-label="Toggle main menu"
             aria-expanded={mobileMenuOpen}
           >
@@ -334,8 +336,8 @@ export default function Navbar() {
               onClick={closeMenus}
               className={`block rounded-lg px-3 py-2 text-base font-medium ${
                 pathname === "/"
-                  ? "bg-slate-100 text-slate-900"
-                  : "text-slate-700 hover:bg-slate-50"
+                  ? "bg-orange-50 text-[#FE5803] font-semibold"
+                  : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
               }`}
             >
               Home
@@ -343,7 +345,7 @@ export default function Navbar() {
 
             <div className="pt-2">
               <div className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Tools
+                Data Science Tools
               </div>
               <div className="mt-1 space-y-1 pl-2">
                 <Link
@@ -351,11 +353,11 @@ export default function Navbar() {
                   onClick={closeMenus}
                   className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
                     pathname === "/player-search"
-                      ? "bg-emerald-50 text-emerald-900"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? "bg-orange-50 text-[#FE5803] font-semibold"
+                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
                   }`}
                 >
-                  <Search className="h-4 w-4 text-emerald-600" />
+                  <Search className="h-4 w-4 text-[#FE5803]" />
                   <span>Player search</span>
                 </Link>
 
@@ -364,11 +366,11 @@ export default function Navbar() {
                   onClick={closeMenus}
                   className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
                     pathname === "/team-selections"
-                      ? "bg-teal-50 text-teal-900"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? "bg-orange-50 text-[#FE5803] font-semibold"
+                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
                   }`}
                 >
-                  <Users className="h-4 w-4 text-teal-600" />
+                  <Users className="h-4 w-4 text-[#FE5803]" />
                   <span>Team selections</span>
                 </Link>
 
@@ -377,11 +379,11 @@ export default function Navbar() {
                   onClick={closeMenus}
                   className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
                     pathname === "/transfer-recommendations"
-                      ? "bg-amber-50 text-amber-900"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? "bg-orange-50 text-[#FE5803] font-semibold"
+                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
                   }`}
                 >
-                  <ArrowRightLeft className="h-4 w-4 text-amber-600" />
+                  <ArrowRightLeft className="h-4 w-4 text-[#FE5803]" />
                   <span>Transfer recommendations</span>
                 </Link>
 
@@ -390,11 +392,11 @@ export default function Navbar() {
                   onClick={closeMenus}
                   className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
                     pathname === "/budget-optimizer"
-                      ? "bg-emerald-50 text-emerald-900"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? "bg-orange-50 text-[#FE5803] font-semibold"
+                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
                   }`}
                 >
-                  <Wallet className="h-4 w-4 text-emerald-600" />
+                  <Wallet className="h-4 w-4 text-[#FE5803]" />
                   <span>Budget squad optimizer</span>
                 </Link>
 
@@ -403,11 +405,11 @@ export default function Navbar() {
                   onClick={closeMenus}
                   className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
                     pathname === "/match-odds"
-                      ? "bg-blue-50 text-blue-900"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? "bg-orange-50 text-[#FE5803] font-semibold"
+                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
                   }`}
                 >
-                  <Percent className="h-4 w-4 text-blue-600" />
+                  <Percent className="h-4 w-4 text-[#FE5803]" />
                   <span>Match projections</span>
                 </Link>
 
@@ -416,11 +418,11 @@ export default function Navbar() {
                   onClick={closeMenus}
                   className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
                     pathname === "/fixture-ticker"
-                      ? "bg-purple-50 text-purple-900"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? "bg-orange-50 text-[#FE5803] font-semibold"
+                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
                   }`}
                 >
-                  <Calendar className="h-4 w-4 text-purple-600" />
+                  <Calendar className="h-4 w-4 text-[#FE5803]" />
                   <span>Fixture xG ticker</span>
                 </Link>
 
@@ -429,11 +431,11 @@ export default function Navbar() {
                   onClick={closeMenus}
                   className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
                     pathname === "/fixture-xgc-ticker"
-                      ? "bg-teal-50 text-teal-900"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? "bg-orange-50 text-[#FE5803] font-semibold"
+                      : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
                   }`}
                 >
-                  <Shield className="h-4 w-4 text-teal-600" />
+                  <Shield className="h-4 w-4 text-[#FE5803]" />
                   <span>Fixture xGC ticker</span>
                 </Link>
               </div>
@@ -444,8 +446,8 @@ export default function Navbar() {
               onClick={closeMenus}
               className={`block rounded-lg px-3 py-2 text-base font-medium ${
                 pathname === "/about"
-                  ? "bg-slate-100 text-slate-900"
-                  : "text-slate-700 hover:bg-slate-50"
+                  ? "bg-orange-50 text-[#FE5803] font-semibold"
+                  : "text-slate-700 hover:bg-orange-50/50 hover:text-[#FE5803]"
               }`}
             >
               About

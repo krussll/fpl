@@ -473,7 +473,7 @@ export default function TransferRecommendationView() {
             </h2>
             <p className="mt-1 text-xs sm:text-sm text-slate-500 leading-relaxed">
               We pull your official starting XI, bench, and remaining bank balance directly from the FPL API.
-              Our 10,000-run Monte Carlo engine then calculates your optimal transfers.
+              Our data science prediction engine then calculates your optimal transfers.
             </p>
           </div>
 
@@ -550,12 +550,12 @@ export default function TransferRecommendationView() {
       {/* Loading Skeleton */}
       {loading && (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200/90 bg-white p-16 shadow-xs text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
+          <Loader2 className="h-10 w-10 animate-spin text-[#FE5803]" />
           <h3 className="mt-4 text-base font-bold text-slate-900">
             Pulling live squad from Fantasy Premier League...
           </h3>
           <p className="mt-1 text-xs text-slate-500 max-w-sm">
-            Mapping your 15 players against our 10,000-run Monte Carlo probability engine and solving for highest-gain transfer combinations.
+            Mapping your 15 players against our data science prediction engine and solving for highest-gain transfer combinations.
           </p>
         </div>
       )}
