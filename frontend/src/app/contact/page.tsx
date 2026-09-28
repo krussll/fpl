@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ArrowLeft, Mail } from "lucide-react";
 
 export const metadata = {
-  title: "Contact | FPL Monte Carlo",
-  description: "Get in touch with the FPL Monte Carlo development and analytics team.",
+  title: "Contact | FPL Hauls",
+  description: "Get in touch with the FPL Hauls development and data science team.",
 };
 
 export default function ContactPage() {
@@ -13,7 +13,7 @@ export default function ContactPage() {
       <div className="mb-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-[#FE5803] transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Home</span>
@@ -25,30 +25,30 @@ export default function ContactPage() {
           Contact Us
         </h1>
         <p className="mt-2 text-base text-slate-600">
-          Have feedback, question on simulation data, or feature suggestions? Reach out directly.
+          Have feedback, questions on prediction models, or feature suggestions? Reach out directly.
         </p>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+      <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
         <div className="flex items-center gap-3 text-slate-900 font-bold text-lg">
-          <Mail className="h-5 w-5 text-emerald-600" />
+          <Mail className="h-5 w-5 text-[#FE5803]" />
           <span>Support & Inquiries</span>
         </div>
         <p className="mt-2 text-sm text-slate-600">
-          For technical issues, API integrations, or suggestions, send an inquiry:
+          For technical issues, prediction models, API integrations, or suggestions, send an inquiry:
         </p>
 
         <div className="mt-6 flex flex-col gap-4">
           <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
             <div className="text-xs font-semibold uppercase text-slate-400">Email</div>
             <div className="mt-1 text-sm font-medium text-slate-900">
-              support@fplmontecarlo.local
+              support@fplhauls.com
             </div>
           </div>
           <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-            <div className="text-xs font-semibold uppercase text-slate-400">Community & Code</div>
+            <div className="text-xs font-semibold uppercase text-slate-400">Community & Analytics</div>
             <div className="mt-1 text-sm font-medium text-slate-900">
-              GitHub Issues & Discussions
+              GitHub Discussions & Community Feedback
             </div>
           </div>
         </div>

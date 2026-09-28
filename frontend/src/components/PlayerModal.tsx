@@ -305,14 +305,14 @@ export default function PlayerModal({
           {/* Key Projections Grid */}
           <div>
             <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Key Monte Carlo Projections ({gwLabel})
+              Key Prediction Model Metrics ({gwLabel})
             </h3>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 text-center shadow-xs">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-800/80">
+              <div className="rounded-xl border border-orange-100 bg-orange-50/50 p-3 text-center shadow-xs">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-orange-900/80">
                   Expected Pts
                 </div>
-                <div className="mt-1 text-xl font-extrabold text-emerald-700">
+                <div className="mt-1 text-xl font-extrabold text-[#FE5803]">
                   {activePlayer.xp.toFixed(2)}
                 </div>
               </div>
@@ -373,9 +373,9 @@ export default function PlayerModal({
               aria-expanded={showDistribution}
             >
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <BarChart3 className="h-4 w-4 text-[#FE5803] shrink-0" />
                 <span>
-                  {showDistribution ? "Hide" : "Show"} Monte Carlo Point Distribution ({gwLabel} • 10,000 Simulations)
+                  {showDistribution ? "Hide" : "Show"} Point Distribution Model ({gwLabel} • Advanced Simulation)
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] font-normal text-slate-400 group-hover:text-slate-600 transition-colors">
@@ -392,9 +392,9 @@ export default function PlayerModal({
               <div className="mt-2.5 rounded-2xl border border-slate-200/90 bg-slate-50/60 p-4 sm:p-5 shadow-xs animate-in fade-in duration-150">
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-200/60">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Monte Carlo Point Distribution ({gwLabel} • 10,000 Simulations)
+                    Point Distribution Model ({gwLabel} • Advanced Simulation)
                   </span>
-                  <span className="text-xs font-medium text-emerald-800">
+                  <span className="text-xs font-medium text-orange-950">
                     {activePlayer.sigma !== undefined && (
                       <span>Vol: ±{activePlayer.sigma.toFixed(2)} pts | </span>
                     )}

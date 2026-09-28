@@ -524,13 +524,13 @@ export default function PlayerTable() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-16 text-center shadow-sm">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-16 text-center shadow-xs">
+        <Loader2 className="h-8 w-8 animate-spin text-[#FE5803]" />
         <p className="mt-4 text-sm font-semibold text-slate-700">
-          Loading player simulation models...
+          Loading player prediction models...
         </p>
         <p className="mt-1 text-xs text-slate-400">
-          Fetching 10,000-iteration Monte Carlo projections
+          Fetching data science prediction models
         </p>
       </div>
     );

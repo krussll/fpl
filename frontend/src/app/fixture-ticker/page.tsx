@@ -3,7 +3,7 @@ import { ArrowLeft, Sparkles, TrendingUp } from "lucide-react";
 import FixtureTickerView from "@/components/FixtureTickerView";
 
 export const metadata = {
-  title: "Fixture Expected Goals (xG) Ticker | FPL Monte Carlo",
+  title: "Fixture Expected Goals (xG) Ticker | FPL Hauls",
   description: "Ranked Premier League clubs by projected expected goals across upcoming gameweeks. Color-coded attacking difficulty to target favorable fixture runs.",
 };
 
@@ -14,7 +14,7 @@ export default function FixtureTickerPage() {
       <div>
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-[#FE5803] transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Home</span>
@@ -23,8 +23,8 @@ export default function FixtureTickerPage() {
 
       {/* Page Header */}
       <div className="border-b border-slate-200/80 pb-6">
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 ring-1 ring-inset ring-emerald-600/20">
-          <Sparkles className="h-3 w-3" />
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-medium text-[#FE5803] ring-1 ring-inset ring-orange-500/20">
+          <Sparkles className="h-3 w-3 text-[#FE5803]" />
           <span>Attacking Difficulty Ticker</span>
         </div>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
