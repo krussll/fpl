@@ -7,8 +7,10 @@ import {
   ArrowRight,
   Flame,
   BookOpen,
+  CheckCircle2,
 } from "lucide-react";
 import { getAllBlogPosts } from "@/data/blogPosts";
+import HeroPitchGraphic from "@/components/HeroPitchGraphic";
 
 export default function Home() {
   return (
@@ -25,46 +27,56 @@ export default function Home() {
       </div>
 
       {/* Hero Section */}
-      <section className="mx-auto max-w-7xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/90 px-3.5 py-1 text-xs font-semibold text-orange-900 shadow-xs backdrop-blur-xs">
-            <Sparkles className="h-3.5 w-3.5 text-[#FE5803]" />
-            <span>Fantasy Premier League Data Science Engine</span>
+      <section className="mx-auto max-w-7xl px-4 pt-12 pb-16 sm:px-6 sm:pt-16 sm:pb-20 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          {/* Left Column: Left-Aligned Text Content */}
+          <div className="lg:col-span-6 space-y-6 text-left">
+
+            {/* Heading */}
+            <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl lg:text-6xl leading-[1.1]">
+              Predict variance.{" "}
+              <br className="hidden sm:inline" />
+              <span className="bg-gradient-to-r from-[#FE5803] to-[#FF8C44] bg-clip-text text-transparent">
+                Target hauls.
+              </span>
+            </h1>
+
+            {/* Subheading */}
+            <p className="text-lg leading-relaxed text-slate-600 sm:text-xl max-w-xl font-normal">
+              Go beyond static expected points. Leverage advanced data science prediction models
+              to quantify ceiling, floor, clean sheet probabilities, and optimal 15-man squad structures.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="pt-2 flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+              <Link
+                href="/player-search"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#FE5803] px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-[#DE4902]"
+              >
+                <Search className="h-4 w-4" />
+                <span>Explore Player Search</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+
+              <Link
+                href="/team-selections"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-800 shadow-xs transition-all hover:border-orange-200 hover:bg-orange-50/40 hover:text-[#FE5803]"
+              >
+                <Users className="h-4 w-4 text-slate-500 group-hover:text-[#FE5803] transition-colors" />
+                <span>Team Selections</span>
+              </Link>
+            </div>
+
+            {/* Trust check note */}
+            <div className="flex items-center gap-2 text-xs text-slate-500 pt-1">
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              <span>Free mathematical models • 10,000 simulations per gameweek</span>
+            </div>
           </div>
 
-          {/* Heading */}
-          <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-            Predict variance.{" "}
-            <span className="bg-gradient-to-r from-[#FE5803] to-[#FF8C44] bg-clip-text text-transparent">
-              Target hauls.
-            </span>
-          </h1>
-
-          {/* Subheading */}
-          <p className="mt-6 text-lg leading-relaxed text-slate-600 sm:text-xl">
-            Go beyond static expected points. Leverage advanced data science prediction models
-            to quantify ceiling, floor, clean sheet probabilities, and optimal 15-man squad structures.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/player-search"
-              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#FE5803] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-orange-500/25 transition-all hover:bg-[#DE4902] sm:w-auto"
-            >
-              <Search className="h-4 w-4" />
-              <span>Explore Player Search</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-
-            <Link
-              href="/team-selections"
-              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-800 shadow-xs transition-all hover:border-orange-200 hover:bg-orange-50/40 hover:text-[#FE5803] sm:w-auto"
-            >
-              <Users className="h-4 w-4 text-slate-500 group-hover:text-[#FE5803] transition-colors" />
-              <span>Team Selections</span>
-            </Link>
+          {/* Right Column: Stylized Optimized Pitch Graphic */}
+          <div className="lg:col-span-6 relative pt-4 lg:pt-0">
+            <HeroPitchGraphic />
           </div>
         </div>
 
@@ -83,7 +95,7 @@ export default function Home() {
                 Player Search & Prediction Models
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                Look up any Premier League player, inspect fixture difficulty ratings (FDR), 
+                Look up any Premier League player, inspect fixture difficulty ratings (FDR),
                 and evaluate data science prediction models across upcoming gameweeks.
               </p>
             </div>
@@ -107,7 +119,7 @@ export default function Home() {
                 Team Selections & Lineup Optimizer
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                Manage your 15-player squad, calibrate goalkeeper strategies (Premium Set-and-Forget vs Budget Pairing), 
+                Manage your 15-player squad, calibrate goalkeeper strategies (Premium Set-and-Forget vs Budget Pairing),
                 and generate the highest projected expected points starting XI.
               </p>
             </div>
