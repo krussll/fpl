@@ -259,7 +259,83 @@ def regenerate_saved_charts(n_sims: int = 10000) -> None:
             print(f"  (!) Error generating {filename}: {e}")
 
 
+def update_player_histories(base_dir: str = ".") -> None:
+    """Fetches recent match history for all players and saves to player_histories.json."""
+    import urllib.request
+    from concurrent.futures import ThreadPoolExecutor
+
+    print("\n[*] Updating player recent match histories from FPL API...")
+    client = FPLApiClient(cache_dir=os.path.join(base_dir, ".fpl_cache"))
+    boot = client.get_bootstrap()
+    teams_map = {t["id"]: t["name"] for t in boot["teams"]}
+    teams_short = {t["id"]: t["short_name"] for t in boot["teams"]}
+    elements = boot["elements"]
+
+    histories: Dict[str, Any] = {}
+
+    def fetch_player_history(player: Dict[str, Any]) -> Tuple[int, List[Dict[str, Any]]]:
+        pid = player["id"]
+        url = f"https://fantasy.premierleague.com/api/element-summary/{pid}/"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (FPL-MonteCarlo/1.0)"})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                raw_hist = data.get("history", [])
+                formatted = []
+                for h in raw_hist:
+                    opp_id = h.get("opponent_team")
+                    formatted.append({
+                        "round": h.get("round"),
+                        "fixture_id": h.get("fixture"),
+                        "opponent_id": opp_id,
+                        "opponent_name": teams_map.get(opp_id, "Opponent"),
+                        "opponent_short": teams_short.get(opp_id, "OPP"),
+                        "was_home": h.get("was_home"),
+                        "kickoff_time": h.get("kickoff_time"),
+                        "team_h_score": h.get("team_h_score"),
+                        "team_a_score": h.get("team_a_score"),
+                        "total_points": h.get("total_points", 0),
+                        "minutes": h.get("minutes", 0),
+                        "goals_scored": h.get("goals_scored", 0),
+                        "assists": h.get("assists", 0),
+                        "clean_sheets": h.get("clean_sheets", 0),
+                        "goals_conceded": h.get("goals_conceded", 0),
+                        "own_goals": h.get("own_goals", 0),
+                        "penalties_saved": h.get("penalties_saved", 0),
+                        "penalties_missed": h.get("penalties_missed", 0),
+                        "yellow_cards": h.get("yellow_cards", 0),
+                        "red_cards": h.get("red_cards", 0),
+                        "saves": h.get("saves", 0),
+                        "bonus": h.get("bonus", 0),
+                        "bps": h.get("bps", 0),
+                        "defensive_contribution": h.get("defensive_contribution", 0),
+                        "starts": h.get("starts", 0),
+                        "expected_goals": str(h.get("expected_goals", "0.00")),
+                        "expected_assists": str(h.get("expected_assists", "0.00")),
+                    })
+                return pid, formatted
+        except Exception:
+            return pid, []
+
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        results = executor.map(fetch_player_history, elements)
+        for pid, hist in results:
+            histories[str(pid)] = hist
+
+    cache_path = os.path.join(base_dir, ".fpl_cache", "player_histories.json")
+    with open(cache_path, "w", encoding="utf-8") as f:
+        json.dump(histories, f)
+    print(f"[✔] Saved {len(histories)} player histories to {cache_path}.")
+
+    fe_cache = os.path.join(base_dir, "frontend", ".fpl_cache", "player_histories.json")
+    if os.path.exists(os.path.dirname(fe_cache)):
+        with open(fe_cache, "w", encoding="utf-8") as f:
+            json.dump(histories, f)
+        print(f"[✔] Synced to {fe_cache}.")
+
+
 if __name__ == "__main__":
+    update_player_histories()
     run_all_player_simulations(fixtures_list=[1, 2, 3, 4, 5], n_sims=10000)
     regenerate_saved_charts(n_sims=10000)
     regenerate_all_optimal_squads(horizons=[1, 3, 5])

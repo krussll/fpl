@@ -38,12 +38,13 @@ interface BootstrapTeam {
 }
 
 let cachedRatings: TeamRatingsData | null = null;
+let lastRatingsMtime: number = 0;
 let cachedTeamsMap: Map<number, BootstrapTeam> | null = null;
+let lastTeamsMtime: number = 0;
 let cachedFixtures: FixtureRaw[] | null = null;
+let lastFixturesMtime: number = 0;
 
 function loadTeamRatings(): TeamRatingsData | null {
-  if (cachedRatings) return cachedRatings;
-
   const candidatePaths = [
     path.resolve(process.cwd(), ".fpl_cache", "team_ratings.json"),
     path.resolve(process.cwd(), "..", ".fpl_cache", "team_ratings.json"),
@@ -52,20 +53,23 @@ function loadTeamRatings(): TeamRatingsData | null {
   for (const p of candidatePaths) {
     if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
       try {
+        const stat = fs.statSync(/*turbopackIgnore: true*/ p);
+        if (cachedRatings && stat.mtimeMs <= lastRatingsMtime) {
+          return cachedRatings;
+        }
         const raw = fs.readFileSync(/*turbopackIgnore: true*/ p, "utf-8");
         cachedRatings = JSON.parse(raw);
+        lastRatingsMtime = stat.mtimeMs;
         return cachedRatings;
       } catch (err) {
         console.error("Failed to parse team_ratings.json:", err);
       }
     }
   }
-  return null;
+  return cachedRatings;
 }
 
 function loadTeamsMap(): Map<number, BootstrapTeam> {
-  if (cachedTeamsMap) return cachedTeamsMap;
-
   const candidatePaths = [
     path.resolve(process.cwd(), ".fpl_cache", "bootstrap_static.json"),
     path.resolve(process.cwd(), "..", ".fpl_cache", "bootstrap_static.json"),
@@ -74,6 +78,10 @@ function loadTeamsMap(): Map<number, BootstrapTeam> {
   for (const p of candidatePaths) {
     if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
       try {
+        const stat = fs.statSync(/*turbopackIgnore: true*/ p);
+        if (cachedTeamsMap && stat.mtimeMs <= lastTeamsMtime) {
+          return cachedTeamsMap;
+        }
         const raw = fs.readFileSync(/*turbopackIgnore: true*/ p, "utf-8");
         const parsed = JSON.parse(raw);
         const map = new Map<number, BootstrapTeam>();
@@ -81,18 +89,17 @@ function loadTeamsMap(): Map<number, BootstrapTeam> {
           parsed.teams.forEach((t: BootstrapTeam) => map.set(t.id, t));
         }
         cachedTeamsMap = map;
+        lastTeamsMtime = stat.mtimeMs;
         return map;
       } catch (err) {
         console.error("Failed to load bootstrap_static.json:", err);
       }
     }
   }
-  return new Map();
+  return cachedTeamsMap || new Map();
 }
 
 function loadFixtures(): FixtureRaw[] {
-  if (cachedFixtures) return cachedFixtures;
-
   const candidatePaths = [
     path.resolve(process.cwd(), ".fpl_cache", "future_fixtures.json"),
     path.resolve(process.cwd(), "..", ".fpl_cache", "future_fixtures.json"),
@@ -101,15 +108,20 @@ function loadFixtures(): FixtureRaw[] {
   for (const p of candidatePaths) {
     if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
       try {
+        const stat = fs.statSync(/*turbopackIgnore: true*/ p);
+        if (cachedFixtures && stat.mtimeMs <= lastFixturesMtime) {
+          return cachedFixtures;
+        }
         const raw = fs.readFileSync(/*turbopackIgnore: true*/ p, "utf-8");
         cachedFixtures = JSON.parse(raw);
+        lastFixturesMtime = stat.mtimeMs;
         return cachedFixtures || [];
       } catch (err) {
         console.error("Failed to load future_fixtures.json:", err);
       }
     }
   }
-  return [];
+  return cachedFixtures || [];
 }
 
 export async function GET(req: NextRequest) {

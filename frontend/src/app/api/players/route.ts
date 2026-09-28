@@ -4,10 +4,9 @@ import path from "path";
 import { Player, PlayerHistoryMatch } from "@/types/player";
 
 let cached5Map: Map<number, Player> | null = null;
+let last5Mtime: number = 0;
 
 function get5FixturePlayersMap(): Map<number, Player> {
-  if (cached5Map) return cached5Map;
-
   const candidate5Paths = [
     path.resolve(process.cwd(), "..", ".fpl_cache", "simulations_10k_fixtures_5.json"),
     path.resolve(process.cwd(), ".fpl_cache", "simulations_10k_fixtures_5.json"),
@@ -16,6 +15,10 @@ function get5FixturePlayersMap(): Map<number, Player> {
   for (const p of candidate5Paths) {
     if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
       try {
+        const stat = fs.statSync(/*turbopackIgnore: true*/ p);
+        if (cached5Map && stat.mtimeMs <= last5Mtime) {
+          return cached5Map;
+        }
         const raw = fs.readFileSync(/*turbopackIgnore: true*/ p, "utf-8");
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed.players)) {
@@ -24,6 +27,7 @@ function get5FixturePlayersMap(): Map<number, Player> {
             map.set(pl.id, pl);
           }
           cached5Map = map;
+          last5Mtime = stat.mtimeMs;
           return map;
         }
       } catch (err) {
@@ -31,14 +35,13 @@ function get5FixturePlayersMap(): Map<number, Player> {
       }
     }
   }
-  return new Map<number, Player>();
+  return cached5Map || new Map<number, Player>();
 }
 
 let cachedHistoriesMap: Map<number, PlayerHistoryMatch[]> | null = null;
+let lastHistMtime: number = 0;
 
 function getPlayerHistoriesMap(): Map<number, PlayerHistoryMatch[]> {
-  if (cachedHistoriesMap) return cachedHistoriesMap;
-
   const candidateHistPaths = [
     path.resolve(process.cwd(), ".fpl_cache", "player_histories.json"),
     path.resolve(process.cwd(), "..", ".fpl_cache", "player_histories.json"),
@@ -47,6 +50,10 @@ function getPlayerHistoriesMap(): Map<number, PlayerHistoryMatch[]> {
   for (const p of candidateHistPaths) {
     if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
       try {
+        const stat = fs.statSync(/*turbopackIgnore: true*/ p);
+        if (cachedHistoriesMap && stat.mtimeMs <= lastHistMtime) {
+          return cachedHistoriesMap;
+        }
         const raw = fs.readFileSync(/*turbopackIgnore: true*/ p, "utf-8");
         const parsed = JSON.parse(raw);
         const map = new Map<number, PlayerHistoryMatch[]>();
@@ -54,13 +61,14 @@ function getPlayerHistoriesMap(): Map<number, PlayerHistoryMatch[]> {
           map.set(Number(idStr), list as PlayerHistoryMatch[]);
         }
         cachedHistoriesMap = map;
+        lastHistMtime = stat.mtimeMs;
         return map;
       } catch (err) {
         console.error("Failed to load player histories cache:", err);
       }
     }
   }
-  return new Map<number, PlayerHistoryMatch[]>();
+  return cachedHistoriesMap || new Map<number, PlayerHistoryMatch[]>();
 }
 
 export async function GET(request: NextRequest) {

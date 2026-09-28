@@ -12,12 +12,13 @@ interface SimulationCacheFile {
 }
 
 const cachedSimMap: Record<number, Player[]> = {};
+const simMtimes: Record<number, number> = {};
 let cachedHistories: Record<string, any> | null = null;
+let lastBudgetHistMtime: number = 0;
 let cachedSim5Map: Map<number, Player> | null = null;
 
 function loadSimulationPlayers(horizon: number): Player[] {
   const safeH = [1, 3, 5].includes(horizon) ? horizon : 1;
-  if (cachedSimMap[safeH]) return cachedSimMap[safeH];
 
   const candidatePaths = [
     path.resolve(process.cwd(), ".fpl_cache", `simulations_10k_fixtures_${safeH}.json`),
@@ -27,10 +28,15 @@ function loadSimulationPlayers(horizon: number): Player[] {
   for (const p of candidatePaths) {
     if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
       try {
+        const stat = fs.statSync(/*turbopackIgnore: true*/ p);
+        if (cachedSimMap[safeH] && stat.mtimeMs <= (simMtimes[safeH] || 0)) {
+          return cachedSimMap[safeH];
+        }
         const raw = fs.readFileSync(/*turbopackIgnore: true*/ p, "utf-8");
         const parsed = JSON.parse(raw) as SimulationCacheFile;
         if (Array.isArray(parsed.players)) {
           cachedSimMap[safeH] = parsed.players;
+          simMtimes[safeH] = stat.mtimeMs;
           return parsed.players;
         }
       } catch (err) {
@@ -38,12 +44,10 @@ function loadSimulationPlayers(horizon: number): Player[] {
       }
     }
   }
-  return [];
+  return cachedSimMap[safeH] || [];
 }
 
 function loadPlayerHistories(): Record<string, any> {
-  if (cachedHistories) return cachedHistories;
-
   const candidatePaths = [
     path.resolve(process.cwd(), ".fpl_cache", "player_histories.json"),
     path.resolve(process.cwd(), "..", ".fpl_cache", "player_histories.json"),
@@ -52,15 +56,20 @@ function loadPlayerHistories(): Record<string, any> {
   for (const p of candidatePaths) {
     if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
       try {
+        const stat = fs.statSync(/*turbopackIgnore: true*/ p);
+        if (cachedHistories && stat.mtimeMs <= lastBudgetHistMtime) {
+          return cachedHistories;
+        }
         const raw = fs.readFileSync(/*turbopackIgnore: true*/ p, "utf-8");
         cachedHistories = JSON.parse(raw);
+        lastBudgetHistMtime = stat.mtimeMs;
         return cachedHistories || {};
       } catch (err) {
         console.error("Failed to parse player_histories.json:", err);
       }
     }
   }
-  return {};
+  return cachedHistories || {};
 }
 
 function loadSim5Map(): Map<number, Player> {
