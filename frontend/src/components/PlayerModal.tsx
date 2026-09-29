@@ -905,15 +905,22 @@ export default function PlayerModal({
                     className="rounded-xl border border-slate-200/80 bg-white p-3 shadow-xs"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span
-                        title={`GW${f.event || ""}: ${f.opponent_name} (FDR ${f.fdr})`}
-                        className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-semibold leading-none ${getFdrClasses(
-                          f.fdr
-                        )}`}
-                      >
-                        {f.opponent}
-                      </span>
-                      <span className="text-xs font-bold text-emerald-700">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {f.event && (
+                          <span className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">
+                            GW{f.event}
+                          </span>
+                        )}
+                        <span
+                          title={`GW${f.event || ""}: ${f.opponent_name} (FDR ${f.fdr})`}
+                          className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-semibold leading-none ${getFdrClasses(
+                            f.fdr
+                          )}`}
+                        >
+                          {f.opponent}
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-emerald-700 shrink-0">
                         {f.match_xp.toFixed(1)} xP
                       </span>
                     </div>

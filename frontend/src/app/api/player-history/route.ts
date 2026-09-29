@@ -4,10 +4,9 @@ import path from "path";
 import { PlayerHistoryMatch } from "@/types/player";
 
 let cachedHistoriesMap: Map<number, PlayerHistoryMatch[]> | null = null;
+let lastHistMtime: number = 0;
 
 function getPlayerHistoriesMap(): Map<number, PlayerHistoryMatch[]> {
-  if (cachedHistoriesMap) return cachedHistoriesMap;
-
   const candidateHistPaths = [
     path.resolve(process.cwd(), ".fpl_cache", "player_histories.json"),
     path.resolve(process.cwd(), "..", ".fpl_cache", "player_histories.json"),
@@ -16,6 +15,10 @@ function getPlayerHistoriesMap(): Map<number, PlayerHistoryMatch[]> {
   for (const p of candidateHistPaths) {
     if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
       try {
+        const stat = fs.statSync(/*turbopackIgnore: true*/ p);
+        if (cachedHistoriesMap && stat.mtimeMs <= lastHistMtime) {
+          return cachedHistoriesMap;
+        }
         const raw = fs.readFileSync(/*turbopackIgnore: true*/ p, "utf-8");
         const parsed = JSON.parse(raw);
         const map = new Map<number, PlayerHistoryMatch[]>();
@@ -23,13 +26,14 @@ function getPlayerHistoriesMap(): Map<number, PlayerHistoryMatch[]> {
           map.set(Number(idStr), list as PlayerHistoryMatch[]);
         }
         cachedHistoriesMap = map;
+        lastHistMtime = stat.mtimeMs;
         return map;
       } catch (err) {
         console.error("Failed to load player histories cache:", err);
       }
     }
   }
-  return new Map<number, PlayerHistoryMatch[]>();
+  return cachedHistoriesMap || new Map<number, PlayerHistoryMatch[]>();
 }
 
 export async function GET(request: NextRequest) {
