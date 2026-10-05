@@ -334,8 +334,24 @@ def update_player_histories(base_dir: str = ".") -> None:
         print(f"[✔] Synced to {fe_cache}.")
 
 
+def sync_all_cache_files(base_dir: str = ".") -> None:
+    """Syncs essential cache files from .fpl_cache to frontend/.fpl_cache."""
+    import shutil
+    cache_dir = os.path.join(base_dir, ".fpl_cache")
+    fe_cache_dir = os.path.join(base_dir, "frontend", ".fpl_cache")
+    if not os.path.exists(fe_cache_dir):
+        return
+    for fname in os.listdir(cache_dir):
+        if fname.endswith(".json"):
+            src = os.path.join(cache_dir, fname)
+            dst = os.path.join(fe_cache_dir, fname)
+            shutil.copy2(src, dst)
+    print(f"[✔] Synced all .fpl_cache JSON files to {fe_cache_dir}.")
+
+
 if __name__ == "__main__":
     update_player_histories()
     run_all_player_simulations(fixtures_list=[1, 2, 3, 4, 5], n_sims=10000)
     regenerate_saved_charts(n_sims=10000)
     regenerate_all_optimal_squads(horizons=[1, 3, 5])
+    sync_all_cache_files()
