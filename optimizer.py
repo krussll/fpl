@@ -487,7 +487,8 @@ def generate_optimal_squad_for_horizon(
         "formation_lines": formation_lines,
         "starters": starters,
         "bench": bench,
-        "notes": notes
+        "notes": notes,
+        "gkp_strategy_info": xi.get("gkp_strategy_info", {})
     }
 
 
@@ -537,7 +538,13 @@ def generate_template_squad(
         objective="template"
     )
 
-    gw = d_sim.get("gameweek", 5)
+    gw = 6
+    for p in players_h:
+        if p.get("fixtures"):
+            ev = p["fixtures"][0].get("event")
+            if ev is not None:
+                gw = ev
+                break
     xi = res["starting_xi"]
     starters_raw = xi["starters"]
     bench_raw = xi["bench"]
@@ -650,7 +657,8 @@ def generate_template_squad(
         "formation_lines": formation_lines,
         "starters": starters,
         "bench": bench,
-        "notes": notes
+        "notes": notes,
+        "gkp_strategy_info": xi.get("gkp_strategy_info", {})
     }
 
 
@@ -686,6 +694,27 @@ def update_saved_squads_markdown(
         horizon_label = f"{h}-Fixture Horizon: GW {gw}" if h == 1 else f"{h}-Fixture Horizon: GW {gw}–{end_gw}"
         title = f"## Selection {sel_idx}: Next {h} Gameweek{'s' if h > 1 else ''} ({horizon_label})"
 
+        gkp_info = s.get("gkp_strategy_info", {})
+        strat = gkp_info.get("strategy")
+        gk_lines = []
+        if strat == "Rotating Budget Keepers" and gkp_info.get("schedule"):
+            gk_lines = [
+                "- **Goalkeeper Strategy**: Strategy 2: Rotating Budget Goalkeepers",
+                "  - **Gameweek-by-Gameweek Rotation Schedule**:"
+            ]
+            for item in gkp_info["schedule"]:
+                gk_lines.append(
+                    f"    - **GW{item['gameweek']}**: {item['starter']} ({item['starter_opponent']}, FDR {item['starter_fdr']}, {item['starter_cs_prob']:.1f}% CS) — *{item['bench']} on bench ({item['bench_opponent']}, FDR {item['bench_fdr']})*"
+                )
+        elif strat == "Set-and-Forget Premium":
+            starter_name = gkp_info.get("premium_starter", "Starter")
+            backup_name = gkp_info.get("deadspot_backup", "Backup")
+            gk_lines = [f"- **Goalkeeper Strategy**: Strategy 1: 'Set-and-Forget' Premium Goalkeeper ({starter_name}) paired with £4.0m backup ({backup_name}) as bench fodder."]
+        elif strat == "Set-and-Forget Budget":
+            starter_name = gkp_info.get("premium_starter", "Starter")
+            backup_name = gkp_info.get("deadspot_backup", "Backup")
+            gk_lines = [f"- **Goalkeeper Strategy**: Strategy 1: 'Set-and-Forget' Budget Goalkeeper ({starter_name}) paired with £4.0m backup ({backup_name}) as bench fodder."]
+
         content.extend([
             title,
             "",
@@ -697,6 +726,10 @@ def update_saved_squads_markdown(
             f"- **Captain (2x)**: **{c['name']}** (+{c['xp']:.2f} pts) $\\to$ **Total Match Projection: {s['total_match_xp']:.2f} pts**" + (f" *(avg {s['total_match_xp']/h:.2f} pts/GW)*" if h > 1 else ""),
             f"- **Vice-Captain**: **{vc['name']}** ({vc['xp']:.2f} xP)",
             f"- **Full Squad xP**: **{s['full_squad_xp']:.2f} pts**" + (f" *(avg {s['full_squad_xp']/h:.2f} pts/GW)*" if h > 1 else ""),
+        ])
+        if gk_lines:
+            content.extend(gk_lines)
+        content.extend([
             "",
             "### Starting XI Lineup"
         ])
