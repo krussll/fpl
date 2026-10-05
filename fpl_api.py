@@ -25,6 +25,18 @@ class FPLApiClient:
         self._bootstrap_data: Optional[Dict[str, Any]] = None
         self._fixtures_data: Optional[List[Dict[str, Any]]] = None
         self._past_histories_data: Optional[Dict[str, Any]] = None
+        self._eye_test_manager = None
+
+    @property
+    def eye_test_manager(self):
+        """Lazy loader for EyeTestManager to prevent circular imports."""
+        if self._eye_test_manager is None:
+            try:
+                from eye_test import EyeTestManager
+                self._eye_test_manager = EyeTestManager(cache_dir=self.cache_dir, fpl_client=self)
+            except Exception:
+                self._eye_test_manager = None
+        return self._eye_test_manager
 
     def _fetch_with_cache(self, url: str, cache_filename: str, force_refresh: bool = False) -> Any:
         cache_path = os.path.join(self.cache_dir, cache_filename)
@@ -323,7 +335,8 @@ class FPLApiClient:
         self,
         player_data: Dict[str, Any],
         opponent_team_name: Optional[str] = None,
-        is_home_override: Optional[bool] = None
+        is_home_override: Optional[bool] = None,
+        use_eye_test: bool = False
     ) -> PlayerProfile:
         """
         Converts live FPL API element into an opponent-scaled PlayerProfile ready for Monte Carlo.
@@ -549,6 +562,41 @@ class FPLApiClient:
         else:
             scaled_def_contrib = 0.0
 
+        # 9. Apply qualitative Eye-Test modifiers if requested (using 3-GW rolling form curve)
+        eye_attack_mult = 1.0
+        eye_def_mult = 1.0
+        eye_rating = None
+        eye_verdict = None
+        eye_note = None
+        eye_trend = None
+        eye_trend_delta = 0.0
+        eye_ratings_hist = []
+        eye_gws = []
+
+        if use_eye_test and self.eye_test_manager:
+            rolling_form = self.eye_test_manager.get_player_rolling_form(
+                player_id=raw.get("id"),
+                player_name=raw.get("web_name"),
+                horizon=3
+            )
+            if rolling_form:
+                eye_attack_mult = rolling_form.effective_attack_mult
+                eye_def_mult = rolling_form.effective_defense_mult
+                eye_rating = rolling_form.weighted_rating
+                eye_verdict = rolling_form.latest_verdict
+                eye_note = rolling_form.rolling_tactical_summary
+                eye_trend = rolling_form.trend
+                eye_trend_delta = rolling_form.trend_delta
+                eye_ratings_hist = rolling_form.ratings
+                eye_gws = rolling_form.gameweeks
+
+                # Apply gentle bounded modifiers
+                scaled_npxg90 = round(scaled_npxg90 * eye_attack_mult, 2)
+                scaled_xa90 = round(scaled_xa90 * eye_attack_mult, 2)
+                if position in ["DEF", "GKP"]:
+                    # Lower defense multiplier means stingier defense -> better clean sheet chance
+                    clean_sheet_prob = min(0.65, max(0.05, round(clean_sheet_prob / eye_def_mult, 2)))
+
         return PlayerProfile(
             name=f"{raw['first_name']} {raw['second_name']}",
             position=position,
@@ -570,12 +618,24 @@ class FPLApiClient:
             saves_per_90=saves_p90,
             defensive_contrib_per_90=scaled_def_contrib,
             yellow_card_prob=0.10,
-            red_card_prob=0.005
+            red_card_prob=0.005,
+            eye_test_attack_mult=eye_attack_mult,
+            eye_test_defense_mult=eye_def_mult,
+            eye_test_rating=eye_rating,
+            eye_test_verdict=eye_verdict,
+            eye_test_note=eye_note,
+            eye_test_trend=eye_trend,
+            eye_test_trend_delta=eye_trend_delta,
+            eye_test_ratings_history=eye_ratings_hist,
+            eye_test_gameweeks=eye_gws
         )
 
-
-
-    def build_multi_fixture_profiles(self, player_data: Dict[str, Any], count: int = 1) -> List[PlayerProfile]:
+    def build_multi_fixture_profiles(
+        self,
+        player_data: Dict[str, Any],
+        count: int = 1,
+        use_eye_test: bool = False
+    ) -> List[PlayerProfile]:
         """Builds a list of PlayerProfile objects for the next 'count' fixtures."""
         team_id = player_data["raw"]["team"]
         upcoming = self.get_upcoming_fixtures(team_id, count=count)
@@ -584,7 +644,8 @@ class FPLApiClient:
             prof = self.build_player_profile(
                 player_data=player_data,
                 opponent_team_name=fix["opponent_name"],
-                is_home_override=fix["is_home"]
+                is_home_override=fix["is_home"],
+                use_eye_test=use_eye_test
             )
             gw_str = f"GW{fix['event']}: " if fix.get("event") else ""
             prof.opponent = f"{gw_str}{fix['display']} (FDR {fix['fdr']})"

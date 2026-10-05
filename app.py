@@ -279,6 +279,10 @@ def get_players(
                 if not (name_match or team_match):
                     continue
             results.append(p)
+        eye_map = client.eye_test_manager.get_all_player_evaluations_map() if client.eye_test_manager else {}
+        for p in results:
+            if p["id"] in eye_map:
+                p["eye_test"] = eye_map[p["id"]]
         results.sort(key=lambda x: x["xp"], reverse=True)
         return {"total": len(results), "fixtures": fixtures, "simulations": 10000, "players": results}
 
@@ -307,6 +311,10 @@ def get_players(
         filtered.append(raw)
 
     results = [calculate_player_projections(raw, fixtures_count=fixtures) for raw in filtered]
+    eye_map = client.eye_test_manager.get_all_player_evaluations_map() if client.eye_test_manager else {}
+    for p in results:
+        if p["id"] in eye_map:
+            p["eye_test"] = eye_map[p["id"]]
     results.sort(key=lambda p: p["xp"], reverse=True)
     return {"total": len(results), "fixtures": fixtures, "players": results}
 
@@ -358,7 +366,8 @@ def simulate_player(
                 "def_contrib90": p.get("def_contrib90", 0.0),
                 "clean_sheet_prob": p.get("cs_prob", 0.0) if p.get("position") != "FWD" else 0.0,
                 "is_pen_taker": False
-            }
+            },
+            "eye_test": (client.eye_test_manager.get_all_player_evaluations_map().get(player_id) if client.eye_test_manager else None)
         }
 
     raw_player = client.get_player_by_id(player_id)
@@ -453,6 +462,33 @@ def simulate_player(
                 "is_pen_taker": profile.is_pen_taker
             }
         }
+        eye_map = client.eye_test_manager.get_all_player_evaluations_map() if client.eye_test_manager else {}
+        if player_id in eye_map:
+            result_payload["eye_test"] = eye_map[player_id]
+        return result_payload
+
+
+@app.get("/api/eye-test")
+def get_eye_test_reports(
+    team: Optional[str] = Query(None),
+    gw: Optional[int] = Query(None),
+    player_id: Optional[int] = Query(None)
+):
+    """Retrieve qualitative eye-test match reviews and scouting evaluations."""
+    if not client.eye_test_manager:
+        return {"reports": []}
+    if isinstance(player_id, int):
+        rolling_form = client.eye_test_manager.get_player_rolling_form(player_id=player_id, horizon=3)
+        if rolling_form:
+            return rolling_form.to_dict()
+        raise HTTPException(status_code=404, detail="No eye-test found for player")
+
+    reports = client.eye_test_manager.get_all_reports()
+    if isinstance(team, str) and team:
+        reports = [r for r in reports if team.lower() in r.team_name.lower()]
+    if isinstance(gw, int):
+        reports = [r for r in reports if r.gameweek == gw]
+    return {"reports": [r.to_dict() for r in reports]}
 
 
 @app.get("/api/compare")

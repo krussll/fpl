@@ -1,0 +1,599 @@
+{
+  "version": "1.0",
+  "description": "Curated consistent beat newspaper outlets, tactical channels, and fan media for all 20 Premier League clubs.",
+  "teams": [
+    {
+      "id": 1,
+      "name": "Arsenal",
+      "short_name": "ARS",
+      "beat_outlets": [
+        {
+          "name": "Football.London (Arsenal Desk)",
+          "type": "regional_beat",
+          "url": "https://www.football.london/arsenal-fc/",
+          "key_journalists": ["Kaya Kaynak", "Tom Canton"],
+          "ratings_title_pattern": "Arsenal player ratings"
+        },
+        {
+          "name": "Evening Standard (Arsenal)",
+          "type": "metropolitan_beat",
+          "url": "https://www.standard.co.uk/sport/football/arsenal",
+          "key_journalists": ["Simon Collings"],
+          "ratings_title_pattern": "Arsenal player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Arsenal Vision Post-Match Podcast",
+          "type": "tactical_podcast",
+          "url": "https://www.youtube.com/@ArsenalVisionPodcast",
+          "handle": "@ArsenalVisionPodcast",
+          "tactical_focus": "Tactical Breakdown & Player Grading"
+        },
+        {
+          "name": "The Gooner Talk",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@TheGoonerTalk",
+          "handle": "@TheGoonerTalk",
+          "tactical_focus": "Match Reaction & Player Ratings"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Aston Villa",
+      "short_name": "AVL",
+      "beat_outlets": [
+        {
+          "name": "Birmingham Mail (BirminghamLive - Aston Villa)",
+          "type": "regional_beat",
+          "url": "https://www.birminghammail.co.uk/all-about/aston-villa-fc",
+          "key_journalists": ["John Townley"],
+          "ratings_title_pattern": "Aston Villa player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Villa On Tour",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@VillaOnTour",
+          "handle": "@VillaOnTour",
+          "tactical_focus": "Matchday Experience & Player Performance"
+        },
+        {
+          "name": "For The Love of Paul McGrath Podcast",
+          "type": "fan_podcast",
+          "url": "https://www.youtube.com/@ForTheLoveOfPaulMcGrath",
+          "handle": "@ForTheLoveOfPaulMcGrath",
+          "tactical_focus": "Post-match Analysis & Form Review"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Bournemouth",
+      "short_name": "BOU",
+      "beat_outlets": [
+        {
+          "name": "Bournemouth Daily Echo",
+          "type": "regional_beat",
+          "url": "https://www.bournemouthecho.co.uk/sport/cherries/",
+          "key_journalists": ["Tom Crocker", "Dan Rose"],
+          "ratings_title_pattern": "AFC Bournemouth player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Back of the Net - The AFC Bournemouth Fan Channel",
+          "type": "fan_channel_podcast",
+          "url": "https://www.youtube.com/@afcbpodcast",
+          "handle": "@afcbpodcast",
+          "tactical_focus": "Tactical Debrief & 3 Things Learned"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Brentford",
+      "short_name": "BRE",
+      "beat_outlets": [
+        {
+          "name": "West London Sport (Brentford)",
+          "type": "regional_beat",
+          "url": "https://www.westlondonsport.com/brentford",
+          "key_journalists": ["Ian Murtagh"],
+          "ratings_title_pattern": "Brentford player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Beesotted Brentford Fan Channel",
+          "type": "fan_channel_podcast",
+          "url": "https://www.youtube.com/@BeesottedBrentford",
+          "handle": "@BeesottedBrentford",
+          "tactical_focus": "Tactical Analysis & Match Ratings"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Brighton",
+      "short_name": "BHA",
+      "beat_outlets": [
+        {
+          "name": "The Argus (Brighton & Hove)",
+          "type": "regional_beat",
+          "url": "https://www.theargus.co.uk/sport/albion/",
+          "key_journalists": ["Brian Owen"],
+          "ratings_title_pattern": "Albion player ratings"
+        },
+        {
+          "name": "SussexLive (Brighton Desk)",
+          "type": "regional_beat",
+          "url": "https://www.sussexlive.co.uk/all-about/brighton-and-hove-albion-fc",
+          "key_journalists": ["Richie Mills"],
+          "ratings_title_pattern": "Brighton player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "TogetherBHA",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@TogetherBHA",
+          "handle": "@TogetherBHA",
+          "tactical_focus": "Match Review & Tactical Breakdown"
+        },
+        {
+          "name": "The Albion Roar Podcast",
+          "type": "fan_podcast",
+          "url": "https://www.youtube.com/@AlbionRoar",
+          "handle": "@AlbionRoar",
+          "tactical_focus": "Fan Debrief & Player Appraisal"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Chelsea",
+      "short_name": "CHE",
+      "beat_outlets": [
+        {
+          "name": "Football.London (Chelsea Desk)",
+          "type": "regional_beat",
+          "url": "https://www.football.london/chelsea-fc/",
+          "key_journalists": ["Bobby Vincent"],
+          "ratings_title_pattern": "Chelsea player ratings"
+        },
+        {
+          "name": "Evening Standard (Chelsea)",
+          "type": "metropolitan_beat",
+          "url": "https://www.standard.co.uk/sport/football/chelsea",
+          "key_journalists": ["Nizaar Kinsella"],
+          "ratings_title_pattern": "Chelsea player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "London Is Blue Podcast",
+          "type": "tactical_podcast",
+          "url": "https://www.youtube.com/@LondonBluePod",
+          "handle": "@LondonBluePod",
+          "tactical_focus": "Tactical Breakdown, Player Ratings & Data"
+        },
+        {
+          "name": "100% Chelsea",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@100percentchelsea",
+          "handle": "@100percentchelsea",
+          "tactical_focus": "Match Reaction & Individual Grades"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Coventry City",
+      "short_name": "COV",
+      "beat_outlets": [
+        {
+          "name": "Coventry Telegraph (CoventryLive)",
+          "type": "regional_beat",
+          "url": "https://www.coventrytelegraph.net/all-about/coventry-city-fc",
+          "key_journalists": ["Andy Turner"],
+          "ratings_title_pattern": "Coventry City player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Sky Blues Extra",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@SkyBluesExtra",
+          "handle": "@SkyBluesExtra",
+          "tactical_focus": "Matchday Reaction & Player Assessment"
+        },
+        {
+          "name": "The Nii Lamptey Show",
+          "type": "fan_podcast",
+          "url": "https://www.youtube.com/@niilampteyshow",
+          "handle": "@niilampteyshow",
+          "tactical_focus": "Tactical Debrief & Squad Form"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Crystal Palace",
+      "short_name": "CRY",
+      "beat_outlets": [
+        {
+          "name": "South London Press (Palace Desk)",
+          "type": "regional_beat",
+          "url": "https://londonnewsonline.co.uk/category/sport/crystal-palace/",
+          "key_journalists": ["Edmund Brack"],
+          "ratings_title_pattern": "Crystal Palace player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "FYP (Five Year Plan) Podcast",
+          "type": "fan_podcast",
+          "url": "https://www.youtube.com/@FYPFanzine",
+          "handle": "@FYPFanzine",
+          "tactical_focus": "Match Debrief & Player Performance"
+        },
+        {
+          "name": "Back of the Nest (Palace)",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@BackOfTheNest",
+          "handle": "@BackOfTheNest",
+          "tactical_focus": "Fan Reaction & Eye-Test Takeaways"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Everton",
+      "short_name": "EVE",
+      "beat_outlets": [
+        {
+          "name": "Liverpool Echo (Everton Desk)",
+          "type": "regional_beat",
+          "url": "https://www.liverpoolecho.co.uk/all-about/everton-fc",
+          "key_journalists": ["Joe Thomas", "Chris Beesley"],
+          "ratings_title_pattern": "Everton player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Toffee TV",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@ToffeeTVEFC",
+          "handle": "@ToffeeTVEFC",
+          "tactical_focus": "Match Analysis & Player Ratings"
+        },
+        {
+          "name": "The Blue Room",
+          "type": "fan_podcast",
+          "url": "https://www.youtube.com/@TheBlueRoomEFC",
+          "handle": "@TheBlueRoomEFC",
+          "tactical_focus": "Tactical Debrief & Individual Form"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Fulham",
+      "short_name": "FUL",
+      "beat_outlets": [
+        {
+          "name": "West London Sport (Fulham)",
+          "type": "regional_beat",
+          "url": "https://www.westlondonsport.com/fulham",
+          "key_journalists": ["Dan Gilkes"],
+          "ratings_title_pattern": "Fulham player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Fulhamish",
+          "type": "fan_channel_podcast",
+          "url": "https://www.youtube.com/@FulhamishPod",
+          "handle": "@FulhamishPod",
+          "tactical_focus": "Tactical Analysis & Player Ratings"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Hull City",
+      "short_name": "HUL",
+      "beat_outlets": [
+        {
+          "name": "Hull Daily Mail (HullLive)",
+          "type": "regional_beat",
+          "url": "https://www.hulldailymail.co.uk/all-about/hull-city-fc",
+          "key_journalists": ["Barry Cooper"],
+          "ratings_title_pattern": "Hull City player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "To Hull and Back",
+          "type": "fan_podcast",
+          "url": "https://www.youtube.com/@ToHullAndBackPodcast",
+          "handle": "@ToHullAndBackPodcast",
+          "tactical_focus": "Post-match Debrief & Player Grades"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Ipswich Town",
+      "short_name": "IPS",
+      "beat_outlets": [
+        {
+          "name": "East Anglian Daily Times (Ipswich Desk)",
+          "type": "regional_beat",
+          "url": "https://www.eadt.co.uk/sport/ipswich-town/",
+          "key_journalists": ["Stuart Watson", "Alex Jones"],
+          "ratings_title_pattern": "Ipswich Town player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Kings of Anglia (EADT)",
+          "type": "fan_channel_podcast",
+          "url": "https://www.youtube.com/@KingsofAnglia",
+          "handle": "@KingsofAnglia",
+          "tactical_focus": "Tactical Breakdown & Player Ratings"
+        },
+        {
+          "name": "Blue Monday Podcast",
+          "type": "fan_podcast",
+          "url": "https://www.youtube.com/@BlueMondayITFC",
+          "handle": "@BlueMondayITFC",
+          "tactical_focus": "Match Review & Form Analysis"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Leeds",
+      "short_name": "LEE",
+      "beat_outlets": [
+        {
+          "name": "Yorkshire Evening Post (Leeds United Desk)",
+          "type": "regional_beat",
+          "url": "https://www.yorkshireeveningpost.co.uk/sport/football/leeds-united",
+          "key_journalists": ["Graham Smyth", "Joe Donnohue"],
+          "ratings_title_pattern": "Leeds United player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "The Square Ball",
+          "type": "fan_channel_podcast",
+          "url": "https://www.youtube.com/@TheSquareBall",
+          "handle": "@TheSquareBall",
+          "tactical_focus": "Match Reaction & Individual Assessments"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Liverpool",
+      "short_name": "LIV",
+      "beat_outlets": [
+        {
+          "name": "Liverpool Echo (Liverpool Desk)",
+          "type": "regional_beat",
+          "url": "https://www.liverpoolecho.co.uk/all-about/liverpool-fc",
+          "key_journalists": ["Ian Doyle", "Paul Gorst"],
+          "ratings_title_pattern": "Liverpool player ratings"
+        },
+        {
+          "name": "This Is Anfield",
+          "type": "dedicated_digital",
+          "url": "https://www.thisisanfield.com",
+          "key_journalists": ["Matt Ladson", "Henry Jackson"],
+          "ratings_title_pattern": "Liverpool player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "The Anfield Wrap",
+          "type": "fan_channel_podcast",
+          "url": "https://www.youtube.com/@TheAnfieldWrap",
+          "handle": "@TheAnfieldWrap",
+          "tactical_focus": "Detailed Tactical Review & Match Takeaways"
+        },
+        {
+          "name": "The Redmen TV",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@TheRedmenTV",
+          "handle": "@TheRedmenTV",
+          "tactical_focus": "Player Ratings Show & Match Debrief"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Man City",
+      "short_name": "MCI",
+      "beat_outlets": [
+        {
+          "name": "Manchester Evening News (Man City Desk)",
+          "type": "regional_beat",
+          "url": "https://www.manchestereveningnews.co.uk/all-about/manchester-city-fc",
+          "key_journalists": ["Simon Bajkowski", "Joe Bray"],
+          "ratings_title_pattern": "Man City player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Esteemed Kompany",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@EsteemedKompany",
+          "handle": "@EsteemedKompany",
+          "tactical_focus": "Tactical Analysis & Match Reaction"
+        },
+        {
+          "name": "City Report Podcast",
+          "type": "fan_podcast",
+          "url": "https://www.youtube.com/@CityReportPod",
+          "handle": "@CityReportPod",
+          "tactical_focus": "Player Performance & Structural Analysis"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Man Utd",
+      "short_name": "MUN",
+      "beat_outlets": [
+        {
+          "name": "Manchester Evening News (Man Utd Desk)",
+          "type": "regional_beat",
+          "url": "https://www.manchestereveningnews.co.uk/all-about/manchester-united-fc",
+          "key_journalists": ["Samuel Luckhurst", "Tyrone Marshall"],
+          "ratings_title_pattern": "Manchester United player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "The United Stand",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@TheUnitedStand",
+          "handle": "@TheUnitedStand",
+          "tactical_focus": "Post Match Reaction & Player Ratings"
+        },
+        {
+          "name": "Stretford Paddock",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@StretfordPaddock",
+          "handle": "@StretfordPaddock",
+          "tactical_focus": "Tactical Breakdown & Eye Test Grades"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Newcastle",
+      "short_name": "NEW",
+      "beat_outlets": [
+        {
+          "name": "Evening Chronicle (ChronicleLive - Newcastle Desk)",
+          "type": "regional_beat",
+          "url": "https://www.chroniclelive.co.uk/all-about/newcastle-united-fc",
+          "key_journalists": ["Lee Ryder", "Ciaran Kelly"],
+          "ratings_title_pattern": "Newcastle United player ratings"
+        },
+        {
+          "name": "The Shields Gazette",
+          "type": "regional_beat",
+          "url": "https://www.shieldsgazette.com/sport/football/newcastle-united",
+          "key_journalists": ["Liam Kennedy"],
+          "ratings_title_pattern": "Newcastle player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "True Faith (Newcastle United Podcast)",
+          "type": "fan_channel_podcast",
+          "url": "https://www.youtube.com/@TrueFaithNUFC",
+          "handle": "@TrueFaithNUFC",
+          "tactical_focus": "Tactical Debrief & Individual Player Grades"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Nott'm Forest",
+      "short_name": "NFO",
+      "beat_outlets": [
+        {
+          "name": "Nottingham Post (NottinghamshireLive)",
+          "type": "regional_beat",
+          "url": "https://www.nottinghampost.com/all-about/nottingham-forest-fc",
+          "key_journalists": ["Sarah Clapson"],
+          "ratings_title_pattern": "Nottingham Forest player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Garibaldi Red Podcast",
+          "type": "fan_channel_podcast",
+          "url": "https://www.youtube.com/@GaribaldiRedPodcast",
+          "handle": "@GaribaldiRedPodcast",
+          "tactical_focus": "Tactical Analysis & Matchday Takeaways"
+        },
+        {
+          "name": "Forest Fan TV",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@ForestFanTV",
+          "handle": "@ForestFanTV",
+          "tactical_focus": "Match Reaction & Player Performance"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Spurs",
+      "short_name": "TOT",
+      "beat_outlets": [
+        {
+          "name": "Football.London (Tottenham Desk)",
+          "type": "regional_beat",
+          "url": "https://www.football.london/tottenham-hotspur-fc/",
+          "key_journalists": ["Alasdair Gold", "Rob Guest"],
+          "ratings_title_pattern": "Tottenham player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "The Extra Inch (Spurs Tactical Podcast)",
+          "type": "tactical_podcast",
+          "url": "https://www.youtube.com/@TheExtraInch",
+          "handle": "@TheExtraInch",
+          "tactical_focus": "In-depth Tactical Breakdown & Individual Scouting"
+        },
+        {
+          "name": "Last Word On Spurs",
+          "type": "fan_channel",
+          "url": "https://www.youtube.com/@LastWordOnSpurs",
+          "handle": "@LastWordOnSpurs",
+          "tactical_focus": "Post Match Reaction & Player Ratings"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Sunderland",
+      "short_name": "SUN",
+      "beat_outlets": [
+        {
+          "name": "Sunderland Echo",
+          "type": "regional_beat",
+          "url": "https://www.sunderlandecho.com/sport/football/sunderland-afc",
+          "key_journalists": ["Phil Smith", "James Copley"],
+          "ratings_title_pattern": "Sunderland player ratings"
+        }
+      ],
+      "fan_channels": [
+        {
+          "name": "Roker Report",
+          "type": "fan_channel_podcast",
+          "url": "https://www.youtube.com/@RokerReport",
+          "handle": "@RokerReport",
+          "tactical_focus": "Post-match Analysis & Player Ratings"
+        },
+        {
+          "name": "Wise Men Say Podcast",
+          "type": "fan_podcast",
+          "url": "https://www.youtube.com/@WiseMenSayPodcast",
+          "handle": "@WiseMenSayPodcast",
+          "tactical_focus": "Match Debrief & Tactical Assessment"
+        }
+      ]
+    }
+  ]
+}

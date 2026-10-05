@@ -32,6 +32,54 @@ export interface PlayerHistoryMatch {
   expected_assists?: string;
 }
 
+export interface PlayerEyeTestSource {
+  name: string;
+  type: string;
+  author?: string;
+  episode?: string;
+  url?: string;
+}
+
+export interface PlayerEyeTestHistoryMatch {
+  gameweek: number;
+  opponent_name: string;
+  venue: string;
+  score: string;
+  rating: number;
+  verdict: string;
+  tactical_role: string;
+  observations: string[];
+  summary: string;
+  attack_mult: number;
+  defense_mult: number;
+  sources?: PlayerEyeTestSource[];
+}
+
+export interface PlayerEyeTest {
+  rating: number;
+  weighted_rating?: number;
+  unweighted_mean?: number;
+  trend?: "RISING" | "FALLING" | "STEADY" | "VOLATILE" | string;
+  trend_delta?: number;
+  horizon?: number;
+  matches_evaluated?: number;
+  gameweeks?: number[];
+  ratings_history?: number[];
+  verdict: string;
+  tactical_role: string;
+  observations: string[];
+  summary: string;
+  rolling_tactical_summary?: string;
+  attack_multiplier: number;
+  defense_multiplier: number;
+  gameweek: number;
+  opponent: string;
+  score: string;
+  venue: string;
+  sources: PlayerEyeTestSource[];
+  history?: PlayerEyeTestHistoryMatch[];
+}
+
 export interface Player {
   id: number;
   name: string;
@@ -63,6 +111,7 @@ export interface Player {
   fixtures_5?: PlayerFixture[];
   five_gw?: Player;
   history?: PlayerHistoryMatch[];
+  eye_test?: PlayerEyeTest;
 }
 
 export interface SquadCaptainInfo {
@@ -126,11 +175,23 @@ export interface TransferAlternative {
   new_bank: number;
 }
 
+export interface TransferMove {
+  player_out: SquadPlayer;
+  player_in: Player;
+  xp_gain: number;
+  ownership_gain: number;
+  ceiling_gain: number;
+  haul_prob_gain: number;
+  cost_diff: number;
+}
+
 export interface TransferRecommendation {
   type: "points_optimized" | "template_protection" | "haul_potential";
   title: string;
   badge: string;
   description: string;
+  transfers: TransferMove[];
+  transfers_count: number;
   player_out: SquadPlayer;
   player_in: Player;
   xp_gain: number;
@@ -182,6 +243,7 @@ export interface UserTeamTransferResponse {
   };
   player_replacements: Record<number, TransferAlternative[]>;
   horizon: number;
+  free_transfers: number;
 }
 
 export interface PlayerAlternativeOption {
