@@ -126,11 +126,23 @@ export interface TransferAlternative {
   new_bank: number;
 }
 
+export interface TransferMove {
+  player_out: SquadPlayer;
+  player_in: Player;
+  xp_gain: number;
+  ownership_gain: number;
+  ceiling_gain: number;
+  haul_prob_gain: number;
+  cost_diff: number;
+}
+
 export interface TransferRecommendation {
   type: "points_optimized" | "template_protection" | "haul_potential";
   title: string;
   badge: string;
   description: string;
+  transfers: TransferMove[];
+  transfers_count: number;
   player_out: SquadPlayer;
   player_in: Player;
   xp_gain: number;
@@ -182,6 +194,7 @@ export interface UserTeamTransferResponse {
   };
   player_replacements: Record<number, TransferAlternative[]>;
   horizon: number;
+  free_transfers: number;
 }
 
 export interface PlayerAlternativeOption {

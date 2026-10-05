@@ -324,10 +324,88 @@ function BenchPlayerCard({
   );
 }
 
+// Transfer Moves Visual List component
+function TransferMovesList({
+  rec,
+  themeColor,
+}: {
+  rec: TransferRecommendation;
+  themeColor: "emerald" | "teal" | "amber";
+}) {
+  const isMulti = rec.transfers && rec.transfers.length > 1;
+  const inBadgeBg =
+    themeColor === "emerald"
+      ? "bg-emerald-100 text-emerald-800"
+      : themeColor === "teal"
+      ? "bg-teal-100 text-teal-800"
+      : "bg-amber-100 text-amber-800";
+  const inText =
+    themeColor === "emerald"
+      ? "text-emerald-800"
+      : themeColor === "teal"
+      ? "text-teal-800"
+      : "text-amber-800";
+
+  if (isMulti) {
+    return (
+      <div className="mt-3 space-y-1.5">
+        {rec.transfers.map((t, idx) => (
+          <div
+            key={idx}
+            className="flex items-center justify-between rounded-xl bg-white/95 p-2 border border-slate-200/80 shadow-2xs text-xs"
+          >
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-800 shrink-0">
+                OUT
+              </span>
+              <span className="truncate font-bold text-slate-900">{t.player_out.name}</span>
+              <span className="text-[10px] text-slate-400">£{t.player_out.price.toFixed(1)}m</span>
+            </div>
+            <ArrowRightLeft className="h-3 w-3 text-slate-400 shrink-0 mx-1.5" />
+            <div className="flex items-center gap-1.5 min-w-0 text-right">
+              <span className="text-[10px] text-slate-400">£{t.player_in.price.toFixed(1)}m</span>
+              <span className={`truncate font-bold ${inText}`}>{t.player_in.name}</span>
+              <span className={`rounded ${inBadgeBg} px-1.5 py-0.5 text-[9px] font-bold shrink-0`}>
+                IN
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Single transfer visual
+  return (
+    <div className="mt-3 flex items-center justify-between rounded-xl bg-white/90 p-2.5 border border-slate-200/80 shadow-2xs">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-800">
+          OUT
+        </span>
+        <div className="truncate text-xs font-bold text-slate-900">
+          {rec.player_out.name}
+        </div>
+        <span className="text-[10px] text-slate-500">£{rec.player_out.price.toFixed(1)}m</span>
+      </div>
+      <ArrowRightLeft className="h-3.5 w-3.5 text-slate-400 shrink-0 mx-2" />
+      <div className="flex items-center gap-2 min-w-0 text-right">
+        <span className="text-[10px] text-slate-500">£{rec.player_in.price.toFixed(1)}m</span>
+        <div className={`truncate text-xs font-bold ${inText}`}>
+          {rec.player_in.name}
+        </div>
+        <span className={`rounded ${inBadgeBg} px-1.5 py-0.5 text-[9px] font-bold`}>
+          IN
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function TransferRecommendationView() {
   const [teamIdInput, setTeamIdInput] = useState("");
   const [activeTeamId, setActiveTeamId] = useState<string | null>(null);
   const [horizon, setHorizon] = useState<1 | 3 | 5>(1);
+  const [freeTransfers, setFreeTransfers] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [teamData, setTeamData] = useState<UserTeamTransferResponse | null>(null);
@@ -349,28 +427,32 @@ export default function TransferRecommendationView() {
   // Show alternatives accordion
   const [showAlternatives, setShowAlternatives] = useState(false);
 
-  // Load saved team ID from localStorage on mount
+  // Load saved team ID and free transfers from localStorage on mount
   useEffect(() => {
     const savedId = localStorage.getItem("fpl_team_id");
+    const savedFt = localStorage.getItem("fpl_free_transfers");
+    const ft = savedFt ? parseInt(savedFt, 10) : 1;
+    const validFt = [1, 2, 3, 4, 5].includes(ft) ? ft : 1;
+    setFreeTransfers(validFt);
     if (savedId) {
       setTeamIdInput(savedId);
-      fetchTeam(savedId, horizon);
+      fetchTeam(savedId, horizon, validFt);
     }
   }, []);
 
-  // Fetch when horizon changes
+  // Fetch when horizon or freeTransfers change
   useEffect(() => {
     if (activeTeamId) {
-      fetchTeam(activeTeamId, horizon);
+      fetchTeam(activeTeamId, horizon, freeTransfers);
     }
-  }, [horizon]);
+  }, [horizon, freeTransfers]);
 
-  async function fetchTeam(id: string, h: 1 | 3 | 5) {
+  async function fetchTeam(id: string, h: 1 | 3 | 5, ft: number = freeTransfers) {
     if (!id.trim()) return;
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch(`/api/transfer-recommendations?teamId=${id.trim()}&horizon=${h}`);
+      const res = await fetch(`/api/transfer-recommendations?teamId=${id.trim()}&horizon=${h}&freeTransfers=${ft}`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || `Failed to fetch squad for Team ID ${id}`);
@@ -378,6 +460,7 @@ export default function TransferRecommendationView() {
       setTeamData(data);
       setActiveTeamId(id.trim());
       localStorage.setItem("fpl_team_id", id.trim());
+      localStorage.setItem("fpl_free_transfers", String(ft));
     } catch (err: any) {
       setError(err?.message || "Failed to load squad from FPL API.");
     } finally {
@@ -388,12 +471,12 @@ export default function TransferRecommendationView() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!teamIdInput.trim()) return;
-    fetchTeam(teamIdInput.trim(), horizon);
+    fetchTeam(teamIdInput.trim(), horizon, freeTransfers);
   }
 
   function handleDemoClick() {
     setTeamIdInput("1");
-    fetchTeam("1", horizon);
+    fetchTeam("1", horizon, freeTransfers);
   }
 
   // Determine active recommendation
@@ -401,29 +484,50 @@ export default function TransferRecommendationView() {
     ? teamData.recommendations[activeStrategy]
     : null;
 
+  // Build mapping for transfers
+  const outToInMap = new Map<number, Player>();
+  const outPlayerIds = new Set<number>();
+  const inPlayerIds = new Set<number>();
+
+  if (activeRec?.transfers && activeRec.transfers.length > 0) {
+    activeRec.transfers.forEach((t) => {
+      outToInMap.set(t.player_out.id, t.player_in);
+      outPlayerIds.add(t.player_out.id);
+      inPlayerIds.add(t.player_in.id);
+    });
+  } else if (activeRec) {
+    outToInMap.set(activeRec.player_out.id, activeRec.player_in);
+    outPlayerIds.add(activeRec.player_out.id);
+    inPlayerIds.add(activeRec.player_in.id);
+  }
+
   // Render squad for pitch (either original or with active transfer applied)
   const squadToDisplay = teamData
     ? previewTransfer && activeRec
       ? {
-          starters: teamData.squad.starters.map((p) =>
-            p.id === activeRec.player_out.id
-              ? ({
-                  ...activeRec.player_in,
-                  is_starter: true,
-                  is_captain: p.is_captain,
-                  is_vice_captain: p.is_vice_captain,
-                } as SquadPlayer)
-              : p
-          ),
-          bench: teamData.squad.bench.map((p) =>
-            p.id === activeRec.player_out.id
-              ? ({
-                  ...activeRec.player_in,
-                  is_starter: false,
-                  bench_order: p.bench_order,
-                } as SquadPlayer)
-              : p
-          ),
+          starters: teamData.squad.starters.map((p) => {
+            const repl = outToInMap.get(p.id);
+            if (repl) {
+              return {
+                ...repl,
+                is_starter: true,
+                is_captain: p.is_captain,
+                is_vice_captain: p.is_vice_captain,
+              } as SquadPlayer;
+            }
+            return p;
+          }),
+          bench: teamData.squad.bench.map((p) => {
+            const repl = outToInMap.get(p.id);
+            if (repl) {
+              return {
+                ...repl,
+                is_starter: false,
+                bench_order: p.bench_order,
+              } as SquadPlayer;
+            }
+            return p;
+          }),
         }
       : teamData.squad
     : null;
@@ -439,18 +543,20 @@ export default function TransferRecommendationView() {
     : null;
 
   // Financial & xP difference when previewing
-  const displayedStartingXp = teamData
-    ? previewTransfer && activeRec
-      ? activeRec.player_out.is_starter
-        ? parseFloat(
-            (
-              teamData.squad.starting_xi_xp +
-              activeRec.xp_gain * (activeRec.player_out.is_captain ? 2 : 1)
-            ).toFixed(2)
-          )
-        : teamData.squad.starting_xi_xp
-      : teamData.squad.starting_xi_xp
-    : 0;
+  let displayedStartingXp = teamData ? teamData.squad.starting_xi_xp : 0;
+  if (teamData && previewTransfer && activeRec) {
+    let delta = 0;
+    if (activeRec.transfers && activeRec.transfers.length > 0) {
+      for (const t of activeRec.transfers) {
+        if (t.player_out.is_starter) {
+          delta += (t.player_in.xp - t.player_out.xp) * (t.player_out.is_captain ? 2 : 1);
+        }
+      }
+    } else if (activeRec.player_out.is_starter) {
+      delta = activeRec.xp_gain * (activeRec.player_out.is_captain ? 2 : 1);
+    }
+    displayedStartingXp = parseFloat((teamData.squad.starting_xi_xp + delta).toFixed(2));
+  }
 
   const displayedBank = teamData
     ? previewTransfer && activeRec
@@ -511,6 +617,32 @@ export default function TransferRecommendationView() {
               </button>
             </form>
 
+            {/* Free Transfers Selector */}
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-700">Free Transfers:</span>
+                <div className="inline-flex rounded-xl bg-slate-100 p-0.5">
+                  {[1, 2, 3, 4, 5].map((ft) => (
+                    <button
+                      key={ft}
+                      type="button"
+                      onClick={() => setFreeTransfers(ft)}
+                      className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all cursor-pointer ${
+                        freeTransfers === ft
+                          ? "bg-emerald-600 text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      {ft} {ft === 1 ? "FT" : "FTs"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                Solves optimal outcome up to {freeTransfers} FT{freeTransfers > 1 ? "s" : ""}
+              </span>
+            </div>
+
             {/* Quick Demo & Help */}
             <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
               <button
@@ -563,8 +695,8 @@ export default function TransferRecommendationView() {
       {/* Main Squad & Recommendations Section */}
       {teamData && !loading && (
         <div className="space-y-6">
-          {/* Horizon Selector & Manager Bar */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+          {/* Controls Bar: Free Transfers & Horizon */}
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
             {/* Manager info */}
             <div>
               <div className="flex items-center gap-2">
@@ -572,8 +704,13 @@ export default function TransferRecommendationView() {
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
                   GW{teamData.manager.current_event}
                 </span>
+                {teamData.free_transfers && (
+                  <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 ring-1 ring-emerald-600/20">
+                    {teamData.free_transfers} Free {teamData.free_transfers === 1 ? "Transfer" : "Transfers"}
+                  </span>
+                )}
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Manager: <span className="font-medium text-slate-700">{teamData.manager.name}</span> • Overall Rank:{" "}
                 <span className="font-semibold text-slate-800">
                   {teamData.manager.overall_rank
@@ -584,34 +721,58 @@ export default function TransferRecommendationView() {
               </p>
             </div>
 
-            {/* Horizon Filter Tabs */}
-            <div className="flex items-center gap-1.5 self-start sm:self-auto rounded-xl bg-slate-100 p-1">
-              <span className="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Horizon:
-              </span>
-              {[
-                { label: "Next GW", val: 1 },
-                { label: "3 GWs", val: 3 },
-                { label: "5 GWs", val: 5 },
-              ].map((h) => (
-                <button
-                  key={h.val}
-                  type="button"
-                  onClick={() => setHorizon(h.val as 1 | 3 | 5)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
-                    horizon === h.val
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {h.label}
-                </button>
-              ))}
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Free Transfers Selector */}
+              <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1">
+                <span className="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  Free Transfers:
+                </span>
+                {[1, 2, 3, 4, 5].map((ft) => (
+                  <button
+                    key={ft}
+                    type="button"
+                    onClick={() => setFreeTransfers(ft)}
+                    className={`rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                      freeTransfers === ft
+                        ? "bg-emerald-600 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    {ft}
+                  </button>
+                ))}
+              </div>
+
+              {/* Horizon Filter Tabs */}
+              <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1">
+                <span className="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  Horizon:
+                </span>
+                {[
+                  { label: "Next GW", val: 1 },
+                  { label: "3 GWs", val: 3 },
+                  { label: "5 GWs", val: 5 },
+                ].map((h) => (
+                  <button
+                    key={h.val}
+                    type="button"
+                    onClick={() => setHorizon(h.val as 1 | 3 | 5)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                      horizon === h.val
+                        ? "bg-white text-slate-900 shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    {h.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Quick Squad Metric Badges */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Starting XI xP
@@ -621,7 +782,7 @@ export default function TransferRecommendationView() {
                   {displayedStartingXp.toFixed(horizon > 1 ? 1 : 2)}
                 </span>
                 <span className="text-[11px] text-slate-500 font-medium">pts</span>
-                {previewTransfer && activeRec && activeRec.xp_gain !== 0 && activeRec.player_out.is_starter && (
+                {previewTransfer && activeRec && activeRec.xp_gain !== 0 && (
                   <span className="text-[11px] font-bold text-emerald-700">
                     (+{activeRec.xp_gain.toFixed(horizon > 1 ? 1 : 2)})
                   </span>
@@ -643,6 +804,25 @@ export default function TransferRecommendationView() {
                     }`}
                   >
                     ({activeRec.cost_diff > 0 ? `-£${activeRec.cost_diff}m` : `+£${Math.abs(activeRec.cost_diff)}m`})
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                Transfer Plan
+              </div>
+              <div className="mt-1 flex items-baseline gap-1.5">
+                <span className="text-xl font-bold text-slate-900">
+                  {activeRec?.transfers_count || 1}
+                </span>
+                <span className="text-[11px] text-slate-500 font-medium">
+                  of {teamData.free_transfers || freeTransfers} FTs
+                </span>
+                {activeRec && activeRec.transfers_count < (teamData.free_transfers || freeTransfers) && (
+                  <span className="rounded bg-emerald-100 px-1.5 py-0.2 text-[9px] font-bold text-emerald-800">
+                    Roll {(teamData.free_transfers || freeTransfers) - activeRec.transfers_count} FT
                   </span>
                 )}
               </div>
@@ -704,7 +884,7 @@ export default function TransferRecommendationView() {
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-900">
                       <TrendingUp className="h-3 w-3" />
-                      Points Optimizer
+                      {teamData.recommendations.points_optimized.badge}
                     </span>
                     <span className="text-sm font-black text-emerald-800">
                       {teamData.recommendations.points_optimized.key_stat}
@@ -716,25 +896,10 @@ export default function TransferRecommendationView() {
                   </h4>
 
                   {/* Transfer Visual: OUT -> IN */}
-                  <div className="mt-3 flex items-center justify-between rounded-xl bg-white/90 p-2.5 border border-slate-200/80 shadow-2xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-800">
-                        OUT
-                      </span>
-                      <div className="truncate text-xs font-bold text-slate-900">
-                        {teamData.recommendations.points_optimized.player_out.name}
-                      </div>
-                    </div>
-                    <ArrowRightLeft className="h-3.5 w-3.5 text-slate-400 shrink-0 mx-2" />
-                    <div className="flex items-center gap-2 min-w-0 text-right">
-                      <div className="truncate text-xs font-bold text-emerald-800">
-                        {teamData.recommendations.points_optimized.player_in.name}
-                      </div>
-                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-800">
-                        IN
-                      </span>
-                    </div>
-                  </div>
+                  <TransferMovesList
+                    rec={teamData.recommendations.points_optimized}
+                    themeColor="emerald"
+                  />
 
                   <p className="mt-3 text-xs leading-relaxed text-slate-600 line-clamp-2">
                     {teamData.recommendations.points_optimized.rationale}
@@ -767,7 +932,7 @@ export default function TransferRecommendationView() {
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-teal-900">
                       <Shield className="h-3 w-3" />
-                      Rank Safety
+                      {teamData.recommendations.template_protection.badge}
                     </span>
                     <span className="text-sm font-black text-teal-800">
                       {teamData.recommendations.template_protection.key_stat}
@@ -779,25 +944,10 @@ export default function TransferRecommendationView() {
                   </h4>
 
                   {/* Transfer Visual: OUT -> IN */}
-                  <div className="mt-3 flex items-center justify-between rounded-xl bg-white/90 p-2.5 border border-slate-200/80 shadow-2xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-800">
-                        OUT
-                      </span>
-                      <div className="truncate text-xs font-bold text-slate-900">
-                        {teamData.recommendations.template_protection.player_out.name}
-                      </div>
-                    </div>
-                    <ArrowRightLeft className="h-3.5 w-3.5 text-slate-400 shrink-0 mx-2" />
-                    <div className="flex items-center gap-2 min-w-0 text-right">
-                      <div className="truncate text-xs font-bold text-teal-800">
-                        {teamData.recommendations.template_protection.player_in.name}
-                      </div>
-                      <span className="rounded bg-teal-100 px-1.5 py-0.5 text-[9px] font-bold text-teal-800">
-                        IN
-                      </span>
-                    </div>
-                  </div>
+                  <TransferMovesList
+                    rec={teamData.recommendations.template_protection}
+                    themeColor="teal"
+                  />
 
                   <p className="mt-3 text-xs leading-relaxed text-slate-600 line-clamp-2">
                     {teamData.recommendations.template_protection.rationale}
@@ -830,7 +980,7 @@ export default function TransferRecommendationView() {
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
                       <Zap className="h-3 w-3" />
-                      Haul Potential
+                      {teamData.recommendations.haul_potential.badge}
                     </span>
                     <span className="text-sm font-black text-amber-800">
                       {teamData.recommendations.haul_potential.key_stat}
@@ -842,25 +992,10 @@ export default function TransferRecommendationView() {
                   </h4>
 
                   {/* Transfer Visual: OUT -> IN */}
-                  <div className="mt-3 flex items-center justify-between rounded-xl bg-white/90 p-2.5 border border-slate-200/80 shadow-2xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-800">
-                        OUT
-                      </span>
-                      <div className="truncate text-xs font-bold text-slate-900">
-                        {teamData.recommendations.haul_potential.player_out.name}
-                      </div>
-                    </div>
-                    <ArrowRightLeft className="h-3.5 w-3.5 text-slate-400 shrink-0 mx-2" />
-                    <div className="flex items-center gap-2 min-w-0 text-right">
-                      <div className="truncate text-xs font-bold text-amber-800">
-                        {teamData.recommendations.haul_potential.player_in.name}
-                      </div>
-                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">
-                        IN
-                      </span>
-                    </div>
-                  </div>
+                  <TransferMovesList
+                    rec={teamData.recommendations.haul_potential}
+                    themeColor="amber"
+                  />
 
                   <p className="mt-3 text-xs leading-relaxed text-slate-600 line-clamp-2">
                     {teamData.recommendations.haul_potential.rationale}
@@ -868,7 +1003,8 @@ export default function TransferRecommendationView() {
 
                   <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-200/60">
                     <span>
-                      Haul Chance: {teamData.recommendations.haul_potential.player_in.haul_prob.toFixed(1)}%
+                      Haul Diff: {teamData.recommendations.haul_potential.haul_prob_gain >= 0 ? "+" : ""}
+                      {teamData.recommendations.haul_potential.haul_prob_gain}%
                     </span>
                     <span>New Bank: £{teamData.recommendations.haul_potential.new_bank}m</span>
                   </div>
@@ -879,13 +1015,29 @@ export default function TransferRecommendationView() {
             {/* Active Transfer Banner */}
             {activeRec && (
               <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-xl border border-slate-200/90 bg-slate-900 text-white px-4 py-3 shadow-xs gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                     ACTIVE PREVIEW
                   </span>
                   <span className="text-xs font-medium text-slate-300">
-                    Transferring <strong>{activeRec.player_out.name}</strong> out for{" "}
-                    <strong>{activeRec.player_in.name}</strong> ({activeRec.key_stat})
+                    {activeRec.transfers && activeRec.transfers.length > 1 ? (
+                      <>
+                        <strong>{activeRec.transfers.length} Transfers:</strong>{" "}
+                        {activeRec.transfers.map((t, idx) => (
+                          <span key={idx}>
+                            {idx > 0 && ", "}
+                            <span className="text-rose-300">{t.player_out.name}</span> →{" "}
+                            <span className="text-emerald-300">{t.player_in.name}</span>
+                          </span>
+                        ))}{" "}
+                        ({activeRec.key_stat})
+                      </>
+                    ) : (
+                      <>
+                        Transferring <strong>{activeRec.player_out.name}</strong> out for{" "}
+                        <strong>{activeRec.player_in.name}</strong> ({activeRec.key_stat})
+                      </>
+                    )}
                   </span>
                 </div>
 
@@ -972,8 +1124,8 @@ export default function TransferRecommendationView() {
                 {/* Row 1: Goalkeepers */}
                 <div className="flex items-center justify-around">
                   {displayedFormationLines.gkp.map((p) => {
-                    const isOut = activeRec?.player_out.id === p.id;
-                    const isIn = previewTransfer && activeRec?.player_in.id === p.id;
+                    const isOut = outPlayerIds.has(p.id);
+                    const isIn = previewTransfer && inPlayerIds.has(p.id);
                     return (
                       <PitchPlayerCard
                         key={p.id}
@@ -991,8 +1143,8 @@ export default function TransferRecommendationView() {
                 {/* Row 2: Defenders */}
                 <div className="flex flex-wrap items-center justify-around gap-y-2">
                   {displayedFormationLines.def.map((p) => {
-                    const isOut = activeRec?.player_out.id === p.id;
-                    const isIn = previewTransfer && activeRec?.player_in.id === p.id;
+                    const isOut = outPlayerIds.has(p.id);
+                    const isIn = previewTransfer && inPlayerIds.has(p.id);
                     return (
                       <PitchPlayerCard
                         key={p.id}
@@ -1010,8 +1162,8 @@ export default function TransferRecommendationView() {
                 {/* Row 3: Midfielders */}
                 <div className="flex flex-wrap items-center justify-around gap-y-2">
                   {displayedFormationLines.mid.map((p) => {
-                    const isOut = activeRec?.player_out.id === p.id;
-                    const isIn = previewTransfer && activeRec?.player_in.id === p.id;
+                    const isOut = outPlayerIds.has(p.id);
+                    const isIn = previewTransfer && inPlayerIds.has(p.id);
                     return (
                       <PitchPlayerCard
                         key={p.id}
@@ -1029,8 +1181,8 @@ export default function TransferRecommendationView() {
                 {/* Row 4: Forwards */}
                 <div className="flex flex-wrap items-center justify-around gap-y-2">
                   {displayedFormationLines.fwd.map((p) => {
-                    const isOut = activeRec?.player_out.id === p.id;
-                    const isIn = previewTransfer && activeRec?.player_in.id === p.id;
+                    const isOut = outPlayerIds.has(p.id);
+                    const isIn = previewTransfer && inPlayerIds.has(p.id);
                     return (
                       <PitchPlayerCard
                         key={p.id}
@@ -1063,8 +1215,8 @@ export default function TransferRecommendationView() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {squadToDisplay.bench.map((p, idx) => {
                   const label = idx === 0 ? "GK" : `Sub ${idx}`;
-                  const isOut = activeRec?.player_out.id === p.id;
-                  const isIn = previewTransfer && activeRec?.player_in.id === p.id;
+                  const isOut = outPlayerIds.has(p.id);
+                  const isIn = previewTransfer && inPlayerIds.has(p.id);
                   return (
                     <BenchPlayerCard
                       key={p.id}
