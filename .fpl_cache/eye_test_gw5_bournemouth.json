@@ -1,0 +1,200 @@
+{
+  "team_name": "Bournemouth",
+  "opponent_name": "Liverpool",
+  "gameweek": 5,
+  "score": "0 - 1",
+  "venue": "Home",
+  "sources": [
+    {
+      "name": "Bournemouth Daily Echo Player Ratings",
+      "type": "Local Beat Newspaper",
+      "author": "Tom Crocker",
+      "url": "https://www.bournemouthecho.co.uk/sport/cherries/"
+    },
+    {
+      "name": "Back of the Net - The AFC Bournemouth Fan Channel",
+      "type": "Fan Channel & Tactical Debrief",
+      "episode": "Episode 419 & 3 Things To Learn (Bournemouth 0-1 Liverpool)",
+      "url": "https://www.youtube.com/@afcbpodcast"
+    }
+  ],
+  "overall_tactical_summary": "Bournemouth maintained a remarkably disciplined central defensive structure at the Vitality Stadium, restricting Liverpool's open-play chances through high defensive contributions from center-backs Silva and Hill. However, Truffert was pinned deep by wide pressure, eliminating wing-back overlaps. In attack, Evanilson fought tirelessly as a lone pressing striker but was starved of box service. Alex Scott provided the main transitional thrust, while Rayan flashed dangerous 1v1 threat on the flank.",
+  "players": {
+    "Hill": {
+      "element_id": 60,
+      "name": "James Hill",
+      "position": "DEF",
+      "rating": 7.0,
+      "verdict": "Box Defending Anchor",
+      "tactical_role": "Right-sided center-back; held off central runners and dominated aerial clearances.",
+      "observations": [
+        "Recorded 15 defensive contributions in engine",
+        "Dominated aerial box entries against crosses",
+        "Positionally sound against second-phase runners"
+      ],
+      "stats_vs_eye_test_summary": "Data (4 pts, 15 def actions) perfectly mirrors eye-test dominance.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 0.95
+    },
+    "Silva": {
+      "element_id": 566,
+      "name": "António Silva",
+      "position": "DEF",
+      "rating": 7.0,
+      "verdict": "Aggressive Stopper",
+      "tactical_role": "Left-sided center-back; stepped forward into midfield duels, broke up counter-attacks.",
+      "observations": [
+        "Stepped up aggressively to halt central transitions",
+        "Committed a tactical foul leading to yellow card",
+        "15 defensive contributions, matched Hill's output"
+      ],
+      "stats_vs_eye_test_summary": "High volume of interventions; disciplinary risk slightly elevated by aggressive pressing.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 0.95
+    },
+    "Petrovic": {
+      "element_id": 57,
+      "name": "Đorđe Petrović",
+      "position": "GKP",
+      "rating": 6.0,
+      "verdict": "Assured Handler",
+      "tactical_role": "Starting goalkeeper; commanded 6-yard box on set pieces, had no chance with winner.",
+      "observations": [
+        "Made 2 standard reaction saves",
+        "Good command of high balls under set-piece traffic",
+        "Conceded only to a clinical close-range finish"
+      ],
+      "stats_vs_eye_test_summary": "Steady display matching clean sheet metrics against elite opposition.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Truffert": {
+      "element_id": 61,
+      "name": "Adrien Truffert",
+      "position": "DEF",
+      "rating": 5.0,
+      "verdict": "Pinned Deep",
+      "tactical_role": "Left-back forced into a conservative defensive shell due to Liverpool's pace on the flank.",
+      "observations": [
+        "Barely crossed the halfway line in open play",
+        "Struggled with 1v1 defensive recoveries out wide",
+        "Only managed 7 defensive actions; minimal forward contribution"
+      ],
+      "stats_vs_eye_test_summary": "Low offensive metrics (0.02 xG, 0.06 xA) confirmed by visual lack of attacking freedom.",
+      "suggested_attack_mult": 0.9,
+      "suggested_defense_mult": 1.05
+    },
+    "Smith": {
+      "element_id": 64,
+      "name": "Adam Smith",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Veteran Workhorse",
+      "tactical_role": "Right-back; disciplined positional holding before fatigue led to substitution (74 mins).",
+      "observations": [
+        "Narrow defensive positioning to assist Hill",
+        "Limited overlapping",
+        "Replaced on 74 mins to maintain defensive energy"
+      ],
+      "stats_vs_eye_test_summary": "Minutes management is standard for his profile against high-intensity opposition.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Adams": {
+      "element_id": 73,
+      "name": "Tyler Adams",
+      "position": "MID",
+      "rating": 5.0,
+      "verdict": "Defensive Pivot Engine",
+      "tactical_role": "Central midfield destroyer; broke up attacks with 13 defensive actions but minimal forward passing.",
+      "observations": [
+        "Huge work rate closing down half-spaces",
+        "Safe, sideways retention rather than progressive passing",
+        "Hit 13 def actions, earning DefCon bonus points"
+      ],
+      "stats_vs_eye_test_summary": "Excellent fantasy DefCon value (4 pts) despite low real-world creative rating.",
+      "suggested_attack_mult": 0.9,
+      "suggested_defense_mult": 0.95
+    },
+    "Scott": {
+      "element_id": 69,
+      "name": "Alex Scott",
+      "position": "MID",
+      "rating": 7.0,
+      "verdict": "Primary Transition Spark",
+      "tactical_role": "Box-to-box number 8; chief ball-carrier through midfield transitions.",
+      "observations": [
+        "Consistently carried through Liverpool's counter-press",
+        "Drew 3 tactical fouls in advanced positions",
+        "High technical composure in tight central areas"
+      ],
+      "stats_vs_eye_test_summary": "Eye test reveals much higher attacking potential than raw 0.12 xG suggests; primed for returns in easier fixtures.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Tavernier": {
+      "element_id": 68,
+      "name": "Marcus Tavernier",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Industrious Presser",
+      "tactical_role": "Wide attacking midfielder; worked hard tracking back, but lacked cut-through in final third.",
+      "observations": [
+        "High pressing commitment; covered Smith well",
+        "Created 0.11 xA from set pieces",
+        "Substituted at 74' for fresh attacking legs"
+      ],
+      "stats_vs_eye_test_summary": "Steady floor from work rate, but low ceiling against elite defensive teams.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Christie": {
+      "element_id": 75,
+      "name": "Ryan Christie",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Frustrated Finisher",
+      "tactical_role": "Advanced central pressing midfielder; arrived late into the box.",
+      "observations": [
+        "Arrived onto Bournemouth's biggest chance (0.50 xG) but missed target",
+        "High energetic pressing throughout 74 minutes",
+        "Lacked clinical edge on the day"
+      ],
+      "stats_vs_eye_test_summary": "xG of 0.50 reflects real threat; eye test confirms he gets into prime scoring positions.",
+      "suggested_attack_mult": 1.05,
+      "suggested_defense_mult": 1.0
+    },
+    "Rayan": {
+      "element_id": 67,
+      "name": "Rayan",
+      "position": "MID",
+      "rating": 6.5,
+      "verdict": "Direct Flank Threat",
+      "tactical_role": "Direct right-winger; took on Liverpool's left-back repeatedly in 1v1 situations.",
+      "observations": [
+        "Produced 3 dangerous cutbacks (team-high 0.35 xA)",
+        "Forced Liverpool defenders into retreat",
+        "Delivered accurate balls that lacked central conversion"
+      ],
+      "stats_vs_eye_test_summary": "Eye test strongly validates his underlying 0.35 xA; looked unplayable in isolated 1v1 moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Evanilson": {
+      "element_id": 79,
+      "name": "Evanilson",
+      "position": "FWD",
+      "rating": 6.0,
+      "verdict": "Starved Lone Striker",
+      "tactical_role": "Solitary target striker; pressed tirelessly against center-backs but received almost no service.",
+      "observations": [
+        "Pressed aggressively for 90 minutes without fading",
+        "Stuck with back to goal; received only 1 clean touch inside the 18-yard box",
+        "Underlying 0.16 xG caused by tactical starvation rather than lack of effort or movement"
+      ],
+      "stats_vs_eye_test_summary": "The eye test shows his low output was tactical; when Bournemouth play mid/lower table opposition, his threat will surge.",
+      "suggested_attack_mult": 1.05,
+      "suggested_defense_mult": 1.0
+    }
+  }
+}

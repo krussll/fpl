@@ -20,10 +20,12 @@ import {
   Users,
   Zap,
   TrendingUp,
+  TrendingDown,
   ArrowRight,
   Sparkles,
   Loader2,
   ArrowLeft,
+  Eye,
 } from "lucide-react";
 
 interface PlayerModalProps {
@@ -302,6 +304,178 @@ export default function PlayerModal({
 
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+          {/* Eye-Test & Tactical Scouting Section */}
+          {activePlayer.eye_test && (
+            <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/40 via-white to-sky-50/30 p-4 sm:p-5 shadow-xs">
+              {/* Header */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-100/70 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+                    <Eye className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <span className="text-sm font-bold text-slate-900">
+                        The Eye Test & Tactical Scouting
+                      </span>
+                      <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-bold text-indigo-700">
+                        3-GW Form Tracking
+                      </span>
+                      {activePlayer.eye_test.trend === "RISING" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                          <TrendingUp className="h-3 w-3" />
+                          Rising Form (+{activePlayer.eye_test.trend_delta?.toFixed(1)})
+                        </span>
+                      )}
+                      {activePlayer.eye_test.trend === "FALLING" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
+                          <TrendingDown className="h-3 w-3" />
+                          Dipping Form ({activePlayer.eye_test.trend_delta?.toFixed(1)})
+                        </span>
+                      )}
+                      {activePlayer.eye_test.trend === "VOLATILE" && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+                          ⚡ Volatile Output
+                        </span>
+                      )}
+                      {(!activePlayer.eye_test.trend || activePlayer.eye_test.trend === "STEADY") && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-600 border border-indigo-200/50">
+                          ● Steady Form
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Recency-weighted qualitative scouting across GW3, GW4, and GW5
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <span className="inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-1 text-xs font-bold text-white shadow-xs">
+                      <span>★</span>
+                      <span>{activePlayer.eye_test.rating.toFixed(1)} / 10</span>
+                    </span>
+                    <div className="text-[10px] text-slate-400 mt-0.5">3-GW Weighted</div>
+                  </div>
+                  <span className="rounded-xl border border-indigo-200/80 bg-white px-2.5 py-1 text-xs font-semibold text-indigo-800 shadow-2xs">
+                    {activePlayer.eye_test.verdict}
+                  </span>
+                </div>
+              </div>
+
+              {/* 3-Match Form Progression Cards Strip */}
+              {activePlayer.eye_test.history && activePlayer.eye_test.history.length > 0 && (
+                <div className="mt-3.5">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
+                    <span>3-Gameweek Match Progression</span>
+                    <span className="text-[10px] font-normal text-indigo-600">Oldest → Most Recent</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {activePlayer.eye_test.history.map((m, idx) => (
+                      <div
+                        key={idx}
+                        className={`rounded-xl border p-2.5 shadow-2xs flex flex-col justify-between transition-all ${
+                          idx === activePlayer.eye_test!.history!.length - 1
+                            ? "bg-white border-indigo-200 ring-1 ring-indigo-500/20"
+                            : "bg-white/70 border-slate-200/80"
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="font-bold text-indigo-900 bg-indigo-50 px-1.5 py-0.5 rounded text-[10px]">
+                              GW{m.gameweek}
+                            </span>
+                            <span className="font-bold text-slate-800 text-[11px] bg-slate-100 px-1.5 py-0.5 rounded">
+                              ★ {m.rating.toFixed(1)}
+                            </span>
+                          </div>
+                          <div className="text-xs font-semibold text-slate-900 truncate">
+                            vs {m.opponent_name}
+                          </div>
+                          <div className="text-[10px] text-slate-500 mb-1">
+                            {m.score} ({m.venue})
+                          </div>
+                          <div className="text-[11px] text-indigo-700 font-semibold line-clamp-1 mb-1">
+                            {m.verdict}
+                          </div>
+                          <p className="text-[11px] text-slate-600 line-clamp-2 leading-tight">
+                            {m.summary}
+                          </p>
+                        </div>
+                        <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
+                          <span>Att: {m.attack_mult.toFixed(2)}x</span>
+                          <span>Def: {m.defense_mult.toFixed(2)}x</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-3.5 space-y-3">
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Latest Tactical Role & Pitch Positioning
+                  </div>
+                  <p className="mt-0.5 text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+                    {activePlayer.eye_test.tactical_role}
+                  </p>
+                </div>
+
+                {activePlayer.eye_test.observations?.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      Key Pitch Observations
+                    </div>
+                    <ul className="mt-1 space-y-1">
+                      {activePlayer.eye_test.observations.map((obs, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-slate-600">
+                          <span className="text-indigo-500 mt-0.5">•</span>
+                          <span>{obs}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="rounded-xl bg-white/90 p-3 border border-indigo-100/70 text-xs text-slate-700">
+                  <span className="font-bold text-indigo-950">3-GW Form Synthesis: </span>
+                  {activePlayer.eye_test.rolling_tactical_summary || activePlayer.eye_test.summary}
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-indigo-100/60 text-[11px] text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-700">Smoothed Nudge:</span>
+                    <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-emerald-700 font-semibold border border-emerald-200/60" title="Weighted 3-GW Attack Multiplier">
+                      Att: {activePlayer.eye_test.attack_multiplier.toFixed(2)}x
+                    </span>
+                    <span className="rounded-md bg-sky-50 px-2 py-0.5 text-sky-700 font-semibold border border-sky-200/60" title="Weighted 3-GW Defense Multiplier">
+                      Def: {activePlayer.eye_test.defense_multiplier.toFixed(2)}x
+                    </span>
+                  </div>
+
+                  {activePlayer.eye_test.sources?.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-slate-400">
+                      <span>Sources:</span>
+                      {activePlayer.eye_test.sources.map((src, i) => (
+                        <a
+                          key={i}
+                          href={src.url || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
+                        >
+                          {src.name.split(" ")[0]}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Key Projections Grid */}
           <div>
             <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400">

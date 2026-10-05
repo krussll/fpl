@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { Player, PlayerHistoryMatch } from "@/types/player";
+import { Player, PlayerHistoryMatch, PlayerEyeTest, PlayerEyeTestHistoryMatch } from "@/types/player";
 
 let cached5Map: Map<number, Player> | null = null;
 let last5Mtime: number = 0;
@@ -71,6 +71,172 @@ function getPlayerHistoriesMap(): Map<number, PlayerHistoryMatch[]> {
   return cachedHistoriesMap || new Map<number, PlayerHistoryMatch[]>();
 }
 
+let cachedEyeTestMap: Map<number, PlayerEyeTest> | null = null;
+
+function getEyeTestMap(): Map<number, PlayerEyeTest> {
+  const candidateDirs = [
+    path.resolve(process.cwd(), ".fpl_cache"),
+    path.resolve(process.cwd(), "..", ".fpl_cache"),
+  ];
+
+  for (const dir of candidateDirs) {
+    if (fs.existsSync(/*turbopackIgnore: true*/ dir)) {
+      try {
+        const files = fs
+          .readdirSync(/*turbopackIgnore: true*/ dir)
+          .filter((f) => f.startsWith("eye_test_gw") && f.endsWith(".json"));
+
+        if (files.length > 0) {
+          const playerMatches = new Map<number, PlayerEyeTestHistoryMatch[]>();
+
+          for (const f of files) {
+            try {
+              const raw = fs.readFileSync(path.join(/*turbopackIgnore: true*/ dir, f), "utf-8");
+              const data = JSON.parse(raw);
+              const gw = data.gameweek || 0;
+              const opp = data.opponent_name || "";
+              const score = data.score || "";
+              const venue = data.venue || "Home";
+              const sources = data.sources || [];
+
+              if (data.players && typeof data.players === "object") {
+                for (const p of Object.values(data.players) as any[]) {
+                  if (p.element_id) {
+                    if (!playerMatches.has(p.element_id)) {
+                      playerMatches.set(p.element_id, []);
+                    }
+                    playerMatches.get(p.element_id)!.push({
+                      gameweek: gw,
+                      opponent_name: opp,
+                      venue: venue,
+                      score: score,
+                      rating: Number(p.rating) || 6.0,
+                      verdict: p.verdict || "Eye-Test Evaluated",
+                      tactical_role: p.tactical_role || "",
+                      observations: p.observations || [],
+                      summary: p.stats_vs_eye_test_summary || "",
+                      attack_mult: Number(p.suggested_attack_mult) || 1.0,
+                      defense_mult: Number(p.suggested_defense_mult) || 1.0,
+                      sources: sources,
+                    });
+                  }
+                }
+              }
+            } catch {}
+          }
+
+          const map = new Map<number, PlayerEyeTest>();
+          for (const [elId, appearances] of playerMatches.entries()) {
+            // Sort chronologically ascending
+            appearances.sort((a, b) => a.gameweek - b.gameweek);
+            const recent = appearances.slice(-3);
+            const K = recent.length;
+            if (K === 0) continue;
+
+            const weights =
+              K === 1
+                ? [1.0]
+                : K === 2
+                ? [0.35, 0.65]
+                : [0.2, 0.3, 0.5];
+
+            const ratings = recent.map((m) => m.rating);
+            const gameweeks = recent.map((m) => m.gameweek);
+            const weightedRating =
+              Math.round(
+                recent.reduce((acc, m, i) => acc + m.rating * weights[i], 0) *
+                  100
+              ) / 100;
+            const unweightedMean =
+              Math.round((ratings.reduce((a, b) => a + b, 0) / K) * 100) / 100;
+
+            const trendDelta =
+              K >= 2 ? Math.round((ratings[K - 1] - ratings[0]) * 10) / 10 : 0.0;
+            let trend: "RISING" | "FALLING" | "STEADY" | "VOLATILE" = "STEADY";
+            if (K >= 2) {
+              if (trendDelta >= 0.75) trend = "RISING";
+              else if (trendDelta <= -0.75) trend = "FALLING";
+              else if (K >= 3) {
+                const variance =
+                  ratings.reduce(
+                    (acc, r) => acc + Math.pow(r - unweightedMean, 2),
+                    0
+                  ) / K;
+                if (Math.sqrt(variance) >= 1.25) trend = "VOLATILE";
+              }
+            }
+
+            const effAtt =
+              Math.round(
+                recent.reduce(
+                  (acc, m, i) => acc + m.attack_mult * weights[i],
+                  0
+                ) * 100
+              ) / 100;
+            const effDef =
+              Math.round(
+                recent.reduce(
+                  (acc, m, i) => acc + m.defense_mult * weights[i],
+                  0
+                ) * 100
+              ) / 100;
+
+            const latest = recent[recent.length - 1];
+            const gwSeq = recent
+              .map((m) => `GW${m.gameweek} (${m.rating.toFixed(1)})`)
+              .join(" → ");
+            const trendDesc =
+              trend === "RISING"
+                ? "trending strongly upward with rising match influence"
+                : trend === "FALLING"
+                ? "showing a drop in tactical involvement"
+                : trend === "VOLATILE"
+                ? "exhibiting high match-to-match variance"
+                : "maintaining consistent tactical output";
+
+            const rollingSummary = `${weightedRating.toFixed(
+              1
+            )}/10 rolling eye-test rating over ${K} matches (${gwSeq}), ${trendDesc}. Latest scouting notes vs ${
+              latest.opponent_name
+            }: "${latest.summary}"`;
+
+            map.set(elId, {
+              rating: weightedRating,
+              weighted_rating: weightedRating,
+              unweighted_mean: unweightedMean,
+              trend: trend,
+              trend_delta: trendDelta,
+              horizon: 3,
+              matches_evaluated: K,
+              gameweeks: gameweeks,
+              ratings_history: ratings,
+              verdict: latest.verdict,
+              tactical_role: latest.tactical_role,
+              observations: latest.observations,
+              summary: rollingSummary,
+              rolling_tactical_summary: rollingSummary,
+              attack_multiplier: effAtt,
+              defense_multiplier: effDef,
+              gameweek: latest.gameweek,
+              opponent: latest.opponent_name,
+              score: latest.score,
+              venue: latest.venue,
+              sources: latest.sources || [],
+              history: recent,
+            });
+          }
+
+          cachedEyeTestMap = map;
+          return map;
+        }
+      } catch (err) {
+        console.error("Failed to load eye-test cache:", err);
+      }
+    }
+  }
+  return cachedEyeTestMap || new Map<number, PlayerEyeTest>();
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -118,9 +284,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Always attach 5-GW fixtures, 5-GW forecast & match history
+    // Always attach 5-GW fixtures, 5-GW forecast, match history & eye test
     const map5 = get5FixturePlayersMap();
     const historiesMap = getPlayerHistoriesMap();
+    const eyeTestMap = getEyeTestMap();
     for (const player of playersData) {
       const p5 = map5.get(player.id);
       if (p5) {
@@ -130,6 +297,10 @@ export async function GET(request: NextRequest) {
       const hist = historiesMap.get(player.id);
       if (hist) {
         player.history = hist;
+      }
+      const eye = eyeTestMap.get(player.id);
+      if (eye) {
+        player.eye_test = eye;
       }
     }
 

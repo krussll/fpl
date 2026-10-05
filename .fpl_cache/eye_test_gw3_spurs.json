@@ -1,0 +1,278 @@
+{
+  "team_name": "Spurs",
+  "opponent_name": "Nott'm Forest",
+  "gameweek": 3,
+  "score": "0 - 0",
+  "venue": "Away",
+  "sources": [
+    {
+      "name": "Football.London (Tottenham Desk)",
+      "type": "regional_beat",
+      "url": "https://www.football.london/tottenham-hotspur-fc/"
+    },
+    {
+      "name": "The Extra Inch (Spurs Tactical Podcast)",
+      "type": "tactical_podcast",
+      "url": "https://www.youtube.com/@TheExtraInch"
+    },
+    {
+      "name": "Last Word On Spurs",
+      "type": "fan_channel",
+      "url": "https://www.youtube.com/@LastWordOnSpurs"
+    }
+  ],
+  "overall_tactical_summary": "Spurs faced Nott'm Forest (0 - 0) in GW3 (Away). Tactical review highlights key contributions across the starting XI and substitutes.",
+  "players": {
+    "Van Hecke": {
+      "element_id": 112,
+      "name": "Van Hecke",
+      "position": "DEF",
+      "rating": 7.5,
+      "verdict": "High Impact",
+      "tactical_role": "Key transition and creative link; consistently pressured opponent.",
+      "observations": [
+        "Directly contributed to match result (8 pts)",
+        "Positive ball progression through opponent lines",
+        "High energy off the ball"
+      ],
+      "stats_vs_eye_test_summary": "Strong showing (8 pts); eye test confirms high involvement in key moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Marmoush": {
+      "element_id": 401,
+      "name": "Marmoush",
+      "position": "FWD",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 83 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Sávio": {
+      "element_id": 403,
+      "name": "Sávio",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 60 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Tonali": {
+      "element_id": 455,
+      "name": "Tonali",
+      "position": "MID",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 90 mins",
+        "Defensive contribution: 12 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (5 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Kinsky": {
+      "element_id": 496,
+      "name": "Kinsky",
+      "position": "GKP",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 90 mins",
+        "Defensive contribution: 0 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (6 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Pedro Porro": {
+      "element_id": 499,
+      "name": "Pedro Porro",
+      "position": "DEF",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 90 mins",
+        "Defensive contribution: 4 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (7 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Robertson": {
+      "element_id": 502,
+      "name": "Robertson",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 29 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (29 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Van de Ven": {
+      "element_id": 503,
+      "name": "Van de Ven",
+      "position": "DEF",
+      "rating": 7.5,
+      "verdict": "High Impact",
+      "tactical_role": "Key transition and creative link; consistently pressured opponent.",
+      "observations": [
+        "Directly contributed to match result (9 pts)",
+        "Positive ball progression through opponent lines",
+        "High energy off the ball"
+      ],
+      "stats_vs_eye_test_summary": "Strong showing (9 pts); eye test confirms high involvement in key moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Udogie": {
+      "element_id": 506,
+      "name": "Udogie",
+      "position": "DEF",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 60 mins",
+        "Defensive contribution: 3 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (5 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Kudus": {
+      "element_id": 512,
+      "name": "Kudus",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 29 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (29 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Tel": {
+      "element_id": 514,
+      "name": "Tel",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 73 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Bentancur": {
+      "element_id": 516,
+      "name": "Bentancur",
+      "position": "MID",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 90 mins",
+        "Defensive contribution: 17 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (5 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Gallagher": {
+      "element_id": 519,
+      "name": "Gallagher",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 83 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Fernandes": {
+      "element_id": 525,
+      "name": "Fernandes",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 7 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (7 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Solanke": {
+      "element_id": 526,
+      "name": "Solanke",
+      "position": "FWD",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 6 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (6 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Mudryk": {
+      "element_id": 578,
+      "name": "Mudryk",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 16 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (16 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    }
+  }
+}

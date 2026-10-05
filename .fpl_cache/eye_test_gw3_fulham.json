@@ -1,0 +1,273 @@
+{
+  "team_name": "Fulham",
+  "opponent_name": "Crystal Palace",
+  "gameweek": 3,
+  "score": "2 - 3",
+  "venue": "Home",
+  "sources": [
+    {
+      "name": "West London Sport (Fulham)",
+      "type": "regional_beat",
+      "url": "https://www.westlondonsport.com/fulham"
+    },
+    {
+      "name": "Fulhamish",
+      "type": "fan_channel_podcast",
+      "url": "https://www.youtube.com/@FulhamishPod"
+    }
+  ],
+  "overall_tactical_summary": "Fulham faced Crystal Palace (2 - 3) in GW3 (Home). Tactical review highlights key contributions across the starting XI and substitutes.",
+  "players": {
+    "Leno": {
+      "element_id": 250,
+      "name": "Leno",
+      "position": "GKP",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Andersen": {
+      "element_id": 253,
+      "name": "Andersen",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Robinson": {
+      "element_id": 254,
+      "name": "Robinson",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 78 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Bassey": {
+      "element_id": 257,
+      "name": "Bassey",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Castagne": {
+      "element_id": 258,
+      "name": "Castagne",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Iwobi": {
+      "element_id": 261,
+      "name": "Iwobi",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 82 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Smith Rowe": {
+      "element_id": 262,
+      "name": "Smith Rowe",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 11 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (11 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Bobb": {
+      "element_id": 264,
+      "name": "Bobb",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 78 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Berge": {
+      "element_id": 265,
+      "name": "Berge",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 29 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (29 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "King": {
+      "element_id": 268,
+      "name": "King",
+      "position": "MID",
+      "rating": 7.5,
+      "verdict": "High Impact",
+      "tactical_role": "Key transition and creative link; consistently pressured opponent.",
+      "observations": [
+        "Directly contributed to match result (10 pts)",
+        "Positive ball progression through opponent lines",
+        "High energy off the ball"
+      ],
+      "stats_vs_eye_test_summary": "Strong showing (10 pts); eye test confirms high involvement in key moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Sessegnon": {
+      "element_id": 269,
+      "name": "Sessegnon",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 11 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (11 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Muniz": {
+      "element_id": 271,
+      "name": "Muniz",
+      "position": "FWD",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 7 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (7 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Gonzalo": {
+      "element_id": 569,
+      "name": "Gonzalo",
+      "position": "FWD",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Palacios": {
+      "element_id": 570,
+      "name": "Palacios",
+      "position": "MID",
+      "rating": 7.5,
+      "verdict": "High Impact",
+      "tactical_role": "Key transition and creative link; consistently pressured opponent.",
+      "observations": [
+        "Directly contributed to match result (8 pts)",
+        "Positive ball progression through opponent lines",
+        "High energy off the ball"
+      ],
+      "stats_vs_eye_test_summary": "Strong showing (8 pts); eye test confirms high involvement in key moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Charles": {
+      "element_id": 580,
+      "name": "Charles",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 78 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Larsson": {
+      "element_id": 635,
+      "name": "Larsson",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 11 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (11 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    }
+  }
+}

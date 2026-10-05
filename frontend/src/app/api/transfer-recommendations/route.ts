@@ -91,6 +91,11 @@ export async function GET(req: NextRequest) {
     const teamIdParam = searchParams.get("teamId") || searchParams.get("id");
     const horizonParam = parseInt(searchParams.get("horizon") || "1", 10);
     const horizon = [1, 3, 5].includes(horizonParam) ? horizonParam : 1;
+    const freeTransfersParam = parseInt(
+      searchParams.get("freeTransfers") || searchParams.get("transfers") || "1",
+      10
+    );
+    const freeTransfers = Math.min(Math.max(isNaN(freeTransfersParam) ? 1 : freeTransfersParam, 1), 5);
 
     if (!teamIdParam) {
       return NextResponse.json(
@@ -309,7 +314,7 @@ export async function GET(req: NextRequest) {
       (starters.reduce((sum, p) => sum + p.selected_by_percent, 0) / Math.max(1, starters.length)).toFixed(1)
     );
 
-    // 5. Transfer Recommendation Engine
+    // 5. Transfer Recommendation Engine (Multi-Transfer Solver up to freeTransfers)
     const squadIds = new Set(allSquadPlayers.map((p) => p.id));
     const teamCounts: Record<number, number> = {};
     allSquadPlayers.forEach((p) => {
@@ -328,114 +333,367 @@ export async function GET(req: NextRequest) {
       return true;
     });
 
-    // Compute all legal single transfers
-    interface CandidateTransfer {
+    // Helper: GK strategy check (Strategy 1: Set-and-Forget, Strategy 2: Rotating Budget)
+    function isExpectedStartingGkp(p: Player | SquadPlayer): boolean {
+      if (p.position !== "GKP") return false;
+      const el = elementsMap.get(p.id);
+      if (p.start_prob !== undefined && p.start_prob >= 50.0) return true;
+      if (p.minutes >= 180 && (p.start_prob === undefined || p.start_prob >= 25.0)) return true;
+      if (el && el.chance_of_playing_next_round !== null && el.chance_of_playing_next_round !== undefined) {
+        if (el.chance_of_playing_next_round >= 75 && (bootElMinutes(p.id) >= 180 || p.minutes >= 180)) return true;
+      }
+      return false;
+    }
+
+    function bootElMinutes(id: number): number {
+      const el = elementsMap.get(id);
+      return el?.minutes || 0;
+    }
+
+    function isValidGkpPair(g1: Player | SquadPlayer, g2: Player | SquadPlayer): boolean {
+      if (!isExpectedStartingGkp(g1) && !isExpectedStartingGkp(g2)) return false;
+      const prices = [g1.price, g2.price].sort((a, b) => a - b);
+      if (prices[1] > 5.0) {
+        return prices[0] <= 4.0;
+      }
+      return prices[1] <= 5.0 && prices[0] <= 4.5;
+    }
+
+    // Build raw candidate moves per squad player
+    interface CandidateMove {
       player_out: SquadPlayer;
       player_in: Player;
+      cost_diff: number;
       xp_gain: number;
       ownership_gain: number;
       ceiling_gain: number;
       haul_prob_gain: number;
-      cost_diff: number;
-      new_bank: number;
       points_score: number;
       template_score: number;
       haul_score: number;
     }
 
-    const legalTransfers: CandidateTransfer[] = [];
     const playerReplacementsMap: Record<number, TransferAlternative[]> = {};
+    const allMovesByPlayer: Map<number, CandidateMove[]> = new Map();
 
     for (const pOut of allSquadPlayers) {
       const outTeam = pOut.team_id;
-      const maxAffordable = parseFloat((pOut.price + bank + 0.001).toFixed(1));
+      const maxAffordableSingle = parseFloat((pOut.price + bank + 0.001).toFixed(1));
       const pOutReplacements: TransferAlternative[] = [];
+      const moves: CandidateMove[] = [];
 
       for (const pIn of allCandidates) {
         if (pIn.position !== pOut.position) continue;
-        if (pIn.price > maxAffordable) continue;
-
-        // Team quota check: max 3 players per club
-        const currentCount = teamCounts[pIn.team_id] || 0;
-        const availableSlots = outTeam === pIn.team_id ? 3 - (currentCount - 1) : 3 - currentCount;
-        if (availableSlots <= 0) continue;
 
         const xpGain = parseFloat((pIn.xp - pOut.xp).toFixed(2));
         const ownGain = parseFloat((pIn.selected_by_percent - pOut.selected_by_percent).toFixed(1));
         const ceilGain = parseFloat((pIn.ceiling - pOut.ceiling).toFixed(1));
-        const haulGain = parseFloat(((pIn.haul_prob - pOut.haul_prob)).toFixed(1));
+        const haulGain = parseFloat((pIn.haul_prob - pOut.haul_prob).toFixed(1));
         const costDiff = parseFloat((pIn.price - pOut.price).toFixed(1));
-        const newBank = parseFloat((bank - costDiff).toFixed(1));
+        const newBankSingle = parseFloat((bank - costDiff).toFixed(1));
 
         // Weighting formulas
-        // Points score: Starter upgrades matter 100%, bench upgrades matter 65%. Flagged out-players get priority boost.
         const starterWeight = pOut.is_starter ? 1.0 : 0.65;
         const outStatusPenalty = ["i", "u", "s", "d"].includes(pOut.status) ? 1.8 : 0.0;
         const pointsScore = (xpGain + outStatusPenalty) * starterWeight;
-
-        // Template score: High incoming ownership + solid xP (avoids taking template duds)
         const templateScore = ownGain * 0.7 + xpGain * 5.0;
-
-        // Haul score: High ceiling + haul rate + xP
         const haulScore = ceilGain * 1.8 + haulGain * 1.2 + xpGain * 0.8;
 
-        const trans: CandidateTransfer = {
+        const move: CandidateMove = {
           player_out: pOut,
           player_in: pIn,
+          cost_diff: costDiff,
           xp_gain: xpGain,
           ownership_gain: ownGain,
           ceiling_gain: ceilGain,
           haul_prob_gain: haulGain,
-          cost_diff: costDiff,
-          new_bank: newBank,
           points_score: pointsScore,
           template_score: templateScore,
           haul_score: haulScore,
         };
+        moves.push(move);
 
-        legalTransfers.push(trans);
-
-        pOutReplacements.push({
-          player_out: pOut,
-          player_in: pIn,
-          xp_gain: xpGain,
-          ownership_gain: ownGain,
-          ceiling_gain: ceilGain,
-          haul_prob_gain: haulGain,
-          cost_diff: costDiff,
-          new_bank: newBank,
-        });
+        // Single replacement check for quick inspection drawer
+        if (pIn.price <= maxAffordableSingle) {
+          const currentCount = teamCounts[pIn.team_id] || 0;
+          const availableSlots = outTeam === pIn.team_id ? 3 - (currentCount - 1) : 3 - currentCount;
+          if (availableSlots > 0) {
+            pOutReplacements.push({
+              player_out: pOut,
+              player_in: pIn,
+              xp_gain: xpGain,
+              ownership_gain: ownGain,
+              ceiling_gain: ceilGain,
+              haul_prob_gain: haulGain,
+              cost_diff: costDiff,
+              new_bank: newBankSingle,
+            });
+          }
+        }
       }
 
-      // Sort individual replacements by highest xP gain
       pOutReplacements.sort((a, b) => b.xp_gain - a.xp_gain);
       playerReplacementsMap[pOut.id] = pOutReplacements.slice(0, 4);
+      allMovesByPlayer.set(pOut.id, moves);
     }
 
-    // A. Mode 1: Points Optimized Transfer
-    const pointsSorted = [...legalTransfers].sort((a, b) => b.points_score - a.points_score);
-    const bestPoints = pointsSorted[0] || null;
-    const pointsAlts = pointsSorted.slice(1, 4).map((t) => ({
-      player_out: t.player_out,
-      player_in: t.player_in,
-      xp_gain: t.xp_gain,
-      ownership_gain: t.ownership_gain,
-      ceiling_gain: t.ceiling_gain,
-      haul_prob_gain: t.haul_prob_gain,
-      cost_diff: t.cost_diff,
-      new_bank: t.new_bank,
-    }));
+    // Multi-Transfer Optimizer (Solves up to freeTransfers)
+    interface SolvedPlan {
+      moves: CandidateMove[];
+      total_score: number;
+      total_xp_gain: number;
+      total_ownership_gain: number;
+      total_ceiling_gain: number;
+      total_haul_prob_gain: number;
+      total_cost_diff: number;
+      new_bank: number;
+    }
 
-    // B. Mode 2: Template Protection Transfer
-    // Filter for targets with high ownership (>= 15% or top available) that protect rank without bleeding xP
-    const templateSorted = [...legalTransfers]
-      .filter((t) => t.player_in.selected_by_percent >= 15.0 && t.xp_gain >= -1.2)
-      .sort((a, b) => b.template_score - a.template_score);
-    
-    // Ensure distinct recommendation from points optimized if possible
-    let bestTemplate = templateSorted.find((t) => t.player_in.id !== bestPoints?.player_in.id) || templateSorted[0] || pointsSorted[0];
-    const templateAlts = templateSorted
-      .filter((t) => t.player_in.id !== bestTemplate.player_in.id)
+    function solveOptimalPlan(
+      strategy: "points" | "template" | "haul",
+      maxAllowedTransfers: number
+    ): SolvedPlan {
+      const scoreKey =
+        strategy === "points"
+          ? "points_score"
+          : strategy === "template"
+          ? "template_score"
+          : "haul_score";
+
+      // Build pruned candidate move lists per player for fast search
+      interface PlayerMoveEntry {
+        player: SquadPlayer;
+        moves: CandidateMove[];
+        maxScore: number;
+      }
+
+      const playerEntries: PlayerMoveEntry[] = [];
+
+      for (const pOut of allSquadPlayers) {
+        const rawMoves = allMovesByPlayer.get(pOut.id) || [];
+        let filtered = rawMoves;
+
+        if (strategy === "template") {
+          // Prioritize high ownership players
+          const highOwn = rawMoves.filter((m) => m.player_in.selected_by_percent >= 12.0 && m.xp_gain >= -1.5);
+          filtered = highOwn.length >= 4 ? highOwn : rawMoves;
+        } else if (strategy === "haul") {
+          const highHaul = rawMoves.filter((m) => m.ceiling_gain > 0 || m.haul_prob_gain > 0);
+          filtered = highHaul.length >= 4 ? highHaul : rawMoves;
+        }
+
+        const sortedByScore = [...filtered].sort((a, b) => b[scoreKey] - a[scoreKey]);
+        const topUpgrades = sortedByScore.slice(0, 7);
+        // Cheap budget enablers to allow funding combos across multiple transfers
+        const cheapestEnablers = [...rawMoves]
+          .filter((m) => m.player_in.minutes >= 180 && m.cost_diff < 0)
+          .sort((a, b) => a.cost_diff - b.cost_diff || b[scoreKey] - a[scoreKey])
+          .slice(0, 3);
+
+        const seenIn = new Set<number>();
+        const combinedMoves: CandidateMove[] = [];
+        for (const m of [...topUpgrades, ...cheapestEnablers]) {
+          if (!seenIn.has(m.player_in.id)) {
+            seenIn.add(m.player_in.id);
+            combinedMoves.push(m);
+          }
+        }
+
+        if (combinedMoves.length > 0) {
+          const maxScore = Math.max(...combinedMoves.map((m) => m[scoreKey]));
+          playerEntries.push({
+            player: pOut,
+            moves: combinedMoves,
+            maxScore,
+          });
+        }
+      }
+
+      // Precompute suffix max scores for branch-and-bound upper bounding
+      const suffixMax: number[][] = new Array(playerEntries.length + 1).fill([]);
+      for (let i = playerEntries.length - 1; i >= 0; i--) {
+        const remaining = playerEntries
+          .slice(i)
+          .map((p) => p.maxScore)
+          .sort((a, b) => b - a);
+        suffixMax[i] = remaining;
+      }
+
+      // Current squad goalkeepers for validation
+      const squadGkps = allSquadPlayers.filter((p) => p.position === "GKP");
+
+      // Search best plan for a specific size m
+      function searchSize(m: number): SolvedPlan | null {
+        let bestMoves: CandidateMove[] | null = null;
+        let bestScore = -Infinity;
+
+        // Clone current club counts
+        const currentClubCounts: Record<number, number> = { ...teamCounts };
+
+        function branch(
+          entryIdx: number,
+          chosen: CandidateMove[],
+          currentCost: number,
+          currentScore: number
+        ) {
+          if (chosen.length === m) {
+            if (currentScore > bestScore) {
+              // Verify GK rule if any GK involved
+              const gkOut = chosen.filter((c) => c.player_out.position === "GKP");
+              if (gkOut.length > 0) {
+                let finalGk1 = squadGkps[0];
+                let finalGk2 = squadGkps[1];
+                if (gkOut.length === 1) {
+                  const outId = gkOut[0].player_out.id;
+                  const replacedIn = gkOut[0].player_in;
+                  if (finalGk1.id === outId) finalGk1 = replacedIn as any;
+                  else finalGk2 = replacedIn as any;
+                } else if (gkOut.length === 2) {
+                  finalGk1 = gkOut[0].player_in as any;
+                  finalGk2 = gkOut[1].player_in as any;
+                }
+                if (!isValidGkpPair(finalGk1, finalGk2)) return;
+              }
+
+              bestScore = currentScore;
+              bestMoves = [...chosen];
+            }
+            return;
+          }
+
+          const needed = m - chosen.length;
+          if (playerEntries.length - entryIdx < needed) return;
+
+          // Upper-bound pruning: even taking the absolute top remaining scores cannot beat bestScore
+          const maxPossibleRemaining = (suffixMax[entryIdx] || [])
+            .slice(0, needed)
+            .reduce((sum, s) => sum + s, 0);
+          if (currentScore + maxPossibleRemaining <= bestScore) return;
+
+          for (let i = entryIdx; i < playerEntries.length; i++) {
+            const entry = playerEntries[i];
+            const pOut = entry.player;
+
+            for (const move of entry.moves) {
+              const newCost = currentCost + move.cost_diff;
+              if (newCost > bank + 0.001) continue;
+
+              const pIn = move.player_in;
+              // Unique incoming player check
+              if (chosen.some((c) => c.player_in.id === pIn.id)) continue;
+
+              // Club limit check
+              const outClub = pOut.team_id;
+              const inClub = pIn.team_id;
+              currentClubCounts[outClub] -= 1;
+              const nextInClubCount = (currentClubCounts[inClub] || 0) + 1;
+
+              if (nextInClubCount <= 3) {
+                currentClubCounts[inClub] = nextInClubCount;
+                chosen.push(move);
+
+                branch(i + 1, chosen, newCost, currentScore + move[scoreKey]);
+
+                chosen.pop();
+                currentClubCounts[inClub] -= 1;
+              }
+              currentClubCounts[outClub] += 1;
+            }
+          }
+        }
+
+        branch(0, [], 0, 0);
+
+        if (!bestMoves || (bestMoves as CandidateMove[]).length === 0) return null;
+
+        const movesArr: CandidateMove[] = bestMoves;
+        const totalXpGain = parseFloat(movesArr.reduce((s, m) => s + m.xp_gain, 0).toFixed(2));
+        const totalOwnGain = parseFloat(movesArr.reduce((s, m) => s + m.ownership_gain, 0).toFixed(1));
+        const totalCeilGain = parseFloat(movesArr.reduce((s, m) => s + m.ceiling_gain, 0).toFixed(1));
+        const totalHaulGain = parseFloat(movesArr.reduce((s, m) => s + m.haul_prob_gain, 0).toFixed(1));
+        const totalCostDiff = parseFloat(movesArr.reduce((s, m) => s + m.cost_diff, 0).toFixed(1));
+        const newBank = parseFloat((bank - totalCostDiff).toFixed(1));
+
+        return {
+          moves: movesArr,
+          total_score: bestScore,
+          total_xp_gain: totalXpGain,
+          total_ownership_gain: totalOwnGain,
+          total_ceiling_gain: totalCeilGain,
+          total_haul_prob_gain: totalHaulGain,
+          total_cost_diff: totalCostDiff,
+          new_bank: newBank,
+        };
+      }
+
+      // Evaluate plan sizes from 1 up to maxAllowedTransfers
+      let chosenPlan: SolvedPlan | null = null;
+      for (let m = 1; m <= maxAllowedTransfers; m++) {
+        const planM = searchSize(m);
+        if (!planM) continue;
+
+        if (!chosenPlan) {
+          chosenPlan = planM;
+        } else {
+          // Only upgrade to m transfers if it strictly improves score by at least +0.15
+          // (prevents burning an extra free transfer for marginal/lateral moves)
+          if (planM.total_score > chosenPlan.total_score + 0.15) {
+            chosenPlan = planM;
+          }
+        }
+      }
+
+      // Fallback: if search somehow yielded null, take top single move
+      if (!chosenPlan) {
+        const fallbackSingle = playerEntries[0]?.moves[0];
+        if (fallbackSingle) {
+          chosenPlan = {
+            moves: [fallbackSingle],
+            total_score: fallbackSingle[scoreKey],
+            total_xp_gain: fallbackSingle.xp_gain,
+            total_ownership_gain: fallbackSingle.ownership_gain,
+            total_ceiling_gain: fallbackSingle.ceiling_gain,
+            total_haul_prob_gain: fallbackSingle.haul_prob_gain,
+            total_cost_diff: fallbackSingle.cost_diff,
+            new_bank: parseFloat((bank - fallbackSingle.cost_diff).toFixed(1)),
+          };
+        } else {
+          // Absolute dummy fallback
+          const dummy = allSquadPlayers[0];
+          chosenPlan = {
+            moves: [],
+            total_score: 0,
+            total_xp_gain: 0,
+            total_ownership_gain: 0,
+            total_ceiling_gain: 0,
+            total_haul_prob_gain: 0,
+            total_cost_diff: 0,
+            new_bank: bank,
+          };
+        }
+      }
+
+      return chosenPlan;
+    }
+
+    // Solve for each of the 3 distinct strategies
+    const planPoints = solveOptimalPlan("points", freeTransfers);
+    const planTemplate = solveOptimalPlan("template", freeTransfers);
+    const planHaul = solveOptimalPlan("haul", freeTransfers);
+
+    // Compute alternative single transfers for the alternatives accordion
+    const flatSingleMoves: CandidateMove[] = [];
+    allMovesByPlayer.forEach((moves) => {
+      for (const m of moves) {
+        if (m.cost_diff <= bank + 0.001) {
+          flatSingleMoves.push(m);
+        }
+      }
+    });
+
+    const pointsAlts: TransferAlternative[] = [...flatSingleMoves]
+      .sort((a, b) => b.points_score - a.points_score)
+      .filter((m) => !planPoints.moves.some((pm) => pm.player_in.id === m.player_in.id))
       .slice(0, 3)
       .map((t) => ({
         player_out: t.player_out,
@@ -445,20 +703,13 @@ export async function GET(req: NextRequest) {
         ceiling_gain: t.ceiling_gain,
         haul_prob_gain: t.haul_prob_gain,
         cost_diff: t.cost_diff,
-        new_bank: t.new_bank,
+        new_bank: parseFloat((bank - t.cost_diff).toFixed(1)),
       }));
 
-    // C. Mode 3: Highest Haul Potential Transfer
-    const haulSorted = [...legalTransfers]
-      .filter((t) => t.ceiling_gain > 0 && t.haul_prob_gain >= 0)
-      .sort((a, b) => b.haul_score - a.haul_score);
-
-    let bestHaul =
-      haulSorted.find(
-        (t) => t.player_in.id !== bestPoints?.player_in.id && t.player_in.id !== bestTemplate?.player_in.id
-      ) || haulSorted[0] || pointsSorted[0];
-    const haulAlts = haulSorted
-      .filter((t) => t.player_in.id !== bestHaul.player_in.id)
+    const templateAlts: TransferAlternative[] = [...flatSingleMoves]
+      .filter((m) => m.player_in.selected_by_percent >= 15.0)
+      .sort((a, b) => b.template_score - a.template_score)
+      .filter((m) => !planTemplate.moves.some((pm) => pm.player_in.id === m.player_in.id))
       .slice(0, 3)
       .map((t) => ({
         player_out: t.player_out,
@@ -468,65 +719,167 @@ export async function GET(req: NextRequest) {
         ceiling_gain: t.ceiling_gain,
         haul_prob_gain: t.haul_prob_gain,
         cost_diff: t.cost_diff,
-        new_bank: t.new_bank,
+        new_bank: parseFloat((bank - t.cost_diff).toFixed(1)),
       }));
 
-    // Helper rationales
-    const horizonSuffix = horizon > 1 ? ` across the next ${horizon} gameweeks` : " for the upcoming gameweek";
+    const haulAlts: TransferAlternative[] = [...flatSingleMoves]
+      .filter((m) => m.ceiling_gain > 0 && m.haul_prob_gain >= 0)
+      .sort((a, b) => b.haul_score - a.haul_score)
+      .filter((m) => !planHaul.moves.some((pm) => pm.player_in.id === m.player_in.id))
+      .slice(0, 3)
+      .map((t) => ({
+        player_out: t.player_out,
+        player_in: t.player_in,
+        xp_gain: t.xp_gain,
+        ownership_gain: t.ownership_gain,
+        ceiling_gain: t.ceiling_gain,
+        haul_prob_gain: t.haul_prob_gain,
+        cost_diff: t.cost_diff,
+        new_bank: parseFloat((bank - t.cost_diff).toFixed(1)),
+      }));
 
-    const recPoints: TransferRecommendation = {
-      type: "points_optimized",
-      title: "Max Expected Points",
-      badge: "Points Optimizer",
-      description: `Upgrade ${bestPoints.player_out.name} to ${bestPoints.player_in.name} (${bestPoints.xp_gain >= 0 ? "+" : ""}${bestPoints.xp_gain} xP)`,
-      player_out: bestPoints.player_out,
-      player_in: bestPoints.player_in,
-      xp_gain: bestPoints.xp_gain,
-      ownership_gain: bestPoints.ownership_gain,
-      ceiling_gain: bestPoints.ceiling_gain,
-      haul_prob_gain: bestPoints.haul_prob_gain,
-      cost_diff: bestPoints.cost_diff,
-      new_bank: bestPoints.new_bank,
-      key_stat: `${bestPoints.xp_gain >= 0 ? "+" : ""}${bestPoints.xp_gain.toFixed(2)} xP`,
-      rationale: `Mathematically optimal route to points${horizonSuffix}. ${bestPoints.player_in.name} (${bestPoints.player_in.team}) projects for ${bestPoints.player_in.xp.toFixed(2)} xP, generating an immediate +${bestPoints.xp_gain.toFixed(2)} gain over ${bestPoints.player_out.name}.`,
-      alternatives: pointsAlts,
-    };
+    const horizonSuffix = horizon > 1 ? ` across next ${horizon} gameweeks` : " for the upcoming gameweek";
 
-    const recTemplate: TransferRecommendation = {
-      type: "template_protection",
-      title: "Template Rank Shield",
-      badge: "Rank Safety",
-      description: `Bring in template powerhouse ${bestTemplate.player_in.name} (${bestTemplate.player_in.selected_by_percent.toFixed(1)}% owned)`,
-      player_out: bestTemplate.player_out,
-      player_in: bestTemplate.player_in,
-      xp_gain: bestTemplate.xp_gain,
-      ownership_gain: bestTemplate.ownership_gain,
-      ceiling_gain: bestTemplate.ceiling_gain,
-      haul_prob_gain: bestTemplate.haul_prob_gain,
-      cost_diff: bestTemplate.cost_diff,
-      new_bank: bestTemplate.new_bank,
-      key_stat: `+${bestTemplate.ownership_gain.toFixed(1)}% Ownership`,
-      rationale: `Protects your overall rank from effective ownership damage. ${bestTemplate.player_in.name} is owned by ${bestTemplate.player_in.selected_by_percent.toFixed(1)}% of all managers. Swapping out ${bestTemplate.player_out.name} gives your squad critical template armor against big weeks.`,
-      alternatives: templateAlts,
-    };
+    // Helper: Build user-facing recommendation object
+    function buildRecommendation(
+      type: "points_optimized" | "template_protection" | "haul_potential",
+      plan: SolvedPlan,
+      alternatives: TransferAlternative[]
+    ): TransferRecommendation {
+      const count = plan.moves.length;
+      const firstMove = plan.moves[0] || {
+        player_out: allSquadPlayers[0],
+        player_in: allSquadPlayers[0] as any,
+        xp_gain: 0,
+        ownership_gain: 0,
+        ceiling_gain: 0,
+        haul_prob_gain: 0,
+        cost_diff: 0,
+      };
 
-    const recHaul: TransferRecommendation = {
-      type: "haul_potential",
-      title: "Explosive Ceiling Target",
-      badge: "Haul Potential",
-      description: `Target ${bestHaul.player_in.name}'s massive ceiling (P90: ${bestHaul.player_in.ceiling.toFixed(0)} pts, ${bestHaul.player_in.haul_prob.toFixed(1)}% haul rate)`,
-      player_out: bestHaul.player_out,
-      player_in: bestHaul.player_in,
-      xp_gain: bestHaul.xp_gain,
-      ownership_gain: bestHaul.ownership_gain,
-      ceiling_gain: bestHaul.ceiling_gain,
-      haul_prob_gain: bestHaul.haul_prob_gain,
-      cost_diff: bestHaul.cost_diff,
-      new_bank: bestHaul.new_bank,
-      key_stat: `P90: ${bestHaul.player_in.ceiling.toFixed(0)} pts (${bestHaul.ceiling_gain >= 0 ? "+" : ""}${bestHaul.ceiling_gain.toFixed(0)})`,
-      rationale: `Maximizes upside and haul probability for mini-league gains. ${bestHaul.player_in.name} possesses a high 90th-percentile ceiling of ${bestHaul.player_in.ceiling.toFixed(0)} points and a ${bestHaul.player_in.haul_prob.toFixed(1)}% chance of scoring 10+ points.`,
-      alternatives: haulAlts,
-    };
+      const transferMoves = plan.moves.map((m) => ({
+        player_out: m.player_out,
+        player_in: m.player_in,
+        xp_gain: m.xp_gain,
+        ownership_gain: m.ownership_gain,
+        ceiling_gain: m.ceiling_gain,
+        haul_prob_gain: m.haul_prob_gain,
+        cost_diff: m.cost_diff,
+      }));
+
+      const ftNote =
+        count < freeTransfers
+          ? ` (Saved ${freeTransfers - count} FT for future gameweeks)`
+          : "";
+
+      if (type === "points_optimized") {
+        const title =
+          count === 1
+            ? "Max Expected Points"
+            : `${count}-Transfer Points Combo`;
+        const description =
+          count === 1
+            ? `Upgrade ${firstMove.player_out.name} to ${firstMove.player_in.name} (${firstMove.xp_gain >= 0 ? "+" : ""}${firstMove.xp_gain} xP)`
+            : `Combo upgrade: ${plan.moves.map((m) => `${m.player_out.name} → ${m.player_in.name}`).join(" & ")} (+${plan.total_xp_gain.toFixed(2)} xP)`;
+        const rationale =
+          count === 1
+            ? `Mathematically optimal route to points${horizonSuffix}. ${firstMove.player_in.name} (${firstMove.player_in.team}) projects for ${firstMove.player_in.xp.toFixed(2)} xP, generating an immediate +${firstMove.xp_gain.toFixed(2)} gain over ${firstMove.player_out.name}.${ftNote}`
+            : `Multi-transfer optimization utilizing ${count} of your ${freeTransfers} free transfers${horizonSuffix}. Combined swaps generate a total net gain of +${plan.total_xp_gain.toFixed(2)} expected points while preserving squad balance and budget constraints.${ftNote}`;
+
+        return {
+          type,
+          title,
+          badge: count === 1 ? "Points Optimizer" : `${count}-Transfer Optimizer`,
+          description,
+          transfers: transferMoves,
+          transfers_count: count,
+          player_out: firstMove.player_out,
+          player_in: firstMove.player_in,
+          xp_gain: plan.total_xp_gain,
+          ownership_gain: plan.total_ownership_gain,
+          ceiling_gain: plan.total_ceiling_gain,
+          haul_prob_gain: plan.total_haul_prob_gain,
+          cost_diff: plan.total_cost_diff,
+          new_bank: plan.new_bank,
+          key_stat: `${plan.total_xp_gain >= 0 ? "+" : ""}${plan.total_xp_gain.toFixed(2)} xP`,
+          rationale,
+          alternatives,
+        };
+      }
+
+      if (type === "template_protection") {
+        const title =
+          count === 1
+            ? "Template Rank Shield"
+            : `${count}-Transfer Rank Shield`;
+        const description =
+          count === 1
+            ? `Bring in template powerhouse ${firstMove.player_in.name} (${firstMove.player_in.selected_by_percent.toFixed(1)}% owned)`
+            : `Template shield: ${plan.moves.map((m) => `${m.player_out.name} → ${m.player_in.name}`).join(" & ")} (+${plan.total_ownership_gain.toFixed(1)}% EO)`;
+        const rationale =
+          count === 1
+            ? `Protects your overall rank from effective ownership damage. ${firstMove.player_in.name} is owned by ${firstMove.player_in.selected_by_percent.toFixed(1)}% of managers. Swapping out ${firstMove.player_out.name} gives your squad critical template armor.${ftNote}`
+            : `Shields your rank by addressing ${count} high-ownership template gaps using ${count} of ${freeTransfers} free transfers. Secures +${plan.total_ownership_gain.toFixed(1)}% collective ownership armor without sacrificing baseline expected points.${ftNote}`;
+
+        return {
+          type,
+          title,
+          badge: count === 1 ? "Rank Safety" : `${count}-Transfer Shield`,
+          description,
+          transfers: transferMoves,
+          transfers_count: count,
+          player_out: firstMove.player_out,
+          player_in: firstMove.player_in,
+          xp_gain: plan.total_xp_gain,
+          ownership_gain: plan.total_ownership_gain,
+          ceiling_gain: plan.total_ceiling_gain,
+          haul_prob_gain: plan.total_haul_prob_gain,
+          cost_diff: plan.total_cost_diff,
+          new_bank: plan.new_bank,
+          key_stat: `+${plan.total_ownership_gain.toFixed(1)}% Ownership`,
+          rationale,
+          alternatives,
+        };
+      }
+
+      // haul_potential
+      const title =
+        count === 1
+          ? "Explosive Ceiling Target"
+          : `${count}-Transfer Haul Combo`;
+      const description =
+        count === 1
+          ? `Target ${firstMove.player_in.name}'s massive ceiling (P90: ${firstMove.player_in.ceiling.toFixed(0)} pts, ${firstMove.player_in.haul_prob.toFixed(1)}% haul rate)`
+          : `Ceiling combo: ${plan.moves.map((m) => `${m.player_out.name} → ${m.player_in.name}`).join(" & ")} (+${plan.total_ceiling_gain.toFixed(0)} ceiling pts)`;
+      const rationale =
+        count === 1
+          ? `Maximizes upside and haul probability for mini-league gains. ${firstMove.player_in.name} possesses a high 90th-percentile ceiling of ${firstMove.player_in.ceiling.toFixed(0)} points and a ${firstMove.player_in.haul_prob.toFixed(1)}% chance of scoring 10+ points.${ftNote}`
+          : `Maximizes explosive upside across ${count} players using ${count} of ${freeTransfers} free transfers. Boosts collective ceiling by +${plan.total_ceiling_gain.toFixed(0)} points and significantly raises team-wide double-digit haul frequency.${ftNote}`;
+
+      return {
+        type,
+        title,
+        badge: count === 1 ? "Haul Potential" : `${count}-Transfer Haul Combo`,
+        description,
+        transfers: transferMoves,
+        transfers_count: count,
+        player_out: firstMove.player_out,
+        player_in: firstMove.player_in,
+        xp_gain: plan.total_xp_gain,
+        ownership_gain: plan.total_ownership_gain,
+        ceiling_gain: plan.total_ceiling_gain,
+        haul_prob_gain: plan.total_haul_prob_gain,
+        cost_diff: plan.total_cost_diff,
+        new_bank: plan.new_bank,
+        key_stat: `+${plan.total_ceiling_gain.toFixed(0)} Ceiling pts`,
+        rationale,
+        alternatives,
+      };
+    }
+
+    const recPoints = buildRecommendation("points_optimized", planPoints, pointsAlts);
+    const recTemplate = buildRecommendation("template_protection", planTemplate, templateAlts);
+    const recHaul = buildRecommendation("haul_potential", planHaul, haulAlts);
 
     const responseData: UserTeamTransferResponse = {
       manager: {
@@ -562,6 +915,7 @@ export async function GET(req: NextRequest) {
       },
       player_replacements: playerReplacementsMap,
       horizon,
+      free_transfers: freeTransfers,
     };
 
     return NextResponse.json(responseData);

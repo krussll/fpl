@@ -1,0 +1,263 @@
+{
+  "team_name": "Ipswich Town",
+  "opponent_name": "Liverpool",
+  "gameweek": 3,
+  "score": "0 - 2",
+  "venue": "Home",
+  "sources": [
+    {
+      "name": "East Anglian Daily Times (Ipswich Desk)",
+      "type": "regional_beat",
+      "url": "https://www.eadt.co.uk/sport/ipswich-town/"
+    },
+    {
+      "name": "Kings of Anglia (EADT)",
+      "type": "fan_channel_podcast",
+      "url": "https://www.youtube.com/@KingsofAnglia"
+    },
+    {
+      "name": "Blue Monday Podcast",
+      "type": "fan_podcast",
+      "url": "https://www.youtube.com/@BlueMondayITFC"
+    }
+  ],
+  "overall_tactical_summary": "Ipswich Town faced Liverpool (0 - 2) in GW3 (Home). Tactical review highlights key contributions across the starting XI and substitutes.",
+  "players": {
+    "Diop": {
+      "element_id": 259,
+      "name": "Diop",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Lukić": {
+      "element_id": 267,
+      "name": "Lukić",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "O'Shea": {
+      "element_id": 304,
+      "name": "O'Shea",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Davis": {
+      "element_id": 305,
+      "name": "Davis",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Greaves": {
+      "element_id": 306,
+      "name": "Greaves",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Clarke": {
+      "element_id": 313,
+      "name": "Clarke",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 24 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (24 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Fatawu": {
+      "element_id": 315,
+      "name": "Fatawu",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 78 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Emersonn": {
+      "element_id": 316,
+      "name": "Emersonn",
+      "position": "FWD",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 65 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "McAteer": {
+      "element_id": 323,
+      "name": "McAteer",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 11 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (11 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Maeda": {
+      "element_id": 562,
+      "name": "Maeda",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 65 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Scherpen": {
+      "element_id": 564,
+      "name": "Scherpen",
+      "position": "GKP",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Enciso": {
+      "element_id": 591,
+      "name": "Enciso",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Ouattara": {
+      "element_id": 592,
+      "name": "Ouattara",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 12 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (12 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Palacios": {
+      "element_id": 619,
+      "name": "Palacios",
+      "position": "MID",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 77 mins",
+        "Defensive contribution: 19 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (4 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Flemming": {
+      "element_id": 640,
+      "name": "Flemming",
+      "position": "FWD",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 24 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (24 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    }
+  }
+}

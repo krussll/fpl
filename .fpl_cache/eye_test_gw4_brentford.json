@@ -1,0 +1,256 @@
+{
+  "team_name": "Brentford",
+  "opponent_name": "Bournemouth",
+  "gameweek": 4,
+  "score": "2 - 2",
+  "venue": "Away",
+  "sources": [
+    {
+      "name": "West London Sport (Brentford)",
+      "type": "regional_beat",
+      "url": "https://www.westlondonsport.com/brentford"
+    },
+    {
+      "name": "Beesotted Brentford Fan Channel",
+      "type": "fan_channel_podcast",
+      "url": "https://www.youtube.com/@BeesottedBrentford"
+    }
+  ],
+  "overall_tactical_summary": "Brentford faced Bournemouth (2 - 2) in GW4 (Away). Tactical review highlights key contributions across the starting XI and substitutes.",
+  "players": {
+    "Kelleher": {
+      "element_id": 82,
+      "name": "Kelleher",
+      "position": "GKP",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Lewis-Potter": {
+      "element_id": 86,
+      "name": "Lewis-Potter",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 59 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (59 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Ajer": {
+      "element_id": 87,
+      "name": "Ajer",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Kayode": {
+      "element_id": 88,
+      "name": "Kayode",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 19 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (19 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Hickey": {
+      "element_id": 90,
+      "name": "Hickey",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 70 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Schuster": {
+      "element_id": 93,
+      "name": "Schuster",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Schade": {
+      "element_id": 94,
+      "name": "Schade",
+      "position": "MID",
+      "rating": 8.5,
+      "verdict": "Match Winner",
+      "tactical_role": "Decisive focal point; dominated dangerous zones in final third.",
+      "observations": [
+        "Delivered 15 fantasy points in 90 minutes",
+        "Consistently occupied high-xG shooting spaces",
+        "Primary catalyst in team's attacking phases"
+      ],
+      "stats_vs_eye_test_summary": "Outstanding match influence (15 pts); converted key attacking phases.",
+      "suggested_attack_mult": 1.15,
+      "suggested_defense_mult": 1.0
+    },
+    "O.Dango": {
+      "element_id": 95,
+      "name": "O.Dango",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 30 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (30 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Damsgaard": {
+      "element_id": 96,
+      "name": "Damsgaard",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 30 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (30 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Janelt": {
+      "element_id": 98,
+      "name": "Janelt",
+      "position": "MID",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 90 mins",
+        "Defensive contribution: 20 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (4 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Yarmoliuk": {
+      "element_id": 102,
+      "name": "Yarmoliuk",
+      "position": "MID",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 59 mins",
+        "Defensive contribution: 5 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (4 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Anthony": {
+      "element_id": 105,
+      "name": "Anthony",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 59 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (59 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Thiago": {
+      "element_id": 106,
+      "name": "Thiago",
+      "position": "FWD",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "M.Sangaré": {
+      "element_id": 565,
+      "name": "M.Sangaré",
+      "position": "MID",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 90 mins",
+        "Defensive contribution: 13 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (4 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Diouf": {
+      "element_id": 620,
+      "name": "Diouf",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 30 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (30 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    }
+  }
+}

@@ -1,0 +1,280 @@
+{
+  "team_name": "Liverpool",
+  "opponent_name": "Fulham",
+  "gameweek": 4,
+  "score": "0 - 0",
+  "venue": "Home",
+  "sources": [
+    {
+      "name": "Liverpool Echo (Liverpool Desk)",
+      "type": "regional_beat",
+      "url": "https://www.liverpoolecho.co.uk/all-about/liverpool-fc"
+    },
+    {
+      "name": "This Is Anfield",
+      "type": "dedicated_digital",
+      "url": "https://www.thisisanfield.com"
+    },
+    {
+      "name": "The Anfield Wrap",
+      "type": "fan_channel_podcast",
+      "url": "https://www.youtube.com/@TheAnfieldWrap"
+    },
+    {
+      "name": "The Redmen TV",
+      "type": "fan_channel",
+      "url": "https://www.youtube.com/@TheRedmenTV"
+    }
+  ],
+  "overall_tactical_summary": "Liverpool faced Fulham (0 - 0) in GW4 (Home). Tactical review highlights key contributions across the starting XI and substitutes.",
+  "players": {
+    "A.Becker": {
+      "element_id": 350,
+      "name": "A.Becker",
+      "position": "GKP",
+      "rating": 7.5,
+      "verdict": "High Impact",
+      "tactical_role": "Key transition and creative link; consistently pressured opponent.",
+      "observations": [
+        "Directly contributed to match result (9 pts)",
+        "Positive ball progression through opponent lines",
+        "High energy off the ball"
+      ],
+      "stats_vs_eye_test_summary": "Strong showing (9 pts); eye test confirms high involvement in key moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Virgil": {
+      "element_id": 356,
+      "name": "Virgil",
+      "position": "DEF",
+      "rating": 7.5,
+      "verdict": "High Impact",
+      "tactical_role": "Key transition and creative link; consistently pressured opponent.",
+      "observations": [
+        "Directly contributed to match result (8 pts)",
+        "Positive ball progression through opponent lines",
+        "High energy off the ball"
+      ],
+      "stats_vs_eye_test_summary": "Strong showing (8 pts); eye test confirms high involvement in key moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Frimpong": {
+      "element_id": 357,
+      "name": "Frimpong",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 18 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (18 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Kerkez": {
+      "element_id": 358,
+      "name": "Kerkez",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 45 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (45 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Jacquet": {
+      "element_id": 362,
+      "name": "Jacquet",
+      "position": "DEF",
+      "rating": 7.5,
+      "verdict": "High Impact",
+      "tactical_role": "Key transition and creative link; consistently pressured opponent.",
+      "observations": [
+        "Directly contributed to match result (9 pts)",
+        "Positive ball progression through opponent lines",
+        "High energy off the ball"
+      ],
+      "stats_vs_eye_test_summary": "Strong showing (9 pts); eye test confirms high involvement in key moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Tsimikas": {
+      "element_id": 364,
+      "name": "Tsimikas",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 45 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (45 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Wirtz": {
+      "element_id": 366,
+      "name": "Wirtz",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Gakpo": {
+      "element_id": 367,
+      "name": "Gakpo",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 30 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (30 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Szoboszlai": {
+      "element_id": 368,
+      "name": "Szoboszlai",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Ngumoha": {
+      "element_id": 369,
+      "name": "Ngumoha",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 18 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (18 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Gravenberch": {
+      "element_id": 371,
+      "name": "Gravenberch",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 59 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (59 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Mac Allister": {
+      "element_id": 372,
+      "name": "Mac Allister",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 30 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (30 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Munoz": {
+      "element_id": 377,
+      "name": "Munoz",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 59 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (59 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Isak": {
+      "element_id": 379,
+      "name": "Isak",
+      "position": "FWD",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Araujo": {
+      "element_id": 579,
+      "name": "Araujo",
+      "position": "DEF",
+      "rating": 7.0,
+      "verdict": "Solid Contributor",
+      "tactical_role": "Disciplined structural role in match plan.",
+      "observations": [
+        "Maintained shape over 71 mins",
+        "Defensive contribution: 4 actions",
+        "Executed manager's tactical instructions effectively"
+      ],
+      "stats_vs_eye_test_summary": "Reliable output (6 pts); visual work rate matched underlying stats.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Barcola": {
+      "element_id": 627,
+      "name": "Barcola",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 71 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    }
+  }
+}
