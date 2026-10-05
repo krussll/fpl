@@ -32,6 +32,29 @@ export interface PlayerHistoryMatch {
   expected_assists?: string;
 }
 
+export interface PlayerEyeTestSource {
+  name: string;
+  type: string;
+  author?: string;
+  episode?: string;
+  url?: string;
+}
+
+export interface PlayerEyeTest {
+  rating: number;
+  verdict: string;
+  tactical_role: string;
+  observations: string[];
+  summary: string;
+  attack_multiplier: number;
+  defense_multiplier: number;
+  gameweek: number;
+  opponent: string;
+  score: string;
+  venue: string;
+  sources: PlayerEyeTestSource[];
+}
+
 export interface Player {
   id: number;
   name: string;
@@ -63,6 +86,7 @@ export interface Player {
   fixtures_5?: PlayerFixture[];
   five_gw?: Player;
   history?: PlayerHistoryMatch[];
+  eye_test?: PlayerEyeTest;
 }
 
 export interface SquadCaptainInfo {

@@ -3,7 +3,7 @@ Player Profile and Position Scoring Rules for FPL Monte Carlo Simulation.
 """
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Optional
 
 Position = Literal["GKP", "DEF", "MID", "FWD"]
 
@@ -87,6 +87,13 @@ class PlayerProfile:
     # Discipline metrics
     yellow_card_prob: float = 0.12     # Probability of receiving a yellow card
     red_card_prob: float = 0.01        # Probability of receiving a direct red card
+
+    # Qualitative "Eye Test" modifiers & scouting notes
+    eye_test_attack_mult: float = 1.0   # Bounded nudge applied to npxG90 & xA90 (e.g. 0.90 to 1.15)
+    eye_test_defense_mult: float = 1.0  # Bounded nudge applied to team defensive metrics
+    eye_test_rating: Optional[float] = None  # Rating out of 10 from beat reports
+    eye_test_verdict: Optional[str] = None   # Short descriptor e.g. "Primary Transition Spark"
+    eye_test_note: Optional[str] = None      # Qualitative insight contextualizing stats vs reality
 
     def effective_npxG_for_minutes(self, minutes: float) -> float:
         """Calculate expected non-penalty goals scaled to actual minutes played."""

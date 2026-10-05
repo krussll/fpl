@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { Player, PlayerHistoryMatch } from "@/types/player";
+import { Player, PlayerHistoryMatch, PlayerEyeTest } from "@/types/player";
 
 let cached5Map: Map<number, Player> | null = null;
 let last5Mtime: number = 0;
@@ -71,6 +71,60 @@ function getPlayerHistoriesMap(): Map<number, PlayerHistoryMatch[]> {
   return cachedHistoriesMap || new Map<number, PlayerHistoryMatch[]>();
 }
 
+let cachedEyeTestMap: Map<number, PlayerEyeTest> | null = null;
+
+function getEyeTestMap(): Map<number, PlayerEyeTest> {
+  const candidateDirs = [
+    path.resolve(process.cwd(), ".fpl_cache"),
+    path.resolve(process.cwd(), "..", ".fpl_cache"),
+  ];
+
+  for (const dir of candidateDirs) {
+    if (fs.existsSync(/*turbopackIgnore: true*/ dir)) {
+      try {
+        const files = fs.readdirSync(/*turbopackIgnore: true*/ dir).filter(f => f.startsWith("eye_test_gw") && f.endsWith(".json"));
+        if (files.length > 0) {
+          const map = new Map<number, PlayerEyeTest>();
+          for (const f of files) {
+            const raw = fs.readFileSync(path.join(/*turbopackIgnore: true*/ dir, f), "utf-8");
+            const data = JSON.parse(raw);
+            const gw = data.gameweek || 0;
+            const opp = data.opponent_name || "";
+            const score = data.score || "";
+            const venue = data.venue || "Home";
+            const sources = data.sources || [];
+            if (data.players && typeof data.players === "object") {
+              for (const p of Object.values(data.players) as any[]) {
+                if (p.element_id && !map.has(p.element_id)) {
+                  map.set(p.element_id, {
+                    rating: p.rating,
+                    verdict: p.verdict,
+                    tactical_role: p.tactical_role,
+                    observations: p.observations || [],
+                    summary: p.stats_vs_eye_test_summary || "",
+                    attack_multiplier: p.suggested_attack_mult || 1.0,
+                    defense_multiplier: p.suggested_defense_mult || 1.0,
+                    gameweek: gw,
+                    opponent: opp,
+                    score: score,
+                    venue: venue,
+                    sources: sources
+                  });
+                }
+              }
+            }
+          }
+          cachedEyeTestMap = map;
+          return map;
+        }
+      } catch (err) {
+        console.error("Failed to load eye-test cache:", err);
+      }
+    }
+  }
+  return cachedEyeTestMap || new Map<number, PlayerEyeTest>();
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -118,9 +172,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Always attach 5-GW fixtures, 5-GW forecast & match history
+    // Always attach 5-GW fixtures, 5-GW forecast, match history & eye test
     const map5 = get5FixturePlayersMap();
     const historiesMap = getPlayerHistoriesMap();
+    const eyeTestMap = getEyeTestMap();
     for (const player of playersData) {
       const p5 = map5.get(player.id);
       if (p5) {
@@ -130,6 +185,10 @@ export async function GET(request: NextRequest) {
       const hist = historiesMap.get(player.id);
       if (hist) {
         player.history = hist;
+      }
+      const eye = eyeTestMap.get(player.id);
+      if (eye) {
+        player.eye_test = eye;
       }
     }
 

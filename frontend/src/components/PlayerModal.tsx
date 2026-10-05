@@ -24,6 +24,7 @@ import {
   Sparkles,
   Loader2,
   ArrowLeft,
+  Eye,
 } from "lucide-react";
 
 interface PlayerModalProps {
@@ -302,6 +303,103 @@ export default function PlayerModal({
 
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+          {/* Eye-Test & Tactical Scouting Section */}
+          {activePlayer.eye_test && (
+            <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/40 via-white to-sky-50/30 p-4 sm:p-5 shadow-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-100/70 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+                    <Eye className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-slate-900">
+                        The Eye Test & Tactical Scouting
+                      </span>
+                      <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-bold text-indigo-700">
+                        GW{activePlayer.eye_test.gameweek} Debrief
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      vs {activePlayer.eye_test.opponent} ({activePlayer.eye_test.score}, {activePlayer.eye_test.venue})
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-1 text-xs font-bold text-white shadow-xs">
+                    <span>★</span>
+                    <span>{activePlayer.eye_test.rating.toFixed(1)} / 10</span>
+                  </span>
+                  <span className="rounded-xl border border-indigo-200/80 bg-white px-2.5 py-1 text-xs font-semibold text-indigo-800">
+                    {activePlayer.eye_test.verdict}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-3.5 space-y-3">
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    Tactical Role & Pitch Positioning
+                  </div>
+                  <p className="mt-0.5 text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+                    {activePlayer.eye_test.tactical_role}
+                  </p>
+                </div>
+
+                {activePlayer.eye_test.observations?.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      Key Pitch Observations
+                    </div>
+                    <ul className="mt-1 space-y-1">
+                      {activePlayer.eye_test.observations.map((obs, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-slate-600">
+                          <span className="text-indigo-500 mt-0.5">•</span>
+                          <span>{obs}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="rounded-xl bg-white/80 p-3 border border-indigo-100/60 text-xs text-slate-600">
+                  <span className="font-bold text-indigo-900">Stats vs Eye Test: </span>
+                  {activePlayer.eye_test.summary}
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-indigo-50 text-[11px] text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-700">Simulation Nudge:</span>
+                    <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-emerald-700 font-semibold border border-emerald-200/60">
+                      Att: {activePlayer.eye_test.attack_multiplier.toFixed(2)}x
+                    </span>
+                    <span className="rounded-md bg-sky-50 px-2 py-0.5 text-sky-700 font-semibold border border-sky-200/60">
+                      Def: {activePlayer.eye_test.defense_multiplier.toFixed(2)}x
+                    </span>
+                  </div>
+
+                  {activePlayer.eye_test.sources?.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-slate-400">
+                      <span>Sources:</span>
+                      {activePlayer.eye_test.sources.map((src, i) => (
+                        <a
+                          key={i}
+                          href={src.url || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
+                        >
+                          {src.name.split(" ")[0]}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Key Projections Grid */}
           <div>
             <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400">

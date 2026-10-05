@@ -213,7 +213,8 @@ def run_live_fpl_flow(
     seed: int,
     fixtures_count: int = 1,
     opponent_override: Optional[str] = None,
-    plot_path: Optional[str] = None
+    plot_path: Optional[str] = None,
+    use_eye_test: bool = False
 ):
     """Search for player in FPL API, build profile from live stats, and simulate."""
     client = FPLApiClient()
@@ -251,14 +252,15 @@ def run_live_fpl_flow(
 
     # Multi-fixture mode (fixtures_count > 1)
     if fixtures_count > 1 and not opponent_override:
-        profiles = client.build_multi_fixture_profiles(selected_player_data, count=fixtures_count)
+        profiles = client.build_multi_fixture_profiles(selected_player_data, count=fixtures_count, use_eye_test=use_eye_test)
         price_tag = f" | £{profiles[0].price:.1f}m" if profiles[0].price > 0 else ""
         print("\n" + "=" * 75)
         print(f"    OFFICIAL FPL {len(profiles)}-FIXTURE SCHEDULE: {profiles[0].name} ({profiles[0].position}{price_tag})")
         print("=" * 75)
         for i, p in enumerate(profiles, 1):
             cs_part = f" | CS%: {p.team_clean_sheet_prob*100:.0f}%" if p.position != "FWD" else ""
-            print(f"  Fix #{i}: {p.opponent:<30} | Scaled npxG90: {p.npxG90:.2f} | Scaled xA90: {p.xA90:.2f}{cs_part}")
+            eye_part = f" | Eye: {p.eye_test_verdict}" if p.eye_test_verdict else ""
+            print(f"  Fix #{i}: {p.opponent:<30} | Scaled npxG90: {p.npxG90:.2f} | Scaled xA90: {p.xA90:.2f}{cs_part}{eye_part}")
         print("=" * 75)
 
         print(f"\n[*] Running {sims:,} Monte Carlo simulations across {len(profiles)} upcoming fixtures...")
@@ -271,7 +273,7 @@ def run_live_fpl_flow(
         return
 
     # Single fixture mode (default or with override)
-    profile = client.build_player_profile(selected_player_data, opponent_team_name=opponent_override)
+    profile = client.build_player_profile(selected_player_data, opponent_team_name=opponent_override, use_eye_test=use_eye_test)
     
     print("\n" + "=" * 60)
     print(f"    OFFICIAL FPL STATS EXTRACTED: {profile.name}")
@@ -290,6 +292,13 @@ def run_live_fpl_flow(
         thresh = 10 if profile.position == "DEF" else 12
         actions_name = "CBIT" if profile.position == "DEF" else "CBIRT"
         print(f"  DefCon Rate    : {profile.defensive_contrib_per_90:.1f} {actions_name}/90 (Target: ≥{thresh} for +2 pts)")
+    if profile.eye_test_verdict:
+        rating_str = f" ({profile.eye_test_rating}/10)" if profile.eye_test_rating else ""
+        print("-" * 60)
+        print(f"  👁️  EYE-TEST ADJUSTMENT ACTIVE: {profile.eye_test_verdict}{rating_str}")
+        print(f"      Attack Nudge : {profile.eye_test_attack_mult:.2f}x | Defense Nudge: {profile.eye_test_defense_mult:.2f}x")
+        if profile.eye_test_note:
+            print(f"      Scouting     : {profile.eye_test_note}")
     print("=" * 60)
 
 
@@ -313,6 +322,7 @@ def main():
     parser.add_argument("--sims", type=int, default=10000, help="Number of simulated matches (default: 10000)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     parser.add_argument("--plot", type=str, default=None, help="Output image filename for chart")
+    parser.add_argument("--eye-test", action="store_true", help="Apply qualitative eye-test modifiers (beat reports, fan-channel reviews)")
     
     # Optional CLI arguments for non-interactive custom player
     parser.add_argument("--name", type=str, help="Player Name")
@@ -337,7 +347,8 @@ def main():
             args.seed,
             fixtures_count=args.fixtures,
             opponent_override=args.vs,
-            plot_path=args.plot
+            plot_path=args.plot,
+            use_eye_test=args.eye_test
         )
         return
 

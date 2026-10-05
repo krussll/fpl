@@ -64,14 +64,24 @@ class SimulationSummary:
     
     # Exact point distribution {score: probability}
     distribution: Dict[int, float] = field(default_factory=dict)
+    eye_test_verdict: Optional[str] = None
+    eye_test_rating: Optional[float] = None
+    eye_test_note: Optional[str] = None
 
     def print_ascii_report(self) -> None:
         """Print a formatted console report with an ASCII histogram."""
         price_tag = f" | £{self.player_price:.1f}m" if self.player_price > 0 else ""
-        header = f"=== Monte Carlo FPL Simulation Report: {self.player_name} ({self.position}{price_tag}) ==="
+        eye_tag = f" [Eye-Test: {self.eye_test_verdict}]" if self.eye_test_verdict else ""
+        header = f"=== Monte Carlo FPL Simulation Report: {self.player_name} ({self.position}{price_tag}){eye_tag} ==="
         print("=" * len(header))
         print(header)
         print("=" * len(header))
+        if self.eye_test_verdict:
+            rating_str = f" ({self.eye_test_rating}/10)" if self.eye_test_rating else ""
+            print(f"Eye-Test Scouting     : {self.eye_test_verdict}{rating_str}")
+            if self.eye_test_note:
+                print(f"  ↳ Tactical Context  : {self.eye_test_note}")
+            print("-" * len(header))
         print(f"Simulations Run       : {self.n_simulations:,}")
         print(f"Expected Points (Mean): {self.mean_points:.2f} pts")
         if self.player_price > 0:
@@ -423,7 +433,10 @@ class FPLMonteCarloSimulator:
             haul_rate=float(np.mean(points >= 10)),
             mega_haul_rate=float(np.mean(points >= 15)),
             defcon_rate=defcon_rate,
-            distribution=dist
+            distribution=dist,
+            eye_test_verdict=player.eye_test_verdict,
+            eye_test_rating=player.eye_test_rating,
+            eye_test_note=player.eye_test_note
         )
         return summary
 

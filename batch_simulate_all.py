@@ -36,7 +36,7 @@ def simulate_player_single_fixture(args: Tuple[Dict[str, Any], int]) -> Dict[str
     selected_by_percent = float(raw.get("selected_by_percent") or 0.0)
 
     pdata = {"raw": raw, "minutes": mins}
-    profile = client.build_player_profile(pdata)
+    profile = client.build_player_profile(pdata, use_eye_test=True)
     
     upcoming = client.get_upcoming_fixtures(t_id, count=1)
     fix_display = upcoming[0]["display"] if upcoming else "Upcoming"
@@ -90,7 +90,12 @@ def simulate_player_single_fixture(args: Tuple[Dict[str, Any], int]) -> Dict[str
         "cs_prob": cs_prob,
         "fixtures": fixtures_info,
         "distribution": dist,
-        "simulations": n_sims
+        "simulations": n_sims,
+        "eye_test_rating": profile.eye_test_rating,
+        "eye_test_verdict": profile.eye_test_verdict,
+        "eye_test_note": profile.eye_test_note,
+        "eye_test_attack_mult": profile.eye_test_attack_mult,
+        "eye_test_defense_mult": profile.eye_test_defense_mult
     }
 
 
@@ -112,7 +117,7 @@ def simulate_player_multi_fixtures(args: Tuple[Dict[str, Any], int, int]) -> Dic
     selected_by_percent = float(raw.get("selected_by_percent") or 0.0)
 
     pdata = {"raw": raw, "minutes": mins}
-    profiles = client.build_multi_fixture_profiles(pdata, count=count)
+    profiles = client.build_multi_fixture_profiles(pdata, count=count, use_eye_test=True)
     
     upcoming = client.get_upcoming_fixtures(t_id, count=count)
     ms = sim.run_multi_fixtures(profiles, n_simulations=n_sims)
@@ -163,7 +168,12 @@ def simulate_player_multi_fixtures(args: Tuple[Dict[str, Any], int, int]) -> Dic
         "cs_prob": round(fixtures_info[0]["cs_prob"], 1) if fixtures_info else 0.0,
         "fixtures": fixtures_info,
         "distribution": dist,
-        "simulations": n_sims
+        "simulations": n_sims,
+        "eye_test_rating": first_prof.eye_test_rating,
+        "eye_test_verdict": first_prof.eye_test_verdict,
+        "eye_test_note": first_prof.eye_test_note,
+        "eye_test_attack_mult": first_prof.eye_test_attack_mult,
+        "eye_test_defense_mult": first_prof.eye_test_defense_mult
     }
 
 
@@ -334,6 +344,14 @@ def update_player_histories(base_dir: str = ".") -> None:
         print(f"[✔] Synced to {fe_cache}.")
 
 
+def update_eye_test_data(gameweek: int = 5, overwrite_existing: bool = False, base_dir: str = ".") -> None:
+    """Ingests and validates eye-test observations across all clubs for the gameweek."""
+    from ingest_eye_test import ingest_all_clubs_for_gameweek
+    cache_dir = os.path.join(base_dir, ".fpl_cache")
+    print(f"\n[*] Updating Eye-Test qualitative scouting reports for GW{gameweek} across all clubs...")
+    ingest_all_clubs_for_gameweek(gameweek=gameweek, overwrite_existing=overwrite_existing, cache_dir=cache_dir)
+
+
 def sync_all_cache_files(base_dir: str = ".") -> None:
     """Syncs essential cache files from .fpl_cache to frontend/.fpl_cache."""
     import shutil
@@ -350,8 +368,32 @@ def sync_all_cache_files(base_dir: str = ".") -> None:
 
 
 if __name__ == "__main__":
-    update_player_histories()
-    run_all_player_simulations(fixtures_list=[1, 2, 3, 4, 5], n_sims=10000)
-    regenerate_saved_charts(n_sims=10000)
-    regenerate_all_optimal_squads(horizons=[1, 3, 5])
+    import argparse
+    parser = argparse.ArgumentParser(description="Batch Monte Carlo Simulation & Optimization Engine")
+    parser.add_argument("--gw", type=int, default=5, help="Gameweek number for eye-test ingestion (default: 5)")
+    parser.add_argument("--skip-histories", action="store_true", help="Skip fetching live player histories")
+    parser.add_argument("--skip-eye-test", action="store_true", help="Skip eye-test ingestion pipeline")
+    parser.add_argument("--overwrite-eye-test", action="store_true", help="Overwrite existing cached eye-test reports")
+    parser.add_argument("--sims", type=int, default=10000, help="Number of Monte Carlo simulations per player (default: 10000)")
+    parser.add_argument("--fixtures", type=str, default="1,2,3,4,5", help="Comma-separated fixture horizons (default: 1,2,3,4,5)")
+    parser.add_argument("--skip-charts", action="store_true", help="Skip regenerating PNG charts")
+    parser.add_argument("--skip-optimizer", action="store_true", help="Skip regenerating optimal squads")
+    args = parser.parse_args()
+
+    fix_list = [int(f.strip()) for f in args.fixtures.split(",") if f.strip()]
+
+    if not args.skip_histories:
+        update_player_histories()
+
+    if not args.skip_eye_test:
+        update_eye_test_data(gameweek=args.gw, overwrite_existing=args.overwrite_eye_test)
+
+    run_all_player_simulations(fixtures_list=fix_list, n_sims=args.sims)
+
+    if not args.skip_charts:
+        regenerate_saved_charts(n_sims=args.sims)
+
+    if not args.skip_optimizer:
+        regenerate_all_optimal_squads(horizons=[h for h in [1, 3, 5] if h in fix_list or not fix_list])
+
     sync_all_cache_files()

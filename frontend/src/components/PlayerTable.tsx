@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Search,
   X,
+  Eye,
 } from "lucide-react";
 
 type SortField =
@@ -1463,8 +1464,19 @@ export default function PlayerTable() {
                     >
                       {/* 1. Player Name & Team */}
                       <td className="py-3.5 pl-4 pr-3 whitespace-nowrap">
-                        <div className="font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                          {player.name}
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                            {player.name}
+                          </span>
+                          {player.eye_test && (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 ring-1 ring-inset ring-indigo-500/20 shadow-2xs"
+                              title={`Eye Test: ${player.eye_test.verdict} (${player.eye_test.rating}/10)`}
+                            >
+                              <Eye className="h-3 w-3 text-indigo-600" />
+                              <span>{player.eye_test.rating.toFixed(1)}</span>
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-slate-500">
                           {player.team}
