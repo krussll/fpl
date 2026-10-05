@@ -562,25 +562,33 @@ class FPLApiClient:
         else:
             scaled_def_contrib = 0.0
 
-        # 9. Apply qualitative Eye-Test modifiers if requested
+        # 9. Apply qualitative Eye-Test modifiers if requested (using 3-GW rolling form curve)
         eye_attack_mult = 1.0
         eye_def_mult = 1.0
         eye_rating = None
         eye_verdict = None
         eye_note = None
+        eye_trend = None
+        eye_trend_delta = 0.0
+        eye_ratings_hist = []
+        eye_gws = []
 
         if use_eye_test and self.eye_test_manager:
-            eval_tuple = self.eye_test_manager.get_player_evaluation(
+            rolling_form = self.eye_test_manager.get_player_rolling_form(
                 player_id=raw.get("id"),
-                player_name=raw.get("web_name")
+                player_name=raw.get("web_name"),
+                horizon=3
             )
-            if eval_tuple:
-                p_eval, _ = eval_tuple
-                eye_attack_mult = p_eval.suggested_attack_mult
-                eye_def_mult = p_eval.suggested_defense_mult
-                eye_rating = p_eval.rating
-                eye_verdict = p_eval.verdict
-                eye_note = p_eval.stats_vs_eye_test_summary
+            if rolling_form:
+                eye_attack_mult = rolling_form.effective_attack_mult
+                eye_def_mult = rolling_form.effective_defense_mult
+                eye_rating = rolling_form.weighted_rating
+                eye_verdict = rolling_form.latest_verdict
+                eye_note = rolling_form.rolling_tactical_summary
+                eye_trend = rolling_form.trend
+                eye_trend_delta = rolling_form.trend_delta
+                eye_ratings_hist = rolling_form.ratings
+                eye_gws = rolling_form.gameweeks
 
                 # Apply gentle bounded modifiers
                 scaled_npxg90 = round(scaled_npxg90 * eye_attack_mult, 2)
@@ -615,7 +623,11 @@ class FPLApiClient:
             eye_test_defense_mult=eye_def_mult,
             eye_test_rating=eye_rating,
             eye_test_verdict=eye_verdict,
-            eye_test_note=eye_note
+            eye_test_note=eye_note,
+            eye_test_trend=eye_trend,
+            eye_test_trend_delta=eye_trend_delta,
+            eye_test_ratings_history=eye_ratings_hist,
+            eye_test_gameweeks=eye_gws
         )
 
     def build_multi_fixture_profiles(

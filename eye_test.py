@@ -68,6 +68,79 @@ class EyeTestMatchReport:
         )
 
 
+@dataclass
+class EyeTestMatchAppearance:
+    """Historical appearance record in a single gameweek."""
+    gameweek: int
+    opponent_name: str
+    venue: str
+    score: str
+    rating: float
+    verdict: str
+    tactical_role: str
+    observations: List[str]
+    summary: str
+    attack_mult: float
+    defense_mult: float
+    sources: List[Dict[str, str]] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class EyeTestRollingForm:
+    """Multi-gameweek aggregated eye-test performance and form momentum."""
+    element_id: int
+    name: str
+    position: str
+    team: str
+    horizon: int                            # Number of gameweeks in tracking window (e.g. 3)
+    matches_evaluated: int                  # Number of appearances actually found in window
+    gameweeks: List[int]                    # Chronological gameweeks, e.g. [3, 4, 5]
+    ratings: List[float]                    # Chronological ratings, e.g. [6.5, 7.0, 7.5]
+    weighted_rating: float                  # Recency-weighted average rating
+    unweighted_mean: float                  # Simple average rating
+    trend: str                              # "RISING", "FALLING", "STEADY", "VOLATILE"
+    trend_delta: float                      # Latest rating minus oldest rating in horizon
+    effective_attack_mult: float            # Smoothed simulation attack multiplier
+    effective_defense_mult: float           # Smoothed simulation defense multiplier
+    latest_verdict: str                     # Most recent verdict
+    history: List[EyeTestMatchAppearance]   # Chronological appearance list
+    rolling_tactical_summary: str           # Synthesized multi-match overview
+
+    def to_dict(self) -> Dict[str, Any]:
+        latest_match = self.history[-1] if self.history else None
+        return {
+            "element_id": self.element_id,
+            "name": self.name,
+            "position": self.position,
+            "team": self.team,
+            "horizon": self.horizon,
+            "matches_evaluated": self.matches_evaluated,
+            "gameweeks": self.gameweeks,
+            "ratings_history": self.ratings,
+            "rating": self.weighted_rating,
+            "weighted_rating": self.weighted_rating,
+            "unweighted_mean": self.unweighted_mean,
+            "trend": self.trend,
+            "trend_delta": self.trend_delta,
+            "attack_multiplier": self.effective_attack_mult,
+            "defense_multiplier": self.effective_defense_mult,
+            "verdict": self.latest_verdict,
+            "tactical_role": latest_match.tactical_role if latest_match else "",
+            "observations": latest_match.observations if latest_match else [],
+            "summary": self.rolling_tactical_summary,
+            "rolling_tactical_summary": self.rolling_tactical_summary,
+            "gameweek": latest_match.gameweek if latest_match else (self.gameweeks[-1] if self.gameweeks else 0),
+            "opponent": latest_match.opponent_name if latest_match else "",
+            "score": latest_match.score if latest_match else "",
+            "venue": latest_match.venue if latest_match else "Home",
+            "sources": latest_match.sources if latest_match else [],
+            "history": [h.to_dict() for h in self.history]
+        }
+
+
 class EyeTestManager:
     """Manages eye-test cache files, parsing, validation, and retrieval."""
 
@@ -77,6 +150,8 @@ class EyeTestManager:
         self._cached_reports: Optional[List[EyeTestMatchReport]] = None
         self._id_eval_map: Optional[Dict[int, tuple[EyeTestPlayerEvaluation, EyeTestMatchReport]]] = None
         self._name_eval_map: Optional[Dict[str, tuple[EyeTestPlayerEvaluation, EyeTestMatchReport]]] = None
+        self._id_history_map: Optional[Dict[int, List[tuple[EyeTestPlayerEvaluation, EyeTestMatchReport]]]] = None
+        self._name_history_map: Optional[Dict[str, List[tuple[EyeTestPlayerEvaluation, EyeTestMatchReport]]]] = None
         os.makedirs(self.cache_dir, exist_ok=True)
 
     def _get_filename(self, team_name: str, gameweek: int) -> str:
@@ -92,6 +167,8 @@ class EyeTestManager:
         self._cached_reports = None
         self._id_eval_map = None
         self._name_eval_map = None
+        self._id_history_map = None
+        self._name_history_map = None
         return path
 
     def load_report(self, team_name: str, gameweek: int) -> Optional[EyeTestMatchReport]:
@@ -135,15 +212,24 @@ class EyeTestManager:
             return
         self._id_eval_map = {}
         self._name_eval_map = {}
+        self._id_history_map = {}
+        self._name_history_map = {}
         reports = self.get_all_reports()
         for rep in reports:
             for p_eval in rep.players.values():
-                if p_eval.element_id is not None and p_eval.element_id not in self._id_eval_map:
-                    self._id_eval_map[p_eval.element_id] = (p_eval, rep)
+                if p_eval.element_id is not None:
+                    if p_eval.element_id not in self._id_eval_map:
+                        self._id_eval_map[p_eval.element_id] = (p_eval, rep)
+                    if p_eval.element_id not in self._id_history_map:
+                        self._id_history_map[p_eval.element_id] = []
+                    self._id_history_map[p_eval.element_id].append((p_eval, rep))
                 if p_eval.name:
                     norm = p_eval.name.lower().strip()
                     if norm not in self._name_eval_map:
                         self._name_eval_map[norm] = (p_eval, rep)
+                    if norm not in self._name_history_map:
+                        self._name_history_map[norm] = []
+                    self._name_history_map[norm].append((p_eval, rep))
 
     def get_player_evaluation(
         self,
@@ -166,28 +252,154 @@ class EyeTestManager:
                     return val
         return None
 
-    def get_all_player_evaluations_map(self) -> Dict[int, Dict[str, Any]]:
+    def get_player_rolling_form(
+        self,
+        player_id: Optional[int] = None,
+        player_name: Optional[str] = None,
+        horizon: int = 3
+    ) -> Optional[EyeTestRollingForm]:
         """
-        Returns a mapping of element_id -> enriched eye-test data dictionary.
+        Calculates rolling eye-test form and trajectory over the player's last N matches.
+        Uses recency-weighted decay (e.g. 50% GW5, 30% GW4, 20% GW3) to smooth single-match noise.
+        """
+        self._ensure_index()
+        if player_id is None and player_name:
+            norm_name = player_name.lower().strip()
+            if norm_name in self._name_eval_map:
+                player_id = self._name_eval_map[norm_name][0].element_id
+            else:
+                for k, v in self._name_eval_map.items():
+                    if norm_name in k or k in norm_name:
+                        player_id = v[0].element_id
+                        break
+
+        entries_desc = []
+        if player_id is not None and player_id in self._id_history_map:
+            entries_desc = self._id_history_map[player_id]
+        elif player_name:
+            norm_name = player_name.lower().strip()
+            if norm_name in self._name_history_map:
+                entries_desc = self._name_history_map[norm_name]
+            else:
+                for k, v in self._name_history_map.items():
+                    if norm_name in k or k in norm_name:
+                        entries_desc = v
+                        break
+
+        if not entries_desc:
+            return None
+
+        # Take up to 'horizon' most recent matches and sort chronologically (ascending: GW3 -> GW4 -> GW5)
+        recent_entries = sorted(entries_desc[:horizon], key=lambda x: x[1].gameweek)
+        K = len(recent_entries)
+        if K == 0:
+            return None
+
+        # Recency weights (chronological order: oldest to newest)
+        if K == 1:
+            weights = [1.0]
+        elif K == 2:
+            weights = [0.35, 0.65]
+        elif K == 3:
+            weights = [0.20, 0.30, 0.50]
+        else:
+            raw_w = [1.6 ** i for i in range(K)]
+            tot = sum(raw_w)
+            weights = [w / tot for w in raw_w]
+
+        ratings = [p.rating for p, r in recent_entries]
+        gameweeks = [r.gameweek for p, r in recent_entries]
+
+        weighted_rating = round(sum(w * r for w, r in zip(weights, ratings)), 2)
+        unweighted_mean = round(sum(ratings) / K, 2)
+        trend_delta = round(ratings[-1] - ratings[0], 2) if K >= 2 else 0.0
+
+        if K >= 2:
+            if trend_delta >= 0.75:
+                trend = "RISING"
+            elif trend_delta <= -0.75:
+                trend = "FALLING"
+            else:
+                import statistics
+                if K >= 3 and statistics.stdev(ratings) >= 1.25:
+                    trend = "VOLATILE"
+                else:
+                    trend = "STEADY"
+        else:
+            trend = "STEADY"
+
+        eff_att = round(sum(w * p.suggested_attack_mult for w, (p, r) in zip(weights, recent_entries)), 2)
+        eff_def = round(sum(w * p.suggested_defense_mult for w, (p, r) in zip(weights, recent_entries)), 2)
+
+        latest_p, latest_r = recent_entries[-1]
+        gw_seq = " → ".join(f"GW{r.gameweek} ({p.rating:.1f})" for p, r in recent_entries)
+        trend_desc = {
+            "RISING": "trending strongly upward with rising match influence",
+            "FALLING": "showing a drop in attacking/tactical involvement",
+            "VOLATILE": "exhibiting high match-to-match variance",
+            "STEADY": "maintaining consistent tactical output"
+        }.get(trend, "demonstrating steady form")
+
+        rolling_summary = (
+            f"{latest_p.name} holds a {weighted_rating:.1f}/10 rolling eye-test rating over {K} matches ({gw_seq}), "
+            f"{trend_desc}. Latest scouting notes vs {latest_r.opponent_name}: \"{latest_p.stats_vs_eye_test_summary}\""
+        )
+
+        history_records = []
+        for p, r in recent_entries:
+            history_records.append(EyeTestMatchAppearance(
+                gameweek=r.gameweek,
+                opponent_name=r.opponent_name,
+                venue=r.venue,
+                score=r.score,
+                rating=p.rating,
+                verdict=p.verdict,
+                tactical_role=p.tactical_role,
+                observations=p.observations,
+                summary=p.stats_vs_eye_test_summary,
+                attack_mult=p.suggested_attack_mult,
+                defense_mult=p.suggested_defense_mult,
+                sources=r.sources
+            ))
+
+        return EyeTestRollingForm(
+            element_id=latest_p.element_id or player_id or 0,
+            name=latest_p.name,
+            position=latest_p.position,
+            team=latest_r.team_name,
+            horizon=horizon,
+            matches_evaluated=K,
+            gameweeks=gameweeks,
+            ratings=ratings,
+            weighted_rating=weighted_rating,
+            unweighted_mean=unweighted_mean,
+            trend=trend,
+            trend_delta=trend_delta,
+            effective_attack_mult=eff_att,
+            effective_defense_mult=eff_def,
+            latest_verdict=latest_p.verdict,
+            history=history_records,
+            rolling_tactical_summary=rolling_summary
+        )
+
+    def get_all_player_rolling_forms_map(self, horizon: int = 3) -> Dict[int, Dict[str, Any]]:
+        """
+        Returns a mapping of element_id -> enriched rolling form dictionary across N gameweeks.
         """
         self._ensure_index()
         result = {}
-        for el_id, (p_eval, rep) in self._id_eval_map.items():
-            result[el_id] = {
-                "rating": p_eval.rating,
-                "verdict": p_eval.verdict,
-                "tactical_role": p_eval.tactical_role,
-                "observations": p_eval.observations,
-                "summary": p_eval.stats_vs_eye_test_summary,
-                "attack_multiplier": p_eval.suggested_attack_mult,
-                "defense_multiplier": p_eval.suggested_defense_mult,
-                "gameweek": rep.gameweek,
-                "opponent": rep.opponent_name,
-                "score": rep.score,
-                "venue": rep.venue,
-                "sources": rep.sources
-            }
+        for el_id in self._id_history_map.keys():
+            rf = self.get_player_rolling_form(player_id=el_id, horizon=horizon)
+            if rf:
+                result[el_id] = rf.to_dict()
         return result
+
+    def get_all_player_evaluations_map(self, horizon: int = 3) -> Dict[int, Dict[str, Any]]:
+        """
+        Returns full rolling form mapping across the horizon (default: 3 GWs).
+        Maintains backwards compatibility with single-match consumers.
+        """
+        return self.get_all_player_rolling_forms_map(horizon=horizon)
 
     def validate_report(self, report: EyeTestMatchReport) -> List[str]:
         """

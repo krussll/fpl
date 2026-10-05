@@ -478,29 +478,9 @@ def get_eye_test_reports(
     if not client.eye_test_manager:
         return {"reports": []}
     if isinstance(player_id, int):
-        eval_tuple = client.eye_test_manager.get_player_evaluation(player_id=player_id)
-        if eval_tuple:
-            p_eval, rep = eval_tuple
-            return {
-                "player": {
-                    "rating": p_eval.rating,
-                    "verdict": p_eval.verdict,
-                    "tactical_role": p_eval.tactical_role,
-                    "observations": p_eval.observations,
-                    "summary": p_eval.stats_vs_eye_test_summary,
-                    "attack_multiplier": p_eval.suggested_attack_mult,
-                    "defense_multiplier": p_eval.suggested_defense_mult,
-                },
-                "match": {
-                    "team_name": rep.team_name,
-                    "opponent_name": rep.opponent_name,
-                    "gameweek": rep.gameweek,
-                    "score": rep.score,
-                    "venue": rep.venue,
-                    "sources": rep.sources,
-                    "overall_tactical_summary": rep.overall_tactical_summary
-                }
-            }
+        rolling_form = client.eye_test_manager.get_player_rolling_form(player_id=player_id, horizon=3)
+        if rolling_form:
+            return rolling_form.to_dict()
         raise HTTPException(status_code=404, detail="No eye-test found for player")
 
     reports = client.eye_test_manager.get_all_reports()

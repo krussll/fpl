@@ -95,7 +95,11 @@ def simulate_player_single_fixture(args: Tuple[Dict[str, Any], int]) -> Dict[str
         "eye_test_verdict": profile.eye_test_verdict,
         "eye_test_note": profile.eye_test_note,
         "eye_test_attack_mult": profile.eye_test_attack_mult,
-        "eye_test_defense_mult": profile.eye_test_defense_mult
+        "eye_test_defense_mult": profile.eye_test_defense_mult,
+        "eye_test_trend": profile.eye_test_trend,
+        "eye_test_trend_delta": profile.eye_test_trend_delta,
+        "eye_test_ratings_history": profile.eye_test_ratings_history,
+        "eye_test_gameweeks": profile.eye_test_gameweeks
     }
 
 
@@ -173,7 +177,11 @@ def simulate_player_multi_fixtures(args: Tuple[Dict[str, Any], int, int]) -> Dic
         "eye_test_verdict": first_prof.eye_test_verdict,
         "eye_test_note": first_prof.eye_test_note,
         "eye_test_attack_mult": first_prof.eye_test_attack_mult,
-        "eye_test_defense_mult": first_prof.eye_test_defense_mult
+        "eye_test_defense_mult": first_prof.eye_test_defense_mult,
+        "eye_test_trend": first_prof.eye_test_trend,
+        "eye_test_trend_delta": first_prof.eye_test_trend_delta,
+        "eye_test_ratings_history": first_prof.eye_test_ratings_history,
+        "eye_test_gameweeks": first_prof.eye_test_gameweeks
     }
 
 
@@ -344,12 +352,14 @@ def update_player_histories(base_dir: str = ".") -> None:
         print(f"[✔] Synced to {fe_cache}.")
 
 
-def update_eye_test_data(gameweek: int = 5, overwrite_existing: bool = False, base_dir: str = ".") -> None:
-    """Ingests and validates eye-test observations across all clubs for the gameweek."""
+def update_eye_test_data(gameweeks: Optional[List[int]] = None, overwrite_existing: bool = False, base_dir: str = ".") -> None:
+    """Ingests and validates eye-test observations across all clubs for the specified gameweeks (default: [3, 4, 5])."""
     from ingest_eye_test import ingest_all_clubs_for_gameweek
     cache_dir = os.path.join(base_dir, ".fpl_cache")
-    print(f"\n[*] Updating Eye-Test qualitative scouting reports for GW{gameweek} across all clubs...")
-    ingest_all_clubs_for_gameweek(gameweek=gameweek, overwrite_existing=overwrite_existing, cache_dir=cache_dir)
+    target_gws = gameweeks or [3, 4, 5]
+    for gw in target_gws:
+        print(f"\n[*] Updating Eye-Test qualitative scouting reports for GW{gw} across all clubs...")
+        ingest_all_clubs_for_gameweek(gameweek=gw, overwrite_existing=overwrite_existing, cache_dir=cache_dir)
 
 
 def sync_all_cache_files(base_dir: str = ".") -> None:
@@ -370,7 +380,7 @@ def sync_all_cache_files(base_dir: str = ".") -> None:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Batch Monte Carlo Simulation & Optimization Engine")
-    parser.add_argument("--gw", type=int, default=5, help="Gameweek number for eye-test ingestion (default: 5)")
+    parser.add_argument("--gw", type=str, default="3,4,5", help="Comma-separated gameweeks for eye-test window (default: 3,4,5)")
     parser.add_argument("--skip-histories", action="store_true", help="Skip fetching live player histories")
     parser.add_argument("--skip-eye-test", action="store_true", help="Skip eye-test ingestion pipeline")
     parser.add_argument("--overwrite-eye-test", action="store_true", help="Overwrite existing cached eye-test reports")
@@ -381,12 +391,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     fix_list = [int(f.strip()) for f in args.fixtures.split(",") if f.strip()]
+    gw_list = [int(g.strip()) for g in args.gw.split(",") if g.strip()]
 
     if not args.skip_histories:
         update_player_histories()
 
     if not args.skip_eye_test:
-        update_eye_test_data(gameweek=args.gw, overwrite_existing=args.overwrite_eye_test)
+        update_eye_test_data(gameweeks=gw_list, overwrite_existing=args.overwrite_eye_test)
 
     run_all_player_simulations(fixtures_list=fix_list, n_sims=args.sims)
 

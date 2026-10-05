@@ -16,6 +16,8 @@ import {
   Search,
   X,
   Eye,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 
 type SortField =
@@ -1471,10 +1473,20 @@ export default function PlayerTable() {
                           {player.eye_test && (
                             <span
                               className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 ring-1 ring-inset ring-indigo-500/20 shadow-2xs"
-                              title={`Eye Test: ${player.eye_test.verdict} (${player.eye_test.rating}/10)`}
+                              title={`3-GW Eye Test: ${player.eye_test.verdict} (${player.eye_test.rating.toFixed(1)}/10, ${player.eye_test.trend || "STEADY"})${
+                                player.eye_test.ratings_history && player.eye_test.ratings_history.length > 1
+                                  ? `\n3-GW Form Curve: ${player.eye_test.ratings_history.map((r) => r.toFixed(1)).join(" → ")}`
+                                  : ""
+                              }`}
                             >
                               <Eye className="h-3 w-3 text-indigo-600" />
                               <span>{player.eye_test.rating.toFixed(1)}</span>
+                              {player.eye_test.trend === "RISING" && (
+                                <TrendingUp className="h-3 w-3 text-emerald-600" />
+                              )}
+                              {player.eye_test.trend === "FALLING" && (
+                                <TrendingDown className="h-3 w-3 text-rose-500" />
+                              )}
                             </span>
                           )}
                         </div>

@@ -40,12 +40,36 @@ export interface PlayerEyeTestSource {
   url?: string;
 }
 
-export interface PlayerEyeTest {
+export interface PlayerEyeTestHistoryMatch {
+  gameweek: number;
+  opponent_name: string;
+  venue: string;
+  score: string;
   rating: number;
   verdict: string;
   tactical_role: string;
   observations: string[];
   summary: string;
+  attack_mult: number;
+  defense_mult: number;
+  sources?: PlayerEyeTestSource[];
+}
+
+export interface PlayerEyeTest {
+  rating: number;
+  weighted_rating?: number;
+  unweighted_mean?: number;
+  trend?: "RISING" | "FALLING" | "STEADY" | "VOLATILE" | string;
+  trend_delta?: number;
+  horizon?: number;
+  matches_evaluated?: number;
+  gameweeks?: number[];
+  ratings_history?: number[];
+  verdict: string;
+  tactical_role: string;
+  observations: string[];
+  summary: string;
+  rolling_tactical_summary?: string;
   attack_multiplier: number;
   defense_multiplier: number;
   gameweek: number;
@@ -53,6 +77,7 @@ export interface PlayerEyeTest {
   score: string;
   venue: string;
   sources: PlayerEyeTestSource[];
+  history?: PlayerEyeTestHistoryMatch[];
 }
 
 export interface Player {

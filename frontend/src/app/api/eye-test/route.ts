@@ -41,11 +41,12 @@ export async function GET(request: NextRequest) {
     // Filter by player_id if requested
     if (playerIdParam) {
       const pid = parseInt(playerIdParam, 10);
+      const playerMatches: any[] = [];
       for (const rep of reports) {
         if (rep.players) {
           for (const p of Object.values(rep.players) as any[]) {
             if (p.element_id === pid) {
-              return NextResponse.json({
+              playerMatches.push({
                 player: p,
                 match: {
                   team_name: rep.team_name,
@@ -60,6 +61,15 @@ export async function GET(request: NextRequest) {
             }
           }
         }
+      }
+      if (playerMatches.length > 0) {
+        playerMatches.sort((a, b) => b.match.gameweek - a.match.gameweek);
+        return NextResponse.json({
+          player_id: pid,
+          player: playerMatches[0].player,
+          match: playerMatches[0].match,
+          history: playerMatches
+        });
       }
       return NextResponse.json({ error: "No eye-test found for player" }, { status: 404 });
     }
