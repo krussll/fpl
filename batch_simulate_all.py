@@ -380,7 +380,7 @@ def sync_all_cache_files(base_dir: str = ".") -> None:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Batch Monte Carlo Simulation & Optimization Engine")
-    parser.add_argument("--gw", type=str, default="3,4,5", help="Comma-separated gameweeks for eye-test window (default: 3,4,5)")
+    parser.add_argument("--gw", type=str, default="4,5,6", help="Comma-separated gameweeks for eye-test window (default: 4,5,6)")
     parser.add_argument("--skip-histories", action="store_true", help="Skip fetching live player histories")
     parser.add_argument("--skip-eye-test", action="store_true", help="Skip eye-test ingestion pipeline")
     parser.add_argument("--overwrite-eye-test", action="store_true", help="Overwrite existing cached eye-test reports")

@@ -25,6 +25,7 @@ class FPLApiClient:
         self._bootstrap_data: Optional[Dict[str, Any]] = None
         self._fixtures_data: Optional[List[Dict[str, Any]]] = None
         self._past_histories_data: Optional[Dict[str, Any]] = None
+        self._recent_histories_data: Optional[Dict[str, Any]] = None
         self._eye_test_manager = None
 
     @property
@@ -99,6 +100,20 @@ class FPLApiClient:
             else:
                 self._past_histories_data = {}
         return self._past_histories_data
+
+    def get_recent_histories(self) -> Dict[str, Any]:
+        """Loads cached recent round-by-round player histories."""
+        if self._recent_histories_data is None:
+            cache_path = os.path.join(self.cache_dir, "player_histories.json")
+            if os.path.exists(cache_path):
+                try:
+                    with open(cache_path, "r", encoding="utf-8") as f:
+                        self._recent_histories_data = json.load(f)
+                except Exception:
+                    self._recent_histories_data = {}
+            else:
+                self._recent_histories_data = {}
+        return self._recent_histories_data
 
     def search_players(self, query: str, limit: int = 8) -> List[Dict[str, Any]]:
         """Search players by query across web_name, first_name, and second_name."""
@@ -379,7 +394,9 @@ class FPLApiClient:
         venue_att_mult = 1.08 if is_home else 0.92
         venue_def_mult = 0.90 if is_home else 1.10
 
-        attack_multiplier = opp_def_ratio * venue_att_mult
+        my_team_att_ratio = max(0.65, min(1.45, my_team_rating.get("att_ratio", 1.0)))
+        team_att_factor = 0.75 + 0.25 * my_team_att_ratio
+        attack_multiplier = opp_def_ratio * venue_att_mult * team_att_factor
 
         # 3. Minutes and Rotation estimation (Granular playing-time tiers)
         total_minutes = raw["minutes"]
@@ -440,6 +457,22 @@ class FPLApiClient:
                 expected_start_mins = 60.0
                 sub_on_prob = 0.10
                 sub_mins_avg = 10.0
+
+        # Check recent match trend from player_histories if available
+        recent_rounds = self.get_recent_histories().get(str(raw.get("id")), [])
+        if recent_rounds and len(recent_rounds) >= 2 and status == "a" and chance_playing is None:
+            last_2 = recent_rounds[-2:]
+            recent_mins = [r.get("minutes", 0) for r in last_2]
+            # If a player was completely benched in the last 2 consecutive matches, dampen start_prob
+            if sum(recent_mins) == 0:
+                start_prob = min(start_prob, 0.35)
+                expected_start_mins = min(expected_start_mins, 65.0)
+                sub_on_prob = max(sub_on_prob, 0.35)
+            elif all(m < 45 for m in recent_mins) and max(recent_mins) > 0:
+                # Regular substitute cameos
+                start_prob = min(start_prob, 0.45)
+                expected_start_mins = min(expected_start_mins, 65.0)
+                sub_on_prob = max(sub_on_prob, 0.40)
 
         # 4. Attacking Rates (Bayesian regression for low sample sizes + Prior blending + Opponent Defense & Venue scaling)
         raw_xg90 = float(raw.get("expected_goals_per_90") or 0.0)
@@ -519,9 +552,10 @@ class FPLApiClient:
         poisson_cs = float(2.71828 ** (-match_team_xgc))
         emp_cs_rate = my_team_rating.get("empirical_cs_rate", 0.28)
         gk_mins = my_team_rating.get("gk_mins", 0)
-        cs_blend_weight = 0.20 * min(1.0, gk_mins / 720.0)
-        clean_sheet_prob = round((1.0 - cs_blend_weight) * poisson_cs + cs_blend_weight * min(0.60, emp_cs_rate), 2)
-        clean_sheet_prob = max(0.05, min(0.65, clean_sheet_prob))
+        # Regress towards league reality (~28% CS) and cap single-match CS probability at 0.48
+        cs_blend_weight = 0.35 * min(1.0, max(0.5, gk_mins / 720.0))
+        clean_sheet_prob = round((1.0 - cs_blend_weight) * poisson_cs + cs_blend_weight * min(0.42, emp_cs_rate), 2)
+        clean_sheet_prob = max(0.05, min(0.48, clean_sheet_prob))
 
         # 6. Current FPL Price (£m)
         price_m = round(float(raw.get("now_cost") or 0) / 10.0, 1)
@@ -595,7 +629,7 @@ class FPLApiClient:
                 scaled_xa90 = round(scaled_xa90 * eye_attack_mult, 2)
                 if position in ["DEF", "GKP"]:
                     # Lower defense multiplier means stingier defense -> better clean sheet chance
-                    clean_sheet_prob = min(0.65, max(0.05, round(clean_sheet_prob / eye_def_mult, 2)))
+                    clean_sheet_prob = min(0.48, max(0.05, round(clean_sheet_prob / eye_def_mult, 2)))
 
         return PlayerProfile(
             name=f"{raw['first_name']} {raw['second_name']}",

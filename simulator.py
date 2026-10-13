@@ -285,9 +285,10 @@ class FPLMonteCarloSimulator:
                 goals_conceded = 0
             else:
                 # If clean sheet is lost, sample goals conceded (at least 1)
-                # We model goals conceded with a Poisson conditioned on >= 1
-                # Truncated approximation: 1 + Poisson(lambda = max(0.1, xGC - 0.7))
-                extra_gc = np.random.poisson(lam=max(0.2, player.team_xGC - 0.7))
+                # Calibrated zero-truncated Poisson: expected goals when conceding = team_xGC / (1 - CS_prob)
+                expected_when_conceding = max(1.35, player.team_xGC / max(0.01, 1.0 - player.team_clean_sheet_prob))
+                lam_extra = max(0.40, min(2.50, expected_when_conceding - 1.0))
+                extra_gc = np.random.poisson(lam=lam_extra)
                 goals_conceded = 1 + extra_gc
                 
                 # Deductions for defenders and goalkeepers (-1 per 2 goals conceded)
@@ -348,7 +349,7 @@ class FPLMonteCarloSimulator:
         elif total_goals == 1 and assists >= 1:
             bonus = np.random.choice([3, 2, 1], p=[0.55, 0.35, 0.10])
         elif total_goals == 1:
-            bonus = np.random.choice([3, 2, 1, 0], p=[0.25, 0.25, 0.20, 0.30])
+            bonus = np.random.choice([3, 2, 1, 0], p=[0.35, 0.30, 0.15, 0.20])
         elif assists >= 1:
             bonus = np.random.choice([2, 1, 0], p=[0.15, 0.25, 0.60])
         elif clean_sheet and player.position == "GKP":
@@ -362,6 +363,10 @@ class FPLMonteCarloSimulator:
         elif defcon_pts >= 2 and player.position in ["DEF", "MID"]:
             # High CBIT or recoveries give a strong boost in BPS
             bonus = np.random.choice([3, 2, 1, 0], p=[0.12, 0.22, 0.26, 0.40])
+
+        # Defenders and Goalkeepers conceding 2+ goals receive heavy BPS penalties and virtually never take bonus
+        if player.position in ["DEF", "GKP"] and goals_conceded >= 2 and total_goals == 0 and assists == 0:
+            bonus = 0
 
         points += bonus
 
