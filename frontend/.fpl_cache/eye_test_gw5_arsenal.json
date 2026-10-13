@@ -1,0 +1,116 @@
+{
+  "team_name": "Arsenal",
+  "opponent_name": "Brighton",
+  "gameweek": 5,
+  "score": "0 - 3",
+  "venue": "Away",
+  "sources": [
+    {
+      "name": "Football.London (Arsenal Desk)",
+      "type": "regional_beat",
+      "url": "https://www.football.london/arsenal-fc/"
+    },
+    {
+      "name": "Evening Standard (Arsenal)",
+      "type": "metropolitan_beat",
+      "url": "https://www.standard.co.uk/sport/football/arsenal"
+    },
+    {
+      "name": "Arsenal Vision Post-Match Podcast",
+      "type": "tactical_podcast",
+      "url": "https://www.youtube.com/@ArsenalVisionPodcast"
+    },
+    {
+      "name": "The Gooner Talk",
+      "type": "fan_channel",
+      "url": "https://www.youtube.com/@TheGoonerTalk"
+    }
+  ],
+  "overall_tactical_summary": "Automated match eye-test debrief for Arsenal GW5.",
+  "players": {
+    "Saka": {
+      "element_id": 12,
+      "name": "Saka",
+      "position": "MID",
+      "rating": 6.5,
+      "verdict": "Eye-Test Evaluated",
+      "tactical_role": "Standard tactical role in match",
+      "observations": [
+        "Looked Arsenal's only genuine threat out wide; delivered multiple dangerous cutbacks (0.55 xA) that lacked clinical finishing."
+      ],
+      "stats_vs_eye_test_summary": "Looked Arsenal's only genuine threat out wide; delivered multiple dangerous cutbacks (0.55 xA) that lacked clinical finishing.",
+      "suggested_attack_mult": 1.05,
+      "suggested_defense_mult": 1.0
+    },
+    "Gabriel": {
+      "element_id": 4,
+      "name": "Gabriel",
+      "position": "DEF",
+      "rating": 5.0,
+      "verdict": "Eye-Test Evaluated",
+      "tactical_role": "Standard tactical role in match",
+      "observations": [
+        "Uncharacteristically overrun on central counter-attacks against fast transitional runners."
+      ],
+      "stats_vs_eye_test_summary": "Uncharacteristically overrun on central counter-attacks against fast transitional runners.",
+      "suggested_attack_mult": 0.95,
+      "suggested_defense_mult": 1.05
+    },
+    "Calafiori": {
+      "element_id": 8,
+      "name": "Calafiori",
+      "position": "DEF",
+      "rating": 5.0,
+      "verdict": "Eye-Test Evaluated",
+      "tactical_role": "Standard tactical role in match",
+      "observations": [
+        "Caught out of position on wide transitions; struggled with 1v1 recoveries."
+      ],
+      "stats_vs_eye_test_summary": "Caught out of position on wide transitions; struggled with 1v1 recoveries.",
+      "suggested_attack_mult": 0.95,
+      "suggested_defense_mult": 1.05
+    },
+    "Rice": {
+      "element_id": 13,
+      "name": "Rice",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Eye-Test Evaluated",
+      "tactical_role": "Standard tactical role in match",
+      "observations": [
+        "Solid work rate in the engine room, but overwhelmed by Brighton's midfield overloads."
+      ],
+      "stats_vs_eye_test_summary": "Solid work rate in the engine room, but overwhelmed by Brighton's midfield overloads.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Raya": {
+      "element_id": 1,
+      "name": "Raya",
+      "position": "GKP",
+      "rating": 5.0,
+      "verdict": "Eye-Test Evaluated",
+      "tactical_role": "Standard tactical role in match",
+      "observations": [
+        "Left completely exposed for the goals; made a couple of routine saves."
+      ],
+      "stats_vs_eye_test_summary": "Left completely exposed for the goals; made a couple of routine saves.",
+      "suggested_attack_mult": 0.95,
+      "suggested_defense_mult": 1.05
+    },
+    "Ødegaard": {
+      "element_id": 15,
+      "name": "Ødegaard",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Eye-Test Evaluated",
+      "tactical_role": "Standard tactical role in match",
+      "observations": [
+        "Industrious pressing from the front, but found space restricted in the final third."
+      ],
+      "stats_vs_eye_test_summary": "Industrious pressing from the front, but found space restricted in the final third.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    }
+  }
+}
