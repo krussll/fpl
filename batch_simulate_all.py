@@ -277,12 +277,12 @@ def regenerate_saved_charts(n_sims: int = 10000) -> None:
             print(f"  (!) Error generating {filename}: {e}")
 
 
-def update_player_histories(base_dir: str = ".") -> None:
+def update_player_histories(base_dir: str = ".", max_round: Optional[int] = 7) -> None:
     """Fetches recent match history for all players and saves to player_histories.json."""
     import urllib.request
     from concurrent.futures import ThreadPoolExecutor
 
-    print("\n[*] Updating player recent match histories from FPL API...")
+    print(f"\n[*] Updating player recent match histories from FPL API (max_round={max_round})...")
     client = FPLApiClient(cache_dir=os.path.join(base_dir, ".fpl_cache"))
     boot = client.get_bootstrap()
     teams_map = {t["id"]: t["name"] for t in boot["teams"]}
@@ -301,6 +301,8 @@ def update_player_histories(base_dir: str = ".") -> None:
                 raw_hist = data.get("history", [])
                 formatted = []
                 for h in raw_hist:
+                    if max_round is not None and h.get("round", 0) > max_round:
+                        continue
                     opp_id = h.get("opponent_team")
                     formatted.append({
                         "round": h.get("round"),
@@ -353,10 +355,10 @@ def update_player_histories(base_dir: str = ".") -> None:
 
 
 def update_eye_test_data(gameweeks: Optional[List[int]] = None, overwrite_existing: bool = False, base_dir: str = ".") -> None:
-    """Ingests and validates eye-test observations across all clubs for the specified gameweeks (default: [3, 4, 5])."""
+    """Ingests and validates eye-test observations across all clubs for the specified gameweeks (default: [5, 6, 7])."""
     from ingest_eye_test import ingest_all_clubs_for_gameweek
     cache_dir = os.path.join(base_dir, ".fpl_cache")
-    target_gws = gameweeks or [3, 4, 5]
+    target_gws = gameweeks or [5, 6, 7]
     for gw in target_gws:
         print(f"\n[*] Updating Eye-Test qualitative scouting reports for GW{gw} across all clubs...")
         ingest_all_clubs_for_gameweek(gameweek=gw, overwrite_existing=overwrite_existing, cache_dir=cache_dir)
@@ -380,7 +382,8 @@ def sync_all_cache_files(base_dir: str = ".") -> None:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Batch Monte Carlo Simulation & Optimization Engine")
-    parser.add_argument("--gw", type=str, default="3,4,5", help="Comma-separated gameweeks for eye-test window (default: 3,4,5)")
+    parser.add_argument("--gw", type=str, default="5,6,7", help="Comma-separated gameweeks for eye-test window (default: 5,6,7)")
+    parser.add_argument("--max-round", type=int, default=7, help="Maximum gameweek round to retain in history (default: 7)")
     parser.add_argument("--skip-histories", action="store_true", help="Skip fetching live player histories")
     parser.add_argument("--skip-eye-test", action="store_true", help="Skip eye-test ingestion pipeline")
     parser.add_argument("--overwrite-eye-test", action="store_true", help="Overwrite existing cached eye-test reports")
@@ -394,7 +397,7 @@ if __name__ == "__main__":
     gw_list = [int(g.strip()) for g in args.gw.split(",") if g.strip()]
 
     if not args.skip_histories:
-        update_player_histories()
+        update_player_histories(max_round=args.max_round)
 
     if not args.skip_eye_test:
         update_eye_test_data(gameweeks=gw_list, overwrite_existing=args.overwrite_eye_test)
