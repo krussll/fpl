@@ -38,24 +38,37 @@ def is_expected_starting_gkp(p: Dict[str, Any]) -> bool:
     return False
 
 
-def is_valid_gkp_pair(g1: Dict[str, Any], g2: Dict[str, Any]) -> bool:
+def is_valid_gkp_pair(g1: Dict[str, Any], g2: Dict[str, Any], strategy: str = 'auto') -> bool:
     """
     Enforces FPL goalkeeper pairing rules and strategies:
     1. Mandatory: At least 1 goalkeeper MUST be expected to start (start_prob >= 50.0%).
        Prevents squads from having two non-playing £4.0m reserve keepers.
     2. Pricing & Structure Strategies:
-       - Premium Starter (> £5.0m, e.g. Raya) paired with a <= £4.0m reserve backup (deadspot).
-       - Rotating Budget Keepers (both <= £5.0m, with at least one <= £4.5m).
+       - Strategy 1 ('strategy_1'): Premium Starter (> £5.0m, e.g. Raya) paired with a <= £4.0m reserve backup (deadspot).
+       - Strategy 2 ('strategy_2'): Rotating Budget Keepers (both <= £5.0m, with at least one <= £4.5m). Both expected to start.
+       - 'auto': Validates against either Strategy 1 or Strategy 2.
     Never permits two expensive keepers without rotation value (e.g. £5.0m + £5.0m or £6.0m + £5.0m).
     """
-    # Mandatory rule: At least 1 goalkeeper must be expected to start
-    if not (is_expected_starting_gkp(g1) or is_expected_starting_gkp(g2)):
+    start1 = is_expected_starting_gkp(g1)
+    start2 = is_expected_starting_gkp(g2)
+    if not (start1 or start2):
         return False
 
     prices = sorted([float(g1.get('price', 0.0)), float(g2.get('price', 0.0))])
-    if prices[1] > 5.0:
-        return prices[0] <= 4.0
-    return prices[1] <= 5.0 and prices[0] <= 4.5
+
+    # Strategy 1: Exactly 1 premium starter (> 5.0) + 1 deadspot reserve (<= 4.0)
+    is_strat1 = (prices[1] > 5.0 and prices[0] <= 4.0 and (
+        (float(g1.get('price', 0.0)) > 5.0 and start1) or (float(g2.get('price', 0.0)) > 5.0 and start2)
+    ))
+
+    # Strategy 2: Rotating budget keepers (both <= 5.0, at least one <= 4.5, BOTH expected to start)
+    is_strat2 = (prices[1] <= 5.0 and prices[0] <= 4.5 and start1 and start2)
+
+    if strategy == 'strategy_1':
+        return is_strat1
+    elif strategy == 'strategy_2':
+        return is_strat2
+    return is_strat1 or is_strat2
 
 
 def get_gkp_rotation_schedule(g1: Dict[str, Any], g2: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -149,9 +162,10 @@ def pick_best_starting_xi(squad: List[Dict[str, Any]], score_key: str = 'xp') ->
             reverse=True
         )
     else:
+        # Prioritize mean projected expected points (xp) first, breaking ties with haul probability and ceiling
         captain_candidates = sorted(
             best_starters,
-            key=lambda x: (x.get('haul_prob', 0.0), x.get('ceiling', 0.0), x.get('xp', 0.0)),
+            key=lambda x: (x.get('xp', 0.0), x.get('haul_prob', 0.0), x.get('ceiling', 0.0)),
             reverse=True
         )
     captain = captain_candidates[0] if captain_candidates else None
@@ -195,18 +209,25 @@ def pick_best_starting_xi(squad: List[Dict[str, Any]], score_key: str = 'xp') ->
     }
 
 
-def solve_optimal_squad(
+def _get_player_score(p: Dict[str, Any], score_key: str) -> float:
+    base = p.get(score_key, 0.0)
+    # Calibrated reliability discounting for budget goalkeepers (<= £5.0m):
+    # Budget clubs exhibit severe clean sheet volatility (e.g. 0% CS across GW7-9)
+    # Applying a 0.90x reliability weighting prevents false equivalence with premium elite defenses
+    if score_key == 'xp' and p.get('position') == 'GKP' and p.get('price', 0.0) <= 5.0:
+        return base * 0.90
+    return base
+
+
+def _solve_squad_single_strategy(
     all_players: List[Dict[str, Any]],
     budget: float = 100.0,
     max_per_team: int = 3,
     locked_ids: Optional[List[int]] = None,
     excluded_ids: Optional[List[int]] = None,
-    objective: str = 'xp'
+    objective: str = 'xp',
+    gkp_strategy: str = 'strategy_1'
 ) -> Dict[str, Any]:
-    """
-    Selects a 15-player squad (2 GKP, 5 DEF, 5 MID, 3 FWD) that maximizes the objective
-    (expected points 'xp', ceiling 'ceiling', or value 'ppm') within budget and team limits.
-    """
     locked_ids = set(locked_ids or [])
     excluded_ids = set(excluded_ids or [])
 
@@ -223,11 +244,49 @@ def solve_optimal_squad(
         t = p.get('team', 'Unknown')
         team_counts[t] = team_counts.get(t, 0) + 1
 
+    # Initialize GKP slots for the specific strategy if not locked
+    if pos_counts['GKP'] < 2:
+        if gkp_strategy == 'strategy_1':
+            reserves = sorted([p for p in pool if p['position'] == 'GKP' and p['price'] <= 4.0 and p['id'] not in current_ids], key=lambda x: x['price'])
+            premiums = sorted([p for p in pool if p['position'] == 'GKP' and p['price'] > 5.0 and is_expected_starting_gkp(p) and p['id'] not in current_ids], key=lambda x: (x['price'], -_get_player_score(x, score_key)))
+            if reserves and pos_counts['GKP'] < 1:
+                p_res = reserves[0]
+                current_squad.append(p_res)
+                current_ids.add(p_res['id'])
+                pos_counts['GKP'] += 1
+                t = p_res.get('team', 'Unknown')
+                team_counts[t] = team_counts.get(t, 0) + 1
+            if premiums and pos_counts['GKP'] < 2:
+                p_prem = next((p for p in premiums if team_counts.get(p.get('team'), 0) < max_per_team), premiums[0])
+                current_squad.append(p_prem)
+                current_ids.add(p_prem['id'])
+                pos_counts['GKP'] += 1
+                t = p_prem.get('team', 'Unknown')
+                team_counts[t] = team_counts.get(t, 0) + 1
+        elif gkp_strategy == 'strategy_2':
+            budget_starters = sorted([p for p in pool if p['position'] == 'GKP' and p['price'] <= 5.0 and is_expected_starting_gkp(p) and p['id'] not in current_ids], key=lambda x: (x['price'], -_get_player_score(x, score_key)))
+            if budget_starters:
+                for p in budget_starters:
+                    if pos_counts['GKP'] >= 2:
+                        break
+                    t = p.get('team', 'Unknown')
+                    if team_counts.get(t, 0) >= max_per_team:
+                        continue
+                    existing_gkp = next((x for x in current_squad if x['position'] == 'GKP'), None)
+                    if existing_gkp and not is_valid_gkp_pair(existing_gkp, p, strategy='strategy_2'):
+                        continue
+                    current_squad.append(p)
+                    current_ids.add(p['id'])
+                    pos_counts['GKP'] += 1
+                    team_counts[t] = team_counts.get(t, 0) + 1
+
     # Fill remaining slots with the cheapest viable players to guarantee budget feasibility
     for pos, target in pos_targets.items():
+        if pos_counts[pos] >= target:
+            continue
         cheapest_pos = sorted(
             [p for p in pool if p['position'] == pos and p['id'] not in current_ids],
-            key=lambda p: (p['price'], -p.get(score_key, 0.0))
+            key=lambda p: (p['price'], -_get_player_score(p, score_key))
         )
         for p in cheapest_pos:
             if pos_counts[pos] >= target:
@@ -237,7 +296,7 @@ def solve_optimal_squad(
                 continue
             if pos == 'GKP':
                 existing_gkp = next((x for x in current_squad if x['position'] == 'GKP'), None)
-                if existing_gkp and not is_valid_gkp_pair(existing_gkp, p):
+                if existing_gkp and not is_valid_gkp_pair(existing_gkp, p, strategy=gkp_strategy):
                     continue
             current_squad.append(p)
             current_ids.add(p['id'])
@@ -263,12 +322,12 @@ def solve_optimal_squad(
                     continue
                 if curr['position'] == 'GKP':
                     other_gkp = next((x for x in current_squad if x['position'] == 'GKP' and x['id'] != curr['id']), None)
-                    if other_gkp and not is_valid_gkp_pair(other_gkp, cand):
+                    if other_gkp and not is_valid_gkp_pair(other_gkp, cand, strategy=gkp_strategy):
                         continue
                 cost_diff = cand['price'] - curr['price']
                 if total_cost + cost_diff > budget:
                     continue
-                gain = cand.get(score_key, 0.0) - curr.get(score_key, 0.0)
+                gain = _get_player_score(cand, score_key) - _get_player_score(curr, score_key)
                 if gain > best_gain:
                     best_gain = gain
                     best_swap = (i, curr, cand, cost_diff)
@@ -300,6 +359,66 @@ def solve_optimal_squad(
         'total_squad_ownership': round(total_squad_ownership, 1),
         'starting_xi': xi_analysis
     }
+
+
+def solve_optimal_squad(
+    all_players: List[Dict[str, Any]],
+    budget: float = 100.0,
+    max_per_team: int = 3,
+    locked_ids: Optional[List[int]] = None,
+    excluded_ids: Optional[List[int]] = None,
+    objective: str = 'xp',
+    gkp_strategy: str = 'auto'
+) -> Dict[str, Any]:
+    """
+    Selects a 15-player squad (2 GKP, 5 DEF, 5 MID, 3 FWD) that maximizes the objective
+    (expected points 'xp', ceiling 'ceiling', or value 'ppm') within budget and team limits.
+    
+    Supports tactical Goalkeeper strategies per AGENTS.md rules:
+    - 'strategy_1': "Set-and-Forget" Premium Goalkeeper (> £5.0m starter + £4.0m deadspot reserve).
+    - 'strategy_2': "Rotating Budget Goalkeepers" (two playing starters <= £5.0m, at least one <= £4.5m).
+    - 'auto': Solves both strategies and evaluates effective starting XI output, preferring Strategy 1
+              when within 0.25 pts to avoid clean sheet wipeout risk and bench traps.
+    """
+    if gkp_strategy in ('strategy_1', 'strategy_2'):
+        return _solve_squad_single_strategy(
+            all_players=all_players,
+            budget=budget,
+            max_per_team=max_per_team,
+            locked_ids=locked_ids,
+            excluded_ids=excluded_ids,
+            objective=objective,
+            gkp_strategy=gkp_strategy
+        )
+
+    # In 'auto' mode: solve both Strategy 1 and Strategy 2
+    res_strat1 = _solve_squad_single_strategy(
+        all_players=all_players,
+        budget=budget,
+        max_per_team=max_per_team,
+        locked_ids=locked_ids,
+        excluded_ids=excluded_ids,
+        objective=objective,
+        gkp_strategy='strategy_1'
+    )
+    res_strat2 = _solve_squad_single_strategy(
+        all_players=all_players,
+        budget=budget,
+        max_per_team=max_per_team,
+        locked_ids=locked_ids,
+        excluded_ids=excluded_ids,
+        objective=objective,
+        gkp_strategy='strategy_2'
+    )
+
+    xp1 = res_strat1['starting_xi']['starting_xp']
+    xp2 = res_strat2['starting_xi']['starting_xp']
+
+    # Prefer Strategy 1 ("Set-and-Forget" Premium Goalkeeper) if within 0.25 pts of Strategy 2,
+    # as Strategy 1 eliminates rotation risk and captures elite defensive consistency (e.g. Raya)
+    if xp1 >= (xp2 - 0.25):
+        return res_strat1
+    return res_strat2
 
 
 def generate_optimal_squad_for_horizon(
@@ -363,10 +482,10 @@ def generate_optimal_squad_for_horizon(
     starters_raw = xi["starters"]
     bench_raw = xi["bench"]
 
-    # Select captain and vice captain (highest haul_prob, ceiling, and xp)
+    # Select captain and vice captain (highest xp, haul_prob, and ceiling)
     captain_candidates = sorted(
         starters_raw,
-        key=lambda x: (x.get("haul_prob", 0.0), x.get("ceiling", 0.0), x.get("xp", 0.0)),
+        key=lambda x: (x.get("xp", 0.0), x.get("haul_prob", 0.0), x.get("ceiling", 0.0)),
         reverse=True
     )
     cap_p = captain_candidates[0] if captain_candidates else starters_raw[0]

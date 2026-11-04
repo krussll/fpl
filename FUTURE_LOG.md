@@ -484,3 +484,36 @@ Modeled directly after the modern, clean layout of [NowNext.live/blog](https://n
 - Static Site Generation (SSG) with `generateStaticParams` for instant page loads and optimal SEO crawling.
 - Dynamic OpenGraph metadata, article schema tags, and keyword tags for each slug.
 - Integrated "Blog" links into desktop header, mobile drawer menu, footer information list, footer bottom bar, and home page feature section.
+
+
+---
+
+## 18. GW7–GW9 Empirical Calibration: Captaincy Prioritization, Pep Roulette Multiplier, Defender Set-Piece BPS, and Goalkeeper Strategy Dual-Solving [COMPLETED]
+
+### Status: Complete
+Implemented 4 core calibration points in response to the empirical review of Gameweeks 7, 8, and 9:
+
+1. **Captaincy Selection Sorting Order Fix (`optimizer.py`)**:
+   - **Fix**: Changed the captain candidate sorting hierarchy from `(haul_prob, ceiling, xp)` to strictly prioritize mean projected expected points (`xp`) first: `(x.get('xp', 0.0), x.get('haul_prob', 0.0), x.get('ceiling', 0.0))`.
+   - **Empirical Validation**: In GW8, Mbeumo (5.38 xP, 20.2% haul prob) had leapfrogged Haaland (5.87 xP, 19.0% haul prob), costing 8 net points when Haaland scored 8 pts and Mbeumo blanked with 2 pts. The new logic guarantees high-xP premium anchors retain captaincy priority.
+
+2. **Pep Roulette / High-Depth Squad Rotation Multiplier (`fpl_api.py` & `simulator.py`)**:
+   - **Fix**: Detected high-depth rotation-heavy clubs (`Man City`, `Chelsea`). Non-nailed outfield players receive:
+     - `start_prob` dampened by 10% (`round(min(start_prob, 0.82) * 0.90, 2)`).
+     - `expected_start_mins` capped at 70.0.
+     - `start_mins_std` widened to 14.0.
+     - In `simulator.py`, added an explicit ~12% probability of a 45-minute tactical half-time hook when `start_mins_std >= 12.0`.
+   - **Empirical Validation**: Correctly accounts for Cherki (0 mins GW7, 45 mins GW8, 35 mins GW9) and Foden (45 mins GW8), eliminating false 6.0+ xP expectations on non-nailed assets.
+
+3. **Aerial Set-Piece Threat & BPS Calibration for Defenders (`fpl_api.py` & `simulator.py`)**:
+   - **Fix**:
+     - In `fpl_api.py`, defenders with demonstrated set-piece aerial threat (Opta threat rank $\le 25$, threat score $\ge 80$, or raw xG90 $\ge 0.08$) have their attacking prior blended with their aerial baseline (`min(0.18, max(0.08, raw_xg90 * 0.85))`) rather than shrunk to the generic 0.05 defender floor.
+     - In `simulator.py`, defender Goal + Clean Sheet BPS probability for 3 bonus points was raised to 92% (`p=[0.92, 0.06, 0.02]`), and dedicated BPS sampling branches were added for defender Assist + Clean Sheet (40% 3-bonus, 40% 2-bonus) and solo defender goals.
+   - **Empirical Validation**: Fixes the +2.01 pt defender underprojection observed across GW7-9 (Gabriel 17 pts, Van Hecke 15 pts, Vuskovic 11 pts).
+
+4. **Goalkeeper Strategy Dual-Solving & Reliability Weighting (`optimizer.py`)**:
+   - **Fix**:
+     - Applied a calibrated `0.90x` reliability weighting on budget goalkeeper ($\le £5.0\text{m}$) projected xP during candidate evaluation to reflect high clean-sheet wipeout volatility in mid/lower-tier defenses.
+     - Extended `solve_optimal_squad(..., gkp_strategy='auto')` to solve under both **Strategy 1** ("Set-and-Forget" Premium Goalkeeper: $> £5.0\text{m}$ starter + $£4.0\text{m}$ deadspot reserve) and **Strategy 2** ("Rotating Budget Goalkeepers": two starters $\le £5.0\text{m}$, at least one $\le £4.5\text{m}$).
+     - Automatically compares Starting XI output and selects Strategy 1 when within 0.25 xP to avoid rotation traps.
+   - **Empirical Validation**: In GW7–9, Strategy 2 realized only 5 points (with 10 points stranded on the bench), while Strategy 1 (David Raya) scored 21 points (+16 pts advantage). The updated optimizer selected Strategy 1 for GW10 (Pickford £5.5m + Sharman-Lowe £4.0m deadspot).

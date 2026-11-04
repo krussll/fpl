@@ -218,11 +218,17 @@ class FPLMonteCarloSimulator:
         # 1. Simulate playing time (minutes)
         rand_role = np.random.rand()
         if rand_role < player.start_prob:
-            # Player starts: normal distribution clipped between 45 and 90
-            mins = int(np.clip(
-                np.random.normal(player.expected_start_mins, player.start_mins_std),
-                45, 90
-            ))
+            # Tactical half-time substitution check:
+            # Non-nailed players on rotation-heavy squads (start_mins_std >= 12.0)
+            # face a realistic ~12% probability of being hooked at half-time (45 mins)
+            if player.start_mins_std >= 12.0 and np.random.rand() < 0.12:
+                mins = 45
+            else:
+                # Player starts: normal distribution clipped between 45 and 90
+                mins = int(np.clip(
+                    np.random.normal(player.expected_start_mins, player.start_mins_std),
+                    45, 90
+                ))
         else:
             # Did not start: check if brought on as a substitute
             # Conditional probability of sub given not starting
@@ -357,8 +363,14 @@ class FPLMonteCarloSimulator:
         elif total_goals >= 2:
             bonus = np.random.choice([3, 2], p=[0.75, 0.25])
         elif clean_sheet and total_goals >= 1 and player.position == "DEF":
-            # Defender with Goal + Clean Sheet (e.g. Gabriel, Konsa) virtually guarantees 3 bonus (BPS > 40)
-            bonus = np.random.choice([3, 2, 1], p=[0.80, 0.15, 0.05])
+            # Defender with Goal + Clean Sheet (e.g. Gabriel, Van Hecke) virtually guarantees 3 bonus (BPS >= 36)
+            bonus = np.random.choice([3, 2, 1], p=[0.92, 0.06, 0.02])
+        elif clean_sheet and assists >= 1 and player.position == "DEF":
+            # Defender with Assist + Clean Sheet (e.g. Vuskovic) reaches ~27 BPS, capturing 2-3 bonus frequently
+            bonus = np.random.choice([3, 2, 1, 0], p=[0.40, 0.40, 0.15, 0.05])
+        elif not clean_sheet and total_goals >= 1 and player.position == "DEF":
+            # Defender with Goal (12 BPS from goal + open play defensive actions)
+            bonus = np.random.choice([3, 2, 1, 0], p=[0.50, 0.30, 0.15, 0.05])
         elif total_goals == 1 and assists >= 1:
             bonus = np.random.choice([3, 2, 1], p=[0.55, 0.35, 0.10])
         elif total_goals == 1:
