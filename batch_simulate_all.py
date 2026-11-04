@@ -277,7 +277,7 @@ def regenerate_saved_charts(n_sims: int = 10000) -> None:
             print(f"  (!) Error generating {filename}: {e}")
 
 
-def update_player_histories(base_dir: str = ".", max_round: Optional[int] = 8) -> None:
+def update_player_histories(base_dir: str = ".", max_round: Optional[int] = 9) -> None:
     """Fetches recent match history for all players and saves to player_histories.json."""
     import urllib.request
     from concurrent.futures import ThreadPoolExecutor
@@ -382,8 +382,8 @@ def sync_all_cache_files(base_dir: str = ".") -> None:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Batch Monte Carlo Simulation & Optimization Engine")
-    parser.add_argument("--gw", type=str, default="6,7,8", help="Comma-separated gameweeks for eye-test window (default: 6,7,8)")
-    parser.add_argument("--max-round", type=int, default=8, help="Maximum gameweek round to retain in history (default: 8)")
+    parser.add_argument("--gw", type=str, default="7,8,9", help="Comma-separated gameweeks for eye-test window (default: 7,8,9)")
+    parser.add_argument("--max-round", type=int, default=9, help="Maximum gameweek round to retain in history (default: 9)")
     parser.add_argument("--skip-histories", action="store_true", help="Skip fetching live player histories")
     parser.add_argument("--skip-eye-test", action="store_true", help="Skip eye-test ingestion pipeline")
     parser.add_argument("--overwrite-eye-test", action="store_true", help="Overwrite existing cached eye-test reports")

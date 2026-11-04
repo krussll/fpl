@@ -492,6 +492,27 @@ class FPLApiClient:
                 start_prob = max(start_prob, 0.88)
                 expected_start_mins = max(expected_start_mins, 80.0)
 
+        # Point 2: Club-Specific Squad Depth / Early Substitution Factor ("Pep Roulette Multiplier")
+        # Clubs with elite tactical bench depth and high substitution churn (e.g. Man City, Chelsea)
+        HIGH_ROTATION_TEAMS = {"Man City", "Chelsea"}
+        starts_cnt = raw.get("starts", 0)
+        mins_per_start = (total_minutes / max(1, starts_cnt)) if starts_cnt > 0 else (total_minutes / max(1, round(total_minutes / 75.0)))
+
+        start_mins_std = 8.0
+        if team_name in HIGH_ROTATION_TEAMS and position in ["DEF", "MID", "FWD"]:
+            # Check if truly an irreplaceable 90-minute pillar (e.g., Haaland, Palmer, Gvardiol)
+            is_nailed_pillar = (starts_cnt >= 5 and mins_per_start >= 84.0 and total_minutes >= 450)
+            if not is_nailed_pillar:
+                # 1. Dampen start probability slightly to reflect constant rotation risk
+                start_prob = round(min(start_prob, 0.82) * 0.90, 2)
+                # 2. Lower expected starting minutes to reflect frequent 60-70 min tactical hooks
+                expected_start_mins = min(expected_start_mins, 70.0)
+                # 3. Increase standard deviation to 14.0 so bimodal sub-60 min exits (and 45m HT hooks) can be sampled
+                start_mins_std = 14.0
+                # 4. Elevated substitute cameo rate if benched
+                sub_on_prob = max(sub_on_prob, 0.35)
+                sub_mins_avg = min(sub_mins_avg, 22.0)
+
         # 4. Attacking Rates (Bayesian regression for low sample sizes + Prior blending + Opponent Defense & Venue scaling)
         raw_xg90 = float(raw.get("expected_goals_per_90") or 0.0)
         raw_xa90 = float(raw.get("expected_assists_per_90") or 0.0)
@@ -528,6 +549,16 @@ class FPLApiClient:
         else:
             prior_xg90 = pos_default_xg
             prior_xa90 = pos_default_xa
+
+        # Point 3: Aerial Set-Piece Threat Prior Calibration for Defenders
+        # Elite aerial targets (Gabriel, Vuskovic, Van Hecke, Tarkowski) should not have their attacking
+        # baseline shrunk down to the generic 0.05 defender floor
+        if position == "DEF":
+            threat_val = float(raw.get("threat") or 0.0)
+            threat_rank = int(raw.get("threat_rank_type") or 999)
+            if raw_xg90 >= 0.08 or threat_rank <= 25 or threat_val >= 80.0:
+                def_aerial_prior = min(0.18, max(0.08, raw_xg90 * 0.85))
+                prior_xg90 = max(prior_xg90, def_aerial_prior)
 
         # Point 1: Extended Bayesian shrinkage sample window (1,080 minutes / ~12 matches)
         att_sample_mins = 1080.0
@@ -662,7 +693,7 @@ class FPLApiClient:
             price=price_m,
             start_prob=start_prob,
             expected_start_mins=expected_start_mins,
-            start_mins_std=8.0,
+            start_mins_std=start_mins_std,
             sub_on_prob=sub_on_prob,
             sub_mins_avg=sub_mins_avg,
             npxG90=scaled_npxg90,
