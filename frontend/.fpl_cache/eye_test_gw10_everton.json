@@ -1,0 +1,278 @@
+{
+  "team_name": "Everton",
+  "opponent_name": "Coventry City",
+  "gameweek": 10,
+  "score": "3 - 1",
+  "venue": "Home",
+  "sources": [
+    {
+      "name": "Liverpool Echo (Everton Desk)",
+      "type": "regional_beat",
+      "url": "https://www.liverpoolecho.co.uk/all-about/everton-fc"
+    },
+    {
+      "name": "Toffee TV",
+      "type": "fan_channel",
+      "url": "https://www.youtube.com/@ToffeeTVEFC"
+    },
+    {
+      "name": "The Blue Room",
+      "type": "fan_podcast",
+      "url": "https://www.youtube.com/@TheBlueRoomEFC"
+    }
+  ],
+  "overall_tactical_summary": "Everton faced Coventry City (3 - 1) in GW10 (Home). Tactical review highlights key contributions across the starting XI and substitutes.",
+  "players": {
+    "Johnson": {
+      "element_id": 209,
+      "name": "Johnson",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 17 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (17 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Pickford": {
+      "element_id": 226,
+      "name": "Pickford",
+      "position": "GKP",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Tarkowski": {
+      "element_id": 229,
+      "name": "Tarkowski",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Branthwaite": {
+      "element_id": 230,
+      "name": "Branthwaite",
+      "position": "DEF",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 88 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Keane": {
+      "element_id": 231,
+      "name": "Keane",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 1 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (1 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "O'Brien": {
+      "element_id": 232,
+      "name": "O'Brien",
+      "position": "DEF",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 17 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (17 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Mykolenko": {
+      "element_id": 233,
+      "name": "Mykolenko",
+      "position": "DEF",
+      "rating": 7.5,
+      "verdict": "High Impact",
+      "tactical_role": "Key transition and creative link; consistently pressured opponent.",
+      "observations": [
+        "Directly contributed to match result (8 pts)",
+        "Positive ball progression through opponent lines",
+        "High energy off the ball"
+      ],
+      "stats_vs_eye_test_summary": "Strong showing (8 pts); eye test confirms high involvement in key moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 0.95
+    },
+    "Dewsbury-Hall": {
+      "element_id": 236,
+      "name": "Dewsbury-Hall",
+      "position": "MID",
+      "rating": 7.5,
+      "verdict": "High Impact",
+      "tactical_role": "Key transition and creative link; consistently pressured opponent.",
+      "observations": [
+        "Directly contributed to match result (9 pts)",
+        "Positive ball progression through opponent lines",
+        "High energy off the ball"
+      ],
+      "stats_vs_eye_test_summary": "Strong showing (9 pts); eye test confirms high involvement in key moments.",
+      "suggested_attack_mult": 1.1,
+      "suggested_defense_mult": 1.0
+    },
+    "Garner": {
+      "element_id": 239,
+      "name": "Garner",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 90 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "George": {
+      "element_id": 242,
+      "name": "George",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 89 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Alcaraz": {
+      "element_id": 243,
+      "name": "Alcaraz",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 1 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (1 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Armstrong": {
+      "element_id": 244,
+      "name": "Armstrong",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 72 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Dibling": {
+      "element_id": 245,
+      "name": "Dibling",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 72 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Röhl": {
+      "element_id": 246,
+      "name": "Röhl",
+      "position": "MID",
+      "rating": 6.0,
+      "verdict": "Steady Floor",
+      "tactical_role": "Occupied designated positional zone; limited cut-through.",
+      "observations": [
+        "Played 72 minutes as starter",
+        "Maintained defensive and positional responsibilities",
+        "Lacked breakthrough moments in final third"
+      ],
+      "stats_vs_eye_test_summary": "Steady presence; eye test showed sound execution despite lower fantasy return.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Hackney": {
+      "element_id": 247,
+      "name": "Hackney",
+      "position": "MID",
+      "rating": 5.5,
+      "verdict": "Impact Substitute",
+      "tactical_role": "Brought on to inject fresh energy and alter game dynamics.",
+      "observations": [
+        "Came on for 17 minute cameo",
+        "Worked hard off the ball in transition"
+      ],
+      "stats_vs_eye_test_summary": "Limited time on pitch (17 mins); worked hard to press in closing stages.",
+      "suggested_attack_mult": 1.0,
+      "suggested_defense_mult": 1.0
+    },
+    "Barry": {
+      "element_id": 249,
+      "name": "Barry",
+      "position": "FWD",
+      "rating": 8.5,
+      "verdict": "Match Winner",
+      "tactical_role": "Decisive focal point; dominated dangerous zones in final third.",
+      "observations": [
+        "Delivered 16 fantasy points in 90 minutes",
+        "Consistently occupied high-xG shooting spaces",
+        "Primary catalyst in team's attacking phases"
+      ],
+      "stats_vs_eye_test_summary": "Outstanding match influence (16 pts); converted key attacking phases.",
+      "suggested_attack_mult": 1.15,
+      "suggested_defense_mult": 1.0
+    }
+  }
+}
